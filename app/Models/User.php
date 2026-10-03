@@ -148,6 +148,30 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Limit the query to people with no staff role at a school they belong to.
+     *
+     * This is the query form of worksAsStaff().
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeNotStaff(Builder $query): Builder
+    {
+        $roles = config('permission.table_names.model_has_roles');
+
+        return $query->whereNotExists(fn ($staffRole) => $staffRole
+            ->from($roles)
+            ->join('roles', 'roles.id', '=', "$roles.role_id")
+            ->where("$roles.model_type", $this->getMorphClass())
+            ->whereColumn("$roles.model_id", 'users.id')
+            ->whereNotIn('roles.name', [Role::Student->value, Role::Parent->value])
+            ->whereIn("$roles.school_id", SchoolMembership::query()
+                ->whereColumn('school_memberships.user_id', 'users.id')
+                ->where('status', SchoolMembershipStatus::Active)
+                ->select('school_id')));
+    }
+
+    /**
      * Limit the query to people who can work in the given school.
      *
      * @param  Builder  $query

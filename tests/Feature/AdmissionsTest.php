@@ -7,6 +7,7 @@ use App\Actions\Admissions\JoinWaitlist;
 use App\Actions\Admissions\OfferNextWaitlistEntry;
 use App\Actions\Enrollment\ChangeEnrollmentPlacement;
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
+use App\Enums\AcademicPeriodStatus;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AdmissionWaitlistStatus;
 use App\Enums\AuditAction;
@@ -411,6 +412,67 @@ class AdmissionsTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertSame(AdmissionWaitlistStatus::Declined, $entry->fresh()->status);
+    }
+
+    public function test_a_member_of_staff_cannot_join_the_waitlist(): void
+    {
+        $section = $this->section(1);
+        app(ChangeEnrollmentPlacement::class)->place($this->unplacedStudent(), $section);
+        $teacher = $this->memberOf($this->workingSchool(), User::factory()->create());
+        $teacher->assignRole(Role::Teacher);
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('works as staff');
+
+        app(JoinWaitlist::class)->join($section, $teacher);
+    }
+
+    public function test_the_board_offers_only_full_sections_and_people_who_can_wait(): void
+    {
+        $school = $this->workingSchool();
+        $full = $this->section(1);
+        app(ChangeEnrollmentPlacement::class)->place($this->unplacedStudent(), $full);
+        $roomy = $this->section(5);
+        $closed = $this->section(1);
+        app(ChangeEnrollmentPlacement::class)->place($this->unplacedStudent(), $closed);
+        $closed->academicYear->forceFill(['status' => AcademicPeriodStatus::Closed])->save();
+
+        $family = $this->memberOf($school, User::factory()->create(['name' => 'Waiting Family']));
+        $teacher = $this->memberOf($school, User::factory()->create(['name' => 'Staff Teacher']));
+        $teacher->assignRole(Role::Teacher);
+        $suspended = StudentRecord::factory()->create(['school_id' => $school->id, 'status' => EnrollmentStatus::Suspended])->user;
+        $this->authorized_user(['read admission waitlist', 'manage admission waitlist']);
+        auth()->user()->assignRole(Role::Admin);
+
+        $view = Livewire::test(AdmissionWaitlistBoard::class)->viewData('sections');
+        $this->assertSame([$full->id], $view->pluck('id')->all());
+
+        $candidates = Livewire::test(AdmissionWaitlistBoard::class)->viewData('candidates')->pluck('id');
+        $this->assertTrue($candidates->contains($family->id));
+        $this->assertFalse($candidates->contains($teacher->id));
+        $this->assertFalse($candidates->contains($suspended->id));
+        $this->assertFalse($candidates->contains(auth()->id()));
+    }
+
+    public function test_only_the_next_candidate_in_a_section_has_an_offer_button(): void
+    {
+        $section = $this->section(1);
+        $occupied = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($occupied, $section);
+        $first = app(JoinWaitlist::class)->join($section, $this->memberOf($this->workingSchool(), User::factory()->create()), priority: 1);
+        $second = app(JoinWaitlist::class)->join($section, $this->memberOf($this->workingSchool(), User::factory()->create()));
+        app(ChangeEnrollmentStatus::class)->graduate($occupied);
+        $this->authorized_user(['read admission waitlist', 'manage admission waitlist']);
+
+        $board = Livewire::test(AdmissionWaitlistBoard::class)
+            ->assertViewHas('nextEntryIds', [$first->id])
+            ->assertSeeHtml("offer({$first->id})")
+            ->assertDontSeeHtml("offer({$second->id})")
+            ->call('offer', $first->id)
+            ->assertDispatched('status-message', type: 'success', message: "Offered a place to {$first->candidate->name}.");
+
+        $this->assertSame(AdmissionWaitlistStatus::Offered, $first->fresh()->status);
+        $board->assertDontSeeHtml("offer({$second->id})");
     }
 
     private function section(int $capacity): AcademicCycleSection

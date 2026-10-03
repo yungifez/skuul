@@ -100,6 +100,10 @@ class JoinWaitlist
             throw new InvalidValueException('This candidate does not belong to the school.');
         }
 
+        if ($candidate->worksAsStaff()) {
+            throw new InvalidValueException("{$candidate->name} works as staff. A member of staff cannot be admitted as a learner.");
+        }
+
         if (StudentRecord::query()
             ->where('school_id', $section->school_id)
             ->where('user_id', $candidate->id)

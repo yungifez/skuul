@@ -77,13 +77,13 @@
                                     <td class="p-3">{{ $entry->status->label() }}</td>
                                     <td class="p-3 text-right">
                                         @can('update', $entry)
-                                            @if ($entry->status === \App\Enums\AdmissionWaitlistStatus::Pending)
-                                                <april:button type="button" size="sm" variant="outline" wire:click="offer({{ $entry->id }})" wire:loading.attr="disabled">Offer place</april:button>
+                                            @if (in_array($entry->id, $nextEntryIds, true))
+                                                <april:button type="button" variant="outline" class="h-11" wire:click="offer({{ $entry->id }})" wire:loading.attr="disabled">Offer place</april:button>
                                             @elseif ($entry->status === \App\Enums\AdmissionWaitlistStatus::Offered)
-                                                <april:button type="button" size="sm" wire:click="accept({{ $entry->id }})" wire:loading.attr="disabled">Accept and enrol</april:button>
+                                                <april:button type="button" class="h-11" wire:click="accept({{ $entry->id }})" wire:loading.attr="disabled">Accept and enrol</april:button>
                                             @endif
                                             @if ($entry->isOpen())
-                                                <april:button type="button" size="sm" variant="ghost" wire:click="decline({{ $entry->id }})" wire:confirm="Decline this admission place?" wire:loading.attr="disabled">Decline</april:button>
+                                                <april:button type="button" variant="ghost" class="h-11" wire:click="decline({{ $entry->id }})" wire:confirm="Decline the place for {{ $entry->candidate?->name }}?" wire:loading.attr="disabled">Decline</april:button>
                                             @endif
                                         @endcan
                                     </td>
