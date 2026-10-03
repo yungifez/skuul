@@ -83,7 +83,7 @@
                     <h3 id="status-form-heading" class="text-sm font-semibold">Change enrollment status</h3>
                     <div class="grid gap-3 sm:grid-cols-[12rem_10rem_1fr]">
                         <div>
-                            <label for="status-selection" class="sr-only">New status</label>
+                            <label for="status-selection" class="mb-1.5 block text-sm font-medium">New status</label>
                             <select id="status-selection" wire:model="statusSelection" class="{{ $controlClasses }}" {{ field_error_bindings('statusSelection') }}>
                                 @foreach ($statusOptions as $option)
                                     <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
@@ -91,12 +91,12 @@
                             </select>
                         </div>
                         <div>
-                            <label for="status-effective-on" class="sr-only">Effective on</label>
+                            <label for="status-effective-on" class="mb-1.5 block text-sm font-medium">Effective on</label>
                             <input type="date" id="status-effective-on" wire:model="statusEffectiveOn" max="{{ school_today()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('statusEffectiveOn') }}>
                         </div>
                         <div>
-                            <label for="status-reason" class="sr-only">Reason</label>
-                            <input id="status-reason" wire:model="statusReason" maxlength="1000" placeholder="Why (optional)" class="{{ $controlClasses }}" {{ field_error_bindings('statusReason') }}>
+                            <label for="status-reason" class="mb-1.5 block text-sm font-medium">Reason</label>
+                            <input id="status-reason" wire:model="statusReason" maxlength="500" placeholder="Optional" class="{{ $controlClasses }}" {{ field_error_bindings('statusReason') }}>
                         </div>
                     </div>
                     <x-field-error name="statusSelection" />
@@ -122,7 +122,7 @@
                     @endif
                     <div class="grid gap-3 sm:grid-cols-[1fr_10rem_1fr]">
                         <div>
-                            <label for="placement-cycle-section" class="sr-only">{{ school_term('section', 'Section') }}</label>
+                            <label for="placement-cycle-section" class="mb-1.5 block text-sm font-medium">{{ school_term('section', 'Section') }}</label>
                             <select id="placement-cycle-section" wire:model="placementCycleSectionId" class="{{ $controlClasses }}" @disabled(!$academicYear || $isClosed) {{ field_error_bindings('placementCycleSectionId') }}>
                                 <option value="">Choose {{ with_indefinite_article($sectionTerm) }}</option>
                                 @foreach ($cycleSections as $cycleSection)
@@ -131,12 +131,12 @@
                             </select>
                         </div>
                         <div>
-                            <label for="placement-effective-on" class="sr-only">Effective on</label>
+                            <label for="placement-effective-on" class="mb-1.5 block text-sm font-medium">Effective on</label>
                             <input type="date" id="placement-effective-on" wire:model="placementEffectiveOn" max="{{ school_today()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('placementEffectiveOn') }}>
                         </div>
                         <div>
-                            <label for="placement-reason" class="sr-only">Reason</label>
-                            <input id="placement-reason" wire:model="placementReason" maxlength="1000" placeholder="Why (optional)" class="{{ $controlClasses }}" {{ field_error_bindings('placementReason') }}>
+                            <label for="placement-reason" class="mb-1.5 block text-sm font-medium">Reason</label>
+                            <input id="placement-reason" wire:model="placementReason" maxlength="500" placeholder="Optional" class="{{ $controlClasses }}" {{ field_error_bindings('placementReason') }}>
                         </div>
                     </div>
                     <x-field-error name="placementCycleSectionId" />
@@ -157,7 +157,7 @@
                     @endunless
                     <div class="grid gap-3 sm:grid-cols-[1fr_10rem_1fr]">
                         <div>
-                            <label for="campus-cycle-section" class="sr-only">Campus and {{ $sectionTerm }}</label>
+                            <label for="campus-cycle-section" class="mb-1.5 block text-sm font-medium">Campus and {{ $sectionTerm }}</label>
                             <select id="campus-cycle-section" wire:model="campusCycleSectionId" class="{{ $controlClasses }}" @disabled($isClosed) {{ field_error_bindings('campusCycleSectionId') }}>
                                 <option value="">Choose a campus {{ $sectionTerm }}</option>
                                 @foreach ($campusCycleSections as $campusCycleSection)
@@ -166,12 +166,12 @@
                             </select>
                         </div>
                         <div>
-                            <label for="campus-effective-on" class="sr-only">Effective on</label>
+                            <label for="campus-effective-on" class="mb-1.5 block text-sm font-medium">Effective on</label>
                             <input type="date" id="campus-effective-on" wire:model="campusEffectiveOn" max="{{ school_today()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('campusEffectiveOn') }}>
                         </div>
                         <div>
-                            <label for="campus-reason" class="sr-only">Reason</label>
-                            <input id="campus-reason" wire:model="campusReason" maxlength="1000" placeholder="Why (optional)" class="{{ $controlClasses }}" {{ field_error_bindings('campusReason') }}>
+                            <label for="campus-reason" class="mb-1.5 block text-sm font-medium">Reason</label>
+                            <input id="campus-reason" wire:model="campusReason" maxlength="500" placeholder="Optional" class="{{ $controlClasses }}" {{ field_error_bindings('campusReason') }}>
                         </div>
                     </div>
                     <x-field-error name="campusCycleSectionId" />

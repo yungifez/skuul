@@ -61,6 +61,7 @@ class CampusMoveScreenTest extends TestCase
             ->set('managing', 'campus')
             ->assertSee('The receiving campus has to agree')
             ->assertSee('Ask the other campus')
+            ->assertSeeHtml('<label for="campus-effective-on" class="mb-1.5 block text-sm font-medium">Effective on</label>')
             ->set('campusCycleSectionId', $cycleSection->id)
             ->set('campusReason', 'Family moved across town')
             ->call('moveCampus')
