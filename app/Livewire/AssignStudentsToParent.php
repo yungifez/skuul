@@ -8,7 +8,6 @@ use App\Exceptions\InvalidValueException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\AcademicCycleSection;
 use App\Models\ParentRecord;
-use App\Models\StudentRecord;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
@@ -160,9 +159,7 @@ class AssignStudentsToParent extends Component
             return;
         }
 
-        // A guardian can have children at other schools. Those stay out of view here.
-        $this->children = $parentRecord->students()
-            ->whereIn('users.id', StudentRecord::query()->inSchool()->select('user_id'))
+        $this->children = $parentRecord->studentsInSchool()
             ->with('studentRecord.academicCycleSection.academicLevel')
             ->orderBy('name')
             ->get()

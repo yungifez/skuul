@@ -88,6 +88,30 @@ class ParentTest extends TestCase
             ->assertSee('10 Apr 1985');
     }
 
+    public function test_a_parent_profile_lists_the_learners_linked_here(): void
+    {
+        $parent = User::factory()->create();
+        $parentRecord = $parent->parentRecord()->create(['user_id' => $parent->id]);
+        $parent->assignRole('parent');
+        $here = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $elsewhere = StudentRecord::factory()->create(['school_id' => School::factory()->create()->id]);
+        $parentRecord->students()->attach([$here->user_id, $elsewhere->user_id]);
+
+        $this->authorized_user(['read parent'])
+            ->get(route('parents.show', $parent))
+            ->assertOk()
+            ->assertSee('Linked learners')
+            ->assertSee($here->user->name)
+            ->assertDontSee($elsewhere->user->name)
+            ->assertDontSee('Change linked learners');
+
+        auth()->user()->givePermissionTo('update parent');
+
+        $this->get(route('parents.show', $parent))
+            ->assertSee('Change linked learners')
+            ->assertSee(route('parents.assign-student', $parent));
+    }
+
     public function test_unauthorised_users_cannot_create_parents(): void
     {
         $this->unauthorized_user();
