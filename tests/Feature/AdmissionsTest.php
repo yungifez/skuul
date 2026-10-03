@@ -15,6 +15,7 @@ use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\AdmissionWaitlistBoard;
+use App\Livewire\Layouts\Menu;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -344,6 +345,15 @@ class AdmissionsTest extends TestCase
             ->get(route('admissions.waitlist.index'))
             ->assertOk()
             ->assertSee('Admissions waitlist');
+    }
+
+    public function test_the_sidebar_links_the_waitlist_for_people_who_can_read_it(): void
+    {
+        $this->authorized_user(['read student']);
+        Livewire::test(Menu::class)->assertDontSee(route('admissions.waitlist.index'));
+
+        $this->authorized_user(['read admission waitlist']);
+        Livewire::test(Menu::class)->assertSee(route('admissions.waitlist.index'));
     }
 
     public function test_livewire_waitlist_flow_adds_offers_and_enrols_a_candidate(): void

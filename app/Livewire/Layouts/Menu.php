@@ -150,6 +150,13 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
+                'text' => 'Admissions waitlist',
+                'icon' => 'list-ordered',
+                'route' => 'admissions.waitlist.index',
+                'can' => 'read admission waitlist',
+            ],
+            [
+                'type' => 'menu-item',
                 'text' => 'Record sharing',
                 'icon' => 'share-2',
                 'route' => 'data-sharing-requests.index',
