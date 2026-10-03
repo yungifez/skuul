@@ -63,6 +63,7 @@ class TakeInvoicePayment extends Component
             'amount.required' => 'Say how much money arrived.',
             'method.in' => 'This school does not take money that way.',
             'reference.required' => 'Add the cheque number or the reference on the slip.',
+            'receivedOn.before_or_equal' => 'The money cannot arrive in the future. Use today or an earlier date.',
         ], ['receivedOn' => 'date received', 'lines.*' => 'amount for this fee']);
 
         $enrollment = $this->feeInvoice->studentRecord;

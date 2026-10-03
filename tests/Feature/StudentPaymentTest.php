@@ -351,6 +351,21 @@ class StudentPaymentTest extends TestCase
             ->assertSeeHtml('<label for="payment-note" class="mb-1.5 block text-sm font-medium">Note</label>');
     }
 
+    public function test_a_payment_dated_in_the_future_is_refused_in_plain_words(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $invoice = $this->invoiceFor($this->enrollment(), [['amount' => 100]]);
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->set('amount', '40')
+            ->set('receivedOn', school_today()->addDay()->toDateString())
+            ->call('save')
+            ->assertHasErrors(['receivedOn' => 'before_or_equal'])
+            ->assertSee('The money cannot arrive in the future. Use today or an earlier date.');
+
+        $this->assertSame(0, StudentPayment::query()->count());
+    }
+
     public function test_a_refused_payment_can_be_corrected_and_taken(): void
     {
         $this->authorized_user(['read fee invoice', 'update fee invoice']);
