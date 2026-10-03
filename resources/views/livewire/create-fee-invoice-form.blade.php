@@ -150,7 +150,7 @@
 
     <div class="flex flex-col gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-sm text-muted-foreground tabular-nums">
-            {{ $studentCount }} {{ $studentCount === 1 ? 'invoice' : 'invoices' }} · {{ number_format($perInvoice) }} each
+            {{ $studentCount }} {{ $studentCount === 1 ? 'invoice' : 'invoices' }} · {{ money_text($perInvoice) }} each
         </p>
         <div class="flex flex-col-reverse gap-3 sm:flex-row">
             <april:button-link href="{{ route('fee-invoices.index') }}" variant="ghost" class="h-11 select-none">Cancel</april:button-link>

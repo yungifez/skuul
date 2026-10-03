@@ -148,7 +148,7 @@ class FeeInvoiceTest extends TestCase
             ->set("lines.{$books->id}.amount", 1200)
             ->set('dueDate', now()->addMonth()->toDateString())
             ->assertSee('Create 2 invoices')
-            ->assertSee('5,700 each')
+            ->assertSee(money_text(5700).' each')
             ->call('save')
             ->assertHasNoErrors()
             ->assertRedirect(route('fee-invoices.index'));
