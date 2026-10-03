@@ -30,20 +30,20 @@
         <form wire:submit="save" class="flex flex-col gap-6" aria-label="Take a payment">
             <div class="grid gap-3 sm:grid-cols-[1fr_12rem]">
                 <div>
-                    <label for="payment-amount" class="sr-only">Amount</label>
+                    <label for="payment-amount" class="mb-1.5 block text-sm font-medium">Amount</label>
                     <input id="payment-amount" type="number" step="0.01" min="0.01" inputmode="decimal" autocomplete="off" autofocus
-                        wire:model="amount" placeholder="Amount" class="{{ $controlClasses }} text-base font-medium" {{ field_error_bindings('amount') }}>
+                        wire:model="amount" placeholder="0.00" class="{{ $controlClasses }} text-base font-medium" {{ field_error_bindings('amount') }}>
                     <x-field-error name="amount" class="mt-1" />
                 </div>
                 <div>
-                    <label for="payment-received-on" class="sr-only">Received on</label>
+                    <label for="payment-received-on" class="mb-1.5 block text-sm font-medium">Received on</label>
                     <input id="payment-received-on" type="date" max="{{ school_today()->toDateString() }}" wire:model="receivedOn" class="{{ $controlClasses }}" {{ field_error_bindings('receivedOn') }}>
                     <x-field-error name="receivedOn" class="mt-1" />
                 </div>
             </div>
 
             <fieldset>
-                <legend class="sr-only">Paid by</legend>
+                <legend class="mb-1.5 text-sm font-medium">Paid by</legend>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($channels as $key => $channel)
                         <label wire:key="channel-{{ $key }}" class="flex min-h-11 cursor-pointer items-center gap-2 rounded-md border px-3 text-sm select-none has-[:checked]:border-foreground has-[:checked]:font-medium">
@@ -57,13 +57,13 @@
 
             <div class="grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label for="payment-reference" class="sr-only">Reference</label>
-                    <input id="payment-reference" maxlength="100" autocomplete="off" wire:model="reference" placeholder="Reference (optional)" x-data="{ needs: @js(collect($channels)->map(fn ($channel): bool => $channel->needsReference())) }" x-bind:placeholder="needs[$wire.method] ? 'Reference' : 'Reference (optional)'" class="{{ $controlClasses }}" {{ field_error_bindings('reference') }}>
+                    <label for="payment-reference" class="mb-1.5 block text-sm font-medium">Reference</label>
+                    <input id="payment-reference" maxlength="100" autocomplete="off" wire:model="reference" placeholder="Optional" x-data="{ needs: @js(collect($channels)->map(fn ($channel): bool => $channel->needsReference())) }" x-bind:placeholder="needs[$wire.method] ? 'Required for this method' : 'Optional'" class="{{ $controlClasses }}" {{ field_error_bindings('reference') }}>
                     <x-field-error name="reference" class="mt-1" />
                 </div>
                 <div>
-                    <label for="payment-note" class="sr-only">Note</label>
-                    <input id="payment-note" maxlength="1000" autocomplete="off" wire:model="note" placeholder="Note (optional)" class="{{ $controlClasses }}" {{ field_error_bindings('note') }}>
+                    <label for="payment-note" class="mb-1.5 block text-sm font-medium">Note</label>
+                    <input id="payment-note" maxlength="1000" autocomplete="off" wire:model="note" placeholder="Optional" class="{{ $controlClasses }}" {{ field_error_bindings('note') }}>
                     <x-field-error name="note" class="mt-1" />
                 </div>
             </div>

@@ -338,6 +338,19 @@ class StudentPaymentTest extends TestCase
         $this->assertSame(4_000, $invoice->fresh()->paid->getMinorAmount()->toInt());
     }
 
+    public function test_the_payment_form_names_every_field(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $invoice = $this->invoiceFor($this->enrollment(), [['amount' => 100]]);
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->assertSeeHtml('<label for="payment-amount" class="mb-1.5 block text-sm font-medium">Amount</label>')
+            ->assertSeeHtml('<label for="payment-received-on" class="mb-1.5 block text-sm font-medium">Received on</label>')
+            ->assertSeeHtml('<legend class="mb-1.5 text-sm font-medium">Paid by</legend>')
+            ->assertSeeHtml('<label for="payment-reference" class="mb-1.5 block text-sm font-medium">Reference</label>')
+            ->assertSeeHtml('<label for="payment-note" class="mb-1.5 block text-sm font-medium">Note</label>');
+    }
+
     public function test_a_refused_payment_can_be_corrected_and_taken(): void
     {
         $this->authorized_user(['read fee invoice', 'update fee invoice']);
