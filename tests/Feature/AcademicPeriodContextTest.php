@@ -9,6 +9,7 @@ use App\Models\School;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -127,5 +128,26 @@ class AcademicPeriodContextTest extends TestCase
         academic_period_context()->resolveFor($school->fresh());
 
         $this->assertSame($school->academic_year_id, current_academic_year_id());
+    }
+
+    public function test_the_calendar_term_and_the_switcher_read_the_periods_once_each(): void
+    {
+        $school = $this->workingSchool();
+        $year = AcademicYear::factory()->create(['school_id' => $school->id, 'starts_on' => now()->subMonths(2), 'ends_on' => now()->addMonths(8)]);
+        AcademicPeriod::factory()->create(['school_id' => $school->id, 'academic_year_id' => $year->id, 'parent_id' => null, 'starts_on' => now()->subMonths(2), 'ends_on' => now()->subMonth()]);
+        $currentTerm = AcademicPeriod::factory()->create(['school_id' => $school->id, 'academic_year_id' => $year->id, 'parent_id' => null, 'starts_on' => now()->subMonth()->addDay(), 'ends_on' => now()->addMonth()]);
+        $school->forceFill(['academic_year_id' => $year->id, 'academic_period_id' => null])->save();
+        $this->authorized_user(['set academic period']);
+
+        DB::enableQueryLog();
+        academic_period_context()->forget();
+        academic_period_context()->resolveFor($school->fresh());
+        $component = Livewire::test(SetAcademicPeriod::class, ['compact' => true]);
+        $periodReads = collect(DB::getQueryLog())->filter(fn (array $query): bool => str_contains($query['query'], 'from `academic_periods`'))->count();
+        DB::disableQueryLog();
+
+        $this->assertSame($currentTerm->id, current_academic_period_id());
+        $this->assertSame($currentTerm->id, $component->get('currentPeriod')->id);
+        $this->assertSame(2, $periodReads);
     }
 }

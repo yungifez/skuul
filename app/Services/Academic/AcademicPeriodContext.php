@@ -185,7 +185,7 @@ class AcademicPeriodContext
             $academicPeriod ??= $year === null || $user === null ? null : $this->savedPeriodFor($user, $school, $year);
 
             // A staff member with no explicit choice follows the calendar.
-            $academicPeriod ??= $year?->periodForDate();
+            $academicPeriod ??= $coveringPeriods->first();
         }
 
         if ($this->resolutionError === null && $academicPeriod === null && $year !== null && $school->academic_period_id !== null) {

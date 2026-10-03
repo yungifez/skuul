@@ -51,7 +51,7 @@ class SetAcademicPeriod extends Component
         }
 
         $this->academicPeriods = $this->academicYear->topLevelPeriods()->get();
-        $coveringPeriods = $this->academicYear->periodsForDate();
+        $coveringPeriods = $this->academicPeriods->filter(fn (AcademicPeriod $period): bool => $period->covers());
         $this->currentPeriod = $coveringPeriods->count() === 1 ? $coveringPeriods->first() : null;
         $this->workingPeriod = current_academic_period();
         $this->workingPeriodId = $this->workingPeriod?->id;
