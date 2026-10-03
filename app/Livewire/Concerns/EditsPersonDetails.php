@@ -107,7 +107,7 @@ trait EditsPersonDetails
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', $this->email === $this->storedEmail ? 'email:rfc' : 'email:rfc,dns', 'max:100'],
+            'email' => ['required', $this->email === $this->storedEmail ? 'email:rfc' : new_email_rule(), 'max:100'],
             'birthday' => ['nullable', 'date_format:Y-m-d', 'before:today'],
             'gender' => ['nullable', 'string', Rule::in(self::GENDERS)],
             'phone' => ['nullable', 'string', 'max:100'],

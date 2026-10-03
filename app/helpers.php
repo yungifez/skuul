@@ -394,3 +394,15 @@ if (!function_exists('school_time')) {
         return $moment === null ? null : Carbon::instance($moment)->setTimezone(school_timezone($school));
     }
 }
+
+if (!function_exists('new_email_rule')) {
+    /**
+     * Get the validation rule for an email address being entered or changed.
+     *
+     * The mail domain is looked up only when config identity.check_email_domains is on.
+     */
+    function new_email_rule(): string
+    {
+        return config('identity.check_email_domains') ? 'email:rfc,dns' : 'email:rfc';
+    }
+}

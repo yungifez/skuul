@@ -86,7 +86,7 @@ class StudentImporter implements Importer
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email:rfc,dns', 'max:100'],
+            'email' => ['required', new_email_rule(), 'max:100'],
             'birthday' => ['required', 'date', 'before:today'],
             'gender' => ['nullable', 'string', 'max:100'],
             'level' => ['required', 'string', 'max:255'],

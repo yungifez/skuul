@@ -81,7 +81,7 @@ class StaffImporter implements Importer
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email:rfc,dns', 'max:100'],
+            'email' => ['required', new_email_rule(), 'max:100'],
             'birthday' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', 'string', 'max:100'],
             'staff_number' => ['nullable', 'string', 'max:30'],

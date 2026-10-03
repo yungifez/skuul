@@ -33,7 +33,7 @@ class ProvisionAccount
     {
         $data = Validator::make($input, [
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'string', 'email:rfc,dns', 'max:100'],
+            'email' => ['required', 'string', new_email_rule(), 'max:100'],
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
             'school_id' => ['required', 'exists:schools,id'],
             'birthday' => ['nullable', 'date_format:Y-m-d', 'before:today'],

@@ -17,12 +17,14 @@ Write the `down()` method so it drops the foreign key first, or only drops the
 extra column and leaves the index to MySQL, which reduces it to the remaining
 column. Run the migration down and up once before you finish.
 
-## Provisioning checks the email domain, so tests need a real one
-`App\Actions\Identity\ProvisionAccount` validates `email:rfc,dns`. An address at
-`example.com` has no MX record and fails inside the container, which shows up as
-"The email must be a valid email address" from code that looks unrelated. Use
-`fake()->freeEmail()` or a gmail.com address in tests and fixtures that reach
-provisioning.
+## New email addresses go through new_email_rule()
+Validate an email address that is being entered or changed with
+`new_email_rule()`, never a literal `email:rfc,dns`. It looks up the mail domain
+only when `identity.check_email_domains` (`CHECK_EMAIL_DOMAINS`) is on.
+phpunit.xml turns it off, because live DNS made tests fail at random. A test
+about the lookup itself turns it on with
+`config(['identity.check_email_domains' => true])` and uses a `.invalid`
+domain, which fails with or without a network.
 
 ## Tests use the shared testing database
 Use the testing database for all local and CI test runs. Do not direct tests to

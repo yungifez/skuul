@@ -24,7 +24,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     {
         $validated = Validator::make($input, [
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', ($input['email'] ?? null) === $user->email ? 'email:rfc' : 'email:rfc,dns', 'max:100', Rule::unique('users')->ignore($user->id)],
+            'email' => ['required', ($input['email'] ?? null) === $user->email ? 'email:rfc' : new_email_rule(), 'max:100', Rule::unique('users')->ignore($user->id)],
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
             'birthday' => ['nullable', 'date_format:Y-m-d', 'before:today'],
             'address' => ['nullable', 'string', 'max:255'],

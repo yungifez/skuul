@@ -12,6 +12,14 @@ return [
     |
     */
 
+    /*
+    | Look up the mail domain of a new email address before accepting it.
+    | This stops typing mistakes such as "gmial.com", but it needs DNS. Turn
+    | it off where the server has no DNS, and in tests, which must not
+    | depend on the network.
+    */
+    'check_email_domains' => (bool) env('CHECK_EMAIL_DOMAINS', true),
+
     'invitations' => [
 
         /*
