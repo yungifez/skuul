@@ -11,11 +11,13 @@ use App\Enums\CampusMoveStatus;
 use App\Enums\EnrollmentStatus;
 use App\Enums\OrganizationPermission;
 use App\Livewire\HealthRecordForm;
+use App\Livewire\ListStudentFeeInvoices;
 use App\Livewire\ShowStudentProfile;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\CampusMoveRequest;
+use App\Models\FeeInvoice;
 use App\Models\School;
 use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
@@ -101,6 +103,30 @@ class CampusMoveScreenTest extends TestCase
             ->assertDispatched('status-message', type: 'danger', message: 'The other campus already decided this request.');
 
         $this->assertSame(CampusMoveStatus::Rejected, $request->fresh()->status);
+    }
+
+    public function test_the_old_campus_still_sees_the_bills_a_moved_learner_left_behind(): void
+    {
+        $sibling = $this->siblingCampus();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $sibling->id]);
+        $leftBehind = FeeInvoice::factory()->create([
+            'name' => 'Term fees left behind',
+            'school_id' => $this->workingSchool()->id,
+            'student_record_id' => $enrollment->id,
+            'user_id' => $enrollment->user_id,
+        ]);
+        FeeInvoice::factory()->create([
+            'name' => 'Bill of the new campus',
+            'school_id' => $sibling->id,
+            'student_record_id' => $enrollment->id,
+            'user_id' => $enrollment->user_id,
+        ]);
+        $this->authorized_user(['read student']);
+
+        Livewire::test(ListStudentFeeInvoices::class, ['student' => $enrollment->user])
+            ->assertSee($leftBehind->name)
+            ->assertDontSee('Bill of the new campus')
+            ->assertDontSee('No invoices');
     }
 
     public function test_an_organization_person_moves_the_student_straight_away(): void

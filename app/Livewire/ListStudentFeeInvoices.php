@@ -12,19 +12,21 @@ class ListStudentFeeInvoices extends Component
 
     public $feeInvoices;
 
+    /**
+     * List the bills this campus holds for the learner.
+     *
+     * A learner who moved to a campus that bills separately leaves their
+     * unpaid bills behind. The old campus must still see them, so the list
+     * covers every enrollment of the learner, not only the one here.
+     */
     public function mount(): void
     {
-        $this->student->load('studentRecord');
-        $studentRecord = $this->student->studentRecord;
-
-        $this->feeInvoices = $studentRecord === null
-            ? collect()
-            : FeeInvoice::query()
-                ->ofSchool($studentRecord->school_id)
-                ->where('student_record_id', $studentRecord->id)
-                ->with(['feeInvoiceRecords', 'allocations'])
-                ->orderByDesc('due_date')
-                ->get();
+        $this->feeInvoices = FeeInvoice::query()
+            ->ofSchool()
+            ->whereHas('studentRecord', fn ($enrollment) => $enrollment->where('user_id', $this->student->id))
+            ->with(['feeInvoiceRecords', 'allocations'])
+            ->orderByDesc('due_date')
+            ->get();
     }
 
     public function render()
