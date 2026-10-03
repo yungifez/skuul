@@ -610,6 +610,10 @@ class StudentPaymentTest extends TestCase
 
         Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
             ->call('$set', 'isRefunding', true)
+            ->assertSeeHtml('<label for="refund-amount" class="mb-1.5 block text-sm font-medium">Amount</label>')
+            ->assertSeeHtml('<label for="refund-method" class="mb-1.5 block text-sm font-medium">Paid out by</label>')
+            ->assertSeeHtml('<label for="refund-reference" class="mb-1.5 block text-sm font-medium">Reference</label>')
+            ->assertSeeHtml('<label for="refund-reason" class="mb-1.5 block text-sm font-medium">Reason</label>')
             ->set('refundAmount', '80')
             ->set('refundReason', 'The family asked for it back')
             ->call('refund')
@@ -635,6 +639,7 @@ class StudentPaymentTest extends TestCase
         Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
             ->call('startReversing', $payment->id)
             ->assertSet('reversingPaymentId', $payment->id)
+            ->assertSeeHtml('<label for="reverse-reason" class="mb-1.5 block text-sm font-medium">Reason</label>')
             ->call('reversePayment')
             ->assertHasErrors(['reverseReason' => 'required'])
             ->set('reverseReason', 'Recorded against the wrong child')
@@ -644,6 +649,20 @@ class StudentPaymentTest extends TestCase
 
         $this->assertTrue($payment->fresh()->isReversed());
         $this->assertSame(0, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_the_fee_relief_form_names_every_field(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->call('startRelieving', $invoice->id)
+            ->assertSeeHtml('<label for="relief-line" class="mb-1.5 block text-sm font-medium">Fee</label>')
+            ->assertSeeHtml('<label for="relief-amount" class="mb-1.5 block text-sm font-medium">Amount</label>')
+            ->assertSeeHtml('<label for="relief-kind" class="mb-1.5 block text-sm font-medium">Kind</label>')
+            ->assertSeeHtml('<label for="relief-reason" class="mb-1.5 block text-sm font-medium">Reason</label>');
     }
 
     public function test_a_refund_sent_again_pays_out_once(): void

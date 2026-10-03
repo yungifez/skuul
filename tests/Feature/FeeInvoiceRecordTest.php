@@ -48,6 +48,11 @@ class FeeInvoiceRecordTest extends TestCase
 
         Livewire::test(EditFeeInvoiceForm::class, ['feeInvoice' => $feeInvoiceRecord->feeInvoice])
             ->set('isAdding', true)
+            ->assertSeeHtml('<label for="fee-category" class="mb-1.5 block text-sm font-medium">Fee category</label>')
+            ->assertSeeHtml('<label for="fee" class="mb-1.5 block text-sm font-medium">Fee</label>')
+            ->assertSeeHtml('<label for="new-amount" class="mb-1.5 block text-sm font-medium">Amount</label>')
+            ->assertSeeHtml('<label for="new-waiver" class="mb-1.5 block text-sm font-medium">Waiver</label>')
+            ->assertSeeHtml('<label for="new-fine" class="mb-1.5 block text-sm font-medium">Fine</label>')
             ->set('feeCategoryId', $fee->fee_category_id)
             ->set('feeId', $fee->id)
             ->set('newAmount', 1000)

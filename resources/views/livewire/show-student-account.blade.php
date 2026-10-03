@@ -53,11 +53,11 @@
                 <h2 id="refund-heading" class="text-base font-semibold">Give money back <span class="font-normal text-muted-foreground">· up to {{ $credit->formatToLocale($locale) }}</span></h2>
                 <div class="grid gap-3 sm:grid-cols-[10rem_12rem_1fr]">
                     <div>
-                        <label for="refund-amount" class="sr-only">Amount</label>
-                        <input type="number" id="refund-amount" wire:model="refundAmount" step="0.01" min="0.01" max="{{ $credit->getAmount()->toFloat() }}" placeholder="Amount" class="{{ $controlClasses }}" {{ field_error_bindings('refundAmount') }}>
+                        <label for="refund-amount" class="mb-1.5 block text-sm font-medium">Amount</label>
+                        <input type="number" id="refund-amount" wire:model="refundAmount" step="0.01" min="0.01" max="{{ $credit->getAmount()->toFloat() }}" placeholder="0.00" class="{{ $controlClasses }}" {{ field_error_bindings('refundAmount') }}>
                     </div>
                     <div>
-                        <label for="refund-method" class="sr-only">Paid out by</label>
+                        <label for="refund-method" class="mb-1.5 block text-sm font-medium">Paid out by</label>
                         <select id="refund-method" wire:model="refundMethod" class="{{ $controlClasses }}" {{ field_error_bindings('refundMethod') }}>
                             @foreach ($channels as $key => $channel)
                                 <option value="{{ $key }}">{{ $channel->label() }}</option>
@@ -65,12 +65,12 @@
                         </select>
                     </div>
                     <div>
-                        <label for="refund-reference" class="sr-only">Reference</label>
-                        <input id="refund-reference" wire:model="refundReference" maxlength="100" placeholder="Reference (optional)" x-data="{ needs: @js(collect($channels)->map(fn ($channel): bool => $channel->needsReference())) }" x-bind:placeholder="needs[$wire.refundMethod] ? 'Reference' : 'Reference (optional)'" class="{{ $controlClasses }}" {{ field_error_bindings('refundReference') }}>
+                        <label for="refund-reference" class="mb-1.5 block text-sm font-medium">Reference</label>
+                        <input id="refund-reference" wire:model="refundReference" maxlength="100" placeholder="Optional" x-data="{ needs: @js(collect($channels)->map(fn ($channel): bool => $channel->needsReference())) }" x-bind:placeholder="needs[$wire.refundMethod] ? 'Required for this method' : 'Optional'" class="{{ $controlClasses }}" {{ field_error_bindings('refundReference') }}>
                     </div>
                 </div>
                 <div>
-                    <label for="refund-reason" class="sr-only">Reason</label>
+                    <label for="refund-reason" class="mb-1.5 block text-sm font-medium">Reason</label>
                     <input id="refund-reason" wire:model="refundReason" maxlength="500" placeholder="Why the money is going back" class="{{ $controlClasses }}" {{ field_error_bindings('refundReason') }}>
                 </div>
                 <x-field-error name="refundAmount" />
@@ -155,7 +155,7 @@
                     <h3 id="relief-heading" class="text-sm font-semibold">Waive or write off <span class="font-normal text-muted-foreground">· {{ $relievingInvoice->name }}</span></h3>
                     <div class="grid gap-3 sm:grid-cols-[1fr_10rem_12rem]">
                         <div>
-                            <label for="relief-line" class="sr-only">Fee</label>
+                            <label for="relief-line" class="mb-1.5 block text-sm font-medium">Fee</label>
                             <select id="relief-line" wire:model="reliefLineId" class="{{ $controlClasses }}" {{ field_error_bindings('reliefLineId') }}>
                                 <option value="">Choose the fee</option>
                                 @foreach ($owedLines as $line)
@@ -164,11 +164,11 @@
                             </select>
                         </div>
                         <div>
-                            <label for="relief-amount" class="sr-only">Amount</label>
-                            <input type="number" id="relief-amount" wire:model="reliefAmount" step="0.01" min="0.01" placeholder="Amount" class="{{ $controlClasses }}" {{ field_error_bindings('reliefAmount') }}>
+                            <label for="relief-amount" class="mb-1.5 block text-sm font-medium">Amount</label>
+                            <input type="number" id="relief-amount" wire:model="reliefAmount" step="0.01" min="0.01" placeholder="0.00" class="{{ $controlClasses }}" {{ field_error_bindings('reliefAmount') }}>
                         </div>
                         <div>
-                            <label for="relief-kind" class="sr-only">Kind</label>
+                            <label for="relief-kind" class="mb-1.5 block text-sm font-medium">Kind</label>
                             <select id="relief-kind" wire:model="reliefKind" class="{{ $controlClasses }}" {{ field_error_bindings('reliefKind') }}>
                                 <option value="waiver">Waiver or scholarship</option>
                                 <option value="write_off">Write-off, cannot collect</option>
@@ -176,7 +176,7 @@
                         </div>
                     </div>
                     <div>
-                        <label for="relief-reason" class="sr-only">Reason</label>
+                        <label for="relief-reason" class="mb-1.5 block text-sm font-medium">Reason</label>
                         <input id="relief-reason" wire:model="reliefReason" maxlength="500" placeholder="Why the fee is being taken off" class="{{ $controlClasses }}" {{ field_error_bindings('reliefReason') }}>
                     </div>
                     <x-field-error name="reliefLineId" />
@@ -251,9 +251,9 @@
                         </div>
 
                         @if ($canReverse && $reversingPaymentId === $payment->id)
-                            <form wire:submit="reversePayment" class="flex flex-col gap-3 sm:flex-row sm:items-start" aria-label="Take back this payment">
+                            <form wire:submit="reversePayment" class="flex flex-col gap-3 sm:flex-row sm:items-end" aria-label="Take back this payment">
                                 <div class="min-w-0 flex-1">
-                                    <label for="reverse-reason" class="sr-only">Why</label>
+                                    <label for="reverse-reason" class="mb-1.5 block text-sm font-medium">Reason</label>
                                     <input id="reverse-reason" wire:model="reverseReason" maxlength="500" placeholder="Why it is being taken back" class="{{ $controlClasses }}" {{ field_error_bindings('reverseReason') }}>
                                     <x-field-error name="reverseReason" class="mt-1" />
                                 </div>

@@ -131,7 +131,7 @@
             <form wire:submit="addLine" class="flex flex-col gap-3 pt-2" aria-label="Add a fee">
                 <div class="grid gap-3 sm:grid-cols-2">
                     <div>
-                        <label for="fee-category" class="sr-only">Fee category</label>
+                        <label for="fee-category" class="mb-1.5 block text-sm font-medium">Fee category</label>
                         <select id="fee-category" wire:model.live="feeCategoryId" class="{{ $controlClasses }}">
                             @foreach ($categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -139,7 +139,7 @@
                         </select>
                     </div>
                     <div>
-                        <label for="fee" class="sr-only">Fee</label>
+                        <label for="fee" class="mb-1.5 block text-sm font-medium">Fee</label>
                         <select id="fee" wire:model="feeId" class="{{ $controlClasses }}" {{ field_error_bindings('feeId') }}>
                             <option value="">{{ $fees->isEmpty() ? 'No fees left in this category' : 'Choose a fee' }}</option>
                             @foreach ($fees as $fee)
@@ -150,16 +150,16 @@
                 </div>
                 <div class="grid grid-cols-3 gap-3">
                     <div>
-                        <label for="new-amount" class="sr-only">Amount</label>
-                        <input type="number" id="new-amount" min="1" step="1" wire:model="newAmount" placeholder="Amount" class="{{ $moneyInput }}" {{ field_error_bindings('newAmount') }}>
+                        <label for="new-amount" class="mb-1.5 block text-sm font-medium">Amount</label>
+                        <input type="number" id="new-amount" min="1" step="1" wire:model="newAmount" placeholder="0" class="{{ $moneyInput }}" {{ field_error_bindings('newAmount') }}>
                     </div>
                     <div>
-                        <label for="new-waiver" class="sr-only">Waiver</label>
-                        <input type="number" id="new-waiver" min="0" step="1" wire:model="newWaiver" placeholder="Waiver" class="{{ $moneyInput }}" {{ field_error_bindings('newWaiver') }}>
+                        <label for="new-waiver" class="mb-1.5 block text-sm font-medium">Waiver</label>
+                        <input type="number" id="new-waiver" min="0" step="1" wire:model="newWaiver" placeholder="0" class="{{ $moneyInput }}" {{ field_error_bindings('newWaiver') }}>
                     </div>
                     <div>
-                        <label for="new-fine" class="sr-only">Fine</label>
-                        <input type="number" id="new-fine" min="0" step="1" wire:model="newFine" placeholder="Fine" class="{{ $moneyInput }}" {{ field_error_bindings('newFine') }}>
+                        <label for="new-fine" class="mb-1.5 block text-sm font-medium">Fine</label>
+                        <input type="number" id="new-fine" min="0" step="1" wire:model="newFine" placeholder="0" class="{{ $moneyInput }}" {{ field_error_bindings('newFine') }}>
                     </div>
                 </div>
                 <x-field-error name="feeId" />
