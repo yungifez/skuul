@@ -218,7 +218,7 @@ class AcademicCalendarSetupTest extends TestCase
 
     public function test_publishing_a_future_calendar_schedules_its_reporting_periods(): void
     {
-        $this->authorized_user(['create academic year', 'update academic year']);
+        $this->authorized_user(['read academic year', 'create academic year', 'update academic year']);
         $actor = auth()->user();
         $calendar = app(SaveAcademicCalendar::class)->save(
             $this->workingSchool(),
@@ -280,7 +280,7 @@ class AcademicCalendarSetupTest extends TestCase
             'model' => InstructionalModel::Hybrid,
         ]);
 
-        $this->authorized_user(['update academic year'], $school);
+        $this->authorized_user(['read academic year', 'update academic year'], $school);
 
         Livewire::test(ShowAcademicYear::class, ['academicYear' => $target])
             ->call('openSetupRolloverDialog')

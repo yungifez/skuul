@@ -311,4 +311,13 @@ class AcademicYearTest extends TestCase
 
         $this->assertSame($academicPeriod->id, session(AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY));
     }
+
+    public function test_another_schools_year_cannot_be_mounted_in_the_year_view(): void
+    {
+        $school = $this->workingSchool();
+        $otherYear = AcademicYear::factory()->create(['school_id' => School::factory()->create(['organization_id' => $school->organization_id])->id]);
+        $this->authorized_user(['read academic year'], $school);
+
+        Livewire::test(ShowAcademicYear::class, ['academicYear' => $otherYear])->assertForbidden();
+    }
 }

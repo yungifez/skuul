@@ -14,6 +14,7 @@ use App\Services\Timetable\TimetableCalendar;
 use App\Services\Timetable\TimetableConflictChecker;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
@@ -93,6 +94,8 @@ class ManageTimetable extends Component
 
     public function mount(): void
     {
+        Gate::authorize('update', $this->timetable);
+
         $period = $this->timetable->academicPeriod;
         $this->calendarDate = $period?->starts_on?->toDateString() ?? school_today()->toDateString();
         $this->slotStartsOn = $this->calendarDate;

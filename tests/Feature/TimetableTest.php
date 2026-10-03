@@ -126,6 +126,11 @@ class TimetableTest extends TestCase
             ->get(route('timetables.print', $otherTimetable))
             ->assertForbidden()
             ->assertDontSee('Other campus lessons');
+
+        Livewire::test(ShowTimetable::class, ['timetable' => $otherTimetable])->assertForbidden();
+
+        auth()->user()->givePermissionTo('update timetable');
+        Livewire::test(ManageTimetable::class, ['timetable' => $otherTimetable])->assertForbidden();
     }
 
     public function test_a_student_lists_only_published_timetables_for_their_section_and_the_school(): void

@@ -41,6 +41,7 @@ class ShowAcademicYear extends DataTableComponent
         if ($academicYear === null) {
             throw new LogicException('An academic year is required.');
         }
+        Gate::authorize('view', $academicYear);
         $this->academicYear = $academicYear->loadMissing('academicPeriods');
         $this->previousAcademicYear = AcademicYear::inSchool()
             ->where('start_year', '<', $academicYear->start_year)

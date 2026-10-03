@@ -10,6 +10,7 @@ use App\Models\Weekday;
 use App\Services\Timetable\TimetableCalendar;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -66,6 +67,8 @@ class ShowTimetable extends Component
 
     public function mount(): void
     {
+        Gate::authorize('view', $this->timetable);
+
         $viewer = auth()->user();
         $period = $this->timetable->academicPeriod;
         $this->calendarDate = $period?->starts_on?->toDateString() ?? school_today()->toDateString();
