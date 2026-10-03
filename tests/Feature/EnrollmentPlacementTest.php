@@ -368,6 +368,20 @@ class EnrollmentPlacementTest extends TestCase
         $this->assertSame($cycleSection->id, $enrollment->fresh()->academic_cycle_section_id);
     }
 
+    public function test_the_student_screen_offers_only_active_sections_for_a_placement(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read student', 'update student']);
+        $active = $this->cycleSection($this->workingSchool(), current_academic_year());
+        $draft = $this->cycleSection($this->workingSchool(), current_academic_year());
+        $draft->update(['status' => AcademicStructureStatus::Draft]);
+
+        $offered = array_column(Livewire::test(ShowStudentProfile::class, ['student' => $enrollment->user])->get('cycleSections'), 'id');
+
+        $this->assertContains($active->id, $offered);
+        $this->assertNotContains($draft->id, $offered);
+    }
+
     private function cycleSection(School $school, ?AcademicYear $academicYear = null): AcademicCycleSection
     {
         $academicYear ??= AcademicYear::factory()->create(['school_id' => $school->id]);
