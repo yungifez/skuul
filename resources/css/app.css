@@ -228,7 +228,8 @@ input[type="radio"] {
 
     [data-slot="data-table"] th:last-child {
         z-index: 3;
-        background-color: color-mix(in oklab, var(--color-muted) 50%, transparent);
+        /* Opaque, so a column scrolling under the pinned one never shows through. */
+        background-color: color-mix(in oklab, var(--color-muted) 50%, var(--color-background));
     }
 
     [data-slot="data-table"] td:last-child {
