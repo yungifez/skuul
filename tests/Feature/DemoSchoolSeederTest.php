@@ -7,6 +7,7 @@ use App\Models\CourseOffering;
 use App\Models\Organization;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Authorization\RoleAuthority;
 use App\Services\School\SchoolSetupChecklist;
 use Database\Seeders\Demo\DemoSchool;
 use Database\Seeders\DemoSchoolSeeder;
@@ -58,6 +59,20 @@ class DemoSchoolSeederTest extends TestCase
         $checklist = app(SchoolSetupChecklist::class)->for($this->demo->campus);
 
         $this->assertSame(0, $checklist['required_remaining'], collect($checklist['items'])->reject(fn (array $item): bool => $item['complete'])->pluck('title')->join(', '));
+    }
+
+    public function test_the_school_administrator_can_manage_a_teachers_account(): void
+    {
+        school_context()->set($this->demo->campus, remember: false);
+        $administrator = User::query()->where('email', config('demo.accounts.School administrator'))->sole();
+        $teacher = User::query()->where('name', 'Angela Torres')->sole();
+
+        $this->assertTrue($administrator->can('manageAccountAccess', $teacher), json_encode([
+            'permission' => $administrator->can('manage account access'),
+            'member' => $teacher->belongsToCurrentSchool(),
+            'beyond' => $teacher->holdsPowerBeyond($this->demo->campus),
+            'holdsMore' => app(RoleAuthority::class)->holdsMoreThan($teacher, $administrator, $this->demo->campus),
+        ]));
     }
 
     public function test_the_school_year_runs_today_with_two_semesters(): void

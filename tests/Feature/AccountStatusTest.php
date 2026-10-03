@@ -11,6 +11,7 @@ use App\Exceptions\InvalidValueException;
 use App\Livewire\ManageAccountAccess;
 use App\Models\AccountInvitation;
 use App\Models\School;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -181,6 +182,24 @@ class AccountStatusTest extends TestCase
             ->assertSee('Reinstate account')
             ->assertDontSee('Suspend account')
             ->assertDontSee('Archive account');
+    }
+
+    public function test_every_kind_of_profile_offers_the_account_menu()
+    {
+        $school = $this->workingSchool();
+        $teacher = $this->memberOf($school, User::factory()->create());
+        $teacher->assignRole(Role::Teacher->value);
+        $parent = $this->memberOf($school, User::factory()->create());
+        $parent->assignRole(Role::Parent->value);
+        $parent->parentRecord()->create(['user_id' => $parent->id]);
+        $learner = StudentRecord::factory()->create(['school_id' => $school->id])->user;
+
+        $this->authorized_user(['read teacher', 'read parent', 'read student', 'manage account access'], $school);
+        auth()->user()->assignRole(Role::Admin->value);
+
+        foreach ([route('teachers.show', $teacher) => $teacher, route('parents.show', $parent) => $parent, route('students.show', $learner) => $learner] as $url => $person) {
+            $this->get($url)->assertOk()->assertSee('id="account-status"', false);
+        }
     }
 
     public function test_the_account_menu_is_hidden_without_access()

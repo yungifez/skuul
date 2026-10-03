@@ -6,6 +6,7 @@
     <div class="flex items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-x-3">
             <h2 id="sign-in-heading" class="text-base font-semibold">Sign-in</h2>
+            <livewire:manage-account-access :user="$user" :key="'account-access-'.$user->id" />
             @if ($user->password_change_required_at !== null)
                 <span class="text-sm text-muted-foreground">Must change password at next sign-in</span>
             @endif

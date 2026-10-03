@@ -36,11 +36,13 @@ class AdminTest extends TestCase
 
     public function test_authorised_users_can_view_an_admin_profile()
     {
-        $admin = User::factory()->create();
+        $admin = $this->memberOf($this->workingSchool());
         $admin->assignRole('admin');
 
-        $this->authorized_user(['read admin', 'manage account access'])
-            ->get('dashboard/admins/'.$admin->id)
+        $this->authorized_user(['read admin', 'manage account access']);
+        auth()->user()->assignRole('admin');
+
+        $this->get('dashboard/admins/'.$admin->id)
             ->assertOk()
             ->assertSeeLivewire(ManageAccountAccess::class)
             ->assertSee('id="account-status"', false)

@@ -4,7 +4,7 @@
     <dl class="grid grid-cols-2 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-3" aria-label="School access">
         <div>
             <dt class="text-sm text-muted-foreground">Account</dt>
-            <dd><livewire:manage-account-access :user="$admin" :key="'account-access-'.$admin->id" /></dd>
+            <dd class="flex min-h-11 items-center text-sm font-medium">{{ $admin->account_status->label() }}</dd>
         </div>
         <div>
             <dt class="text-sm text-muted-foreground">Membership</dt>
