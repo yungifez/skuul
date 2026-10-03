@@ -60,9 +60,9 @@
                         <thead>
                             <tr class="border-b text-left text-xs uppercase tracking-wider text-muted-foreground">
                                 <th class="p-3 font-medium">Candidate</th>
-                                <th class="p-3 font-medium">Section</th>
-                                <th class="p-3 font-medium">Priority</th>
-                                <th class="p-3 font-medium">Position</th>
+                                <th class="hidden p-3 font-medium sm:table-cell">Section</th>
+                                <th class="hidden p-3 font-medium sm:table-cell">Priority</th>
+                                <th class="hidden p-3 font-medium sm:table-cell">Position</th>
                                 <th class="p-3 font-medium">Status</th>
                                 <th class="p-3"><span class="sr-only">Actions</span></th>
                             </tr>
@@ -70,21 +70,26 @@
                         <tbody>
                             @foreach ($entries as $entry)
                                 <tr wire:key="waitlist-entry-{{ $entry->id }}" class="border-b last:border-0">
-                                    <td class="p-3 font-medium">{{ $entry->candidate?->name }}</td>
-                                    <td class="p-3">{{ $entry->academicCycleSection?->academicLevel?->name }} · {{ $entry->academicCycleSection?->name }}</td>
-                                    <td class="p-3">{{ $entry->priority }}</td>
-                                    <td class="p-3">{{ $entry->position }}</td>
+                                    <td class="p-3">
+                                        <span class="font-medium">{{ $entry->candidate?->name }}</span>
+                                        <span class="block text-xs text-muted-foreground sm:hidden">{{ $entry->academicCycleSection?->academicLevel?->name }} · {{ $entry->academicCycleSection?->name }} · Priority {{ $entry->priority }} · #{{ $entry->position }}</span>
+                                    </td>
+                                    <td class="hidden p-3 sm:table-cell">{{ $entry->academicCycleSection?->academicLevel?->name }} · {{ $entry->academicCycleSection?->name }}</td>
+                                    <td class="hidden p-3 sm:table-cell">{{ $entry->priority }}</td>
+                                    <td class="hidden p-3 sm:table-cell">{{ $entry->position }}</td>
                                     <td class="p-3">{{ $entry->status->label() }}</td>
-                                    <td class="p-3 text-right">
+                                    <td class="p-3">
                                         @can('update', $entry)
-                                            @if (in_array($entry->id, $nextEntryIds, true))
-                                                <april:button type="button" variant="outline" class="h-11" wire:click="offer({{ $entry->id }})" wire:loading.attr="disabled">Offer place</april:button>
-                                            @elseif ($entry->status === \App\Enums\AdmissionWaitlistStatus::Offered)
-                                                <april:button type="button" class="h-11" wire:click="accept({{ $entry->id }})" wire:loading.attr="disabled">Accept and enrol</april:button>
-                                            @endif
-                                            @if ($entry->isOpen())
-                                                <april:button type="button" variant="ghost" class="h-11" wire:click="decline({{ $entry->id }})" wire:confirm="Decline the place for {{ $entry->candidate?->name }}?" wire:loading.attr="disabled">Decline</april:button>
-                                            @endif
+                                            <div class="flex flex-wrap justify-end gap-2">
+                                                @if (in_array($entry->id, $nextEntryIds, true))
+                                                    <april:button type="button" variant="outline" class="h-11" wire:click="offer({{ $entry->id }})" wire:loading.attr="disabled">Offer place</april:button>
+                                                @elseif ($entry->status === \App\Enums\AdmissionWaitlistStatus::Offered)
+                                                    <april:button type="button" class="h-11" wire:click="accept({{ $entry->id }})" wire:loading.attr="disabled">Accept and enrol</april:button>
+                                                @endif
+                                                @if ($entry->isOpen())
+                                                    <april:button type="button" variant="ghost" class="h-11" wire:click="decline({{ $entry->id }})" wire:confirm="Decline the place for {{ $entry->candidate?->name }}?" wire:loading.attr="disabled">Decline</april:button>
+                                                @endif
+                                            </div>
                                         @endcan
                                     </td>
                                 </tr>
