@@ -3,6 +3,8 @@
         $sectionTerm = strtolower(school_term('section', 'section'));
         $controlClasses = 'h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50';
         $isClosed = $studentRecord?->status->isClosed() ?? true;
+        $canChangeStatus = count($statusOptions) > 1;
+        $canMoveCampus = !$isClosed && $campusCycleSections !== [] && !$openCampusMoveRequest;
     @endphp
 
     <livewire:show-user-profile :user="$student" />
@@ -15,7 +17,7 @@
                     <x-enrollment-status :enrollment="$studentRecord" />
                 </div>
 
-                @if ($canManageEnrollment)
+                @if ($canManageEnrollment && ($canChangeStatus || !$isClosed))
                     <april:dropdown-menu>
                         <slot:trigger>
                             <april:button type="button" variant="ghost" size="icon" class="size-11 select-none" aria-label="Change the enrollment">
@@ -23,13 +25,17 @@
                             </april:button>
                         </slot:trigger>
                         <slot:content>
-                            <april:dropdown-menu-item wire:click="$set('managing', 'status')">
-                                <x-lucide-refresh-cw class="mr-2 size-4" />Change status
-                            </april:dropdown-menu-item>
-                            <april:dropdown-menu-item wire:click="$set('managing', 'placement')">
-                                <x-lucide-arrow-right-left class="mr-2 size-4" />Change placement
-                            </april:dropdown-menu-item>
-                            @if ($campusCycleSections !== [] && !$openCampusMoveRequest)
+                            @if ($canChangeStatus)
+                                <april:dropdown-menu-item wire:click="$set('managing', 'status')">
+                                    <x-lucide-refresh-cw class="mr-2 size-4" />Change status
+                                </april:dropdown-menu-item>
+                            @endif
+                            @unless ($isClosed)
+                                <april:dropdown-menu-item wire:click="$set('managing', 'placement')">
+                                    <x-lucide-arrow-right-left class="mr-2 size-4" />Change placement
+                                </april:dropdown-menu-item>
+                            @endunless
+                            @if ($canMoveCampus)
                                 <april:dropdown-menu-item wire:click="$set('managing', 'campus')">
                                     <x-lucide-building-2 class="mr-2 size-4" />Move to another campus
                                 </april:dropdown-menu-item>

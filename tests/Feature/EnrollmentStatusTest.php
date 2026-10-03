@@ -201,6 +201,27 @@ class EnrollmentStatusTest extends TestCase
         $this->assertSame(EnrollmentStatus::Suspended, $enrollment->fresh()->status);
     }
 
+    public function test_the_enrollment_menu_offers_only_changes_that_can_happen(): void
+    {
+        $this->authorized_user(['read student', 'update student']);
+        $active = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $withdrawn = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id, 'status' => EnrollmentStatus::Withdrawn]);
+        $archived = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id, 'status' => EnrollmentStatus::Archived]);
+
+        Livewire::test(ShowStudentProfile::class, ['student' => $active->user])
+            ->assertSee('Change status')
+            ->assertSee('Change placement');
+
+        Livewire::test(ShowStudentProfile::class, ['student' => $withdrawn->user])
+            ->assertSee('Change status')
+            ->assertDontSee('Change placement');
+
+        Livewire::test(ShowStudentProfile::class, ['student' => $archived->user])
+            ->assertDontSee('Change the enrollment')
+            ->assertDontSee('Change status')
+            ->assertDontSee('Change placement');
+    }
+
     public function test_the_profile_refuses_a_change_of_state_from_a_later_day(): void
     {
         $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
