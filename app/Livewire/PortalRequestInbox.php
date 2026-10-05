@@ -103,7 +103,7 @@ class PortalRequestInbox extends Component
                 response: $validated['responsesByRequest'][$requestId] ?? null,
             );
         } catch (InvalidValueException $exception) {
-            $this->addError('status', $exception->getMessage());
+            $this->addError($statusField, $exception->getMessage());
 
             return;
         }

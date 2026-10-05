@@ -110,6 +110,8 @@
                                 </april:button>
                             </div>
                         </form>
+                    @else
+                        <x-field-error :name="'statusesByRequest.'.$request->id" />
                     @endif
                 </div>
             </article>

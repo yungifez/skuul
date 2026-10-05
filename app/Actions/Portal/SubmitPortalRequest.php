@@ -128,12 +128,20 @@ class SubmitPortalRequest
             $request->setRawAttributes(PortalRequest::query()->lockForUpdate()->findOrFail($request->getKey())->getAttributes(), true);
             $current = $request->status;
 
+            if ($current === PortalRequestStatus::Cancelled) {
+                throw new InvalidValueException('The family took this request back. It cannot change now.');
+            }
+
+            if (!$current->isOpen()) {
+                throw new InvalidValueException('This request is already '.strtolower($current->label()).'. It cannot change now.');
+            }
+
             if ($current === $status) {
                 return $request;
             }
 
             if (!$current->canMoveTo($status)) {
-                throw new InvalidValueException("A request cannot move from {$current->value} to {$status->value}.");
+                throw new InvalidValueException('A request that is '.strtolower($current->label()).' cannot move to '.strtolower($status->label()).'.');
             }
 
             $request->status = $status;

@@ -235,9 +235,35 @@ class PortalRequestScreenTest extends TestCase
             ->set('statusesByRequest.'.$request->id, PortalRequestStatus::Answered->value)
             ->set('responsesByRequest.'.$request->id, 'Too late.')
             ->call('changeStatus', $request->id)
-            ->assertHasErrors('status');
+            ->assertHasErrors('statusesByRequest.'.$request->id)
+            ->assertSee('The family took this request back. It cannot change now.');
 
         $this->assertSame(PortalRequestStatus::Cancelled, $request->fresh()->status);
+    }
+
+    /**
+     * Two staff answer the same request from two open inboxes.
+     */
+    public function test_a_second_answer_is_refused_and_does_not_replace_the_first(): void
+    {
+        $request = $this->request($this->enrollment());
+        $this->authorized_user(['read portal request', 'answer portal request']);
+        $lateInbox = Livewire::test(PortalRequestInbox::class)
+            ->set('statusesByRequest.'.$request->id, PortalRequestStatus::Answered->value)
+            ->set('responsesByRequest.'.$request->id, 'The second answer.');
+
+        Livewire::test(PortalRequestInbox::class)
+            ->set('statusesByRequest.'.$request->id, PortalRequestStatus::Answered->value)
+            ->set('responsesByRequest.'.$request->id, 'The first answer.')
+            ->call('changeStatus', $request->id)
+            ->assertHasNoErrors();
+
+        $lateInbox->call('changeStatus', $request->id)
+            ->assertHasErrors('statusesByRequest.'.$request->id)
+            ->assertSee('This request is already answered. It cannot change now.')
+            ->assertSet('feedback', null);
+
+        $this->assertSame('The first answer.', $request->fresh()->response);
     }
 
     public function test_the_family_reads_the_answer_in_the_portal(): void
@@ -348,8 +374,8 @@ class PortalRequestScreenTest extends TestCase
             ->set('statusesByRequest.'.$request->id, PortalRequestStatus::Answered->value)
             ->set('responsesByRequest.'.$request->id, 'An answer was already closed out.')
             ->call('changeStatus', $request->id)
-            ->assertHasErrors('status')
-            ->assertSee('A request cannot move from declined to answered.');
+            ->assertHasErrors('statusesByRequest.'.$request->id)
+            ->assertSee('This request is already declined. It cannot change now.');
 
         $this->assertSame(PortalRequestStatus::Declined, $request->fresh()->status);
     }
