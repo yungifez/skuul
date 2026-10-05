@@ -22,13 +22,13 @@ class DataSharingRequestPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('request data sharing') || $user->can('approve data sharing');
+        return $user->canAny(['request data sharing', 'approve data sharing', 'fulfil data sharing']);
     }
 
     /**
      * Determine whether the user can read one request.
      *
-     * Both schools read it: the one that asked and the one that decides.
+     * Both schools read it: the one that asked, and the one that decides and hands the records over.
      */
     public function view(User $user, DataSharingRequest $request): bool
     {
@@ -38,7 +38,7 @@ class DataSharingRequestPolicy
             return false;
         }
 
-        return $user->can('request data sharing') || $user->can('approve data sharing');
+        return $user->canAny(['request data sharing', 'approve data sharing', 'fulfil data sharing']);
     }
 
     /**

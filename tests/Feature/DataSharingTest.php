@@ -333,6 +333,23 @@ class DataSharingTest extends TestCase
         $this->assertFalse($package->fresh()->wasReceived());
     }
 
+    public function test_records_are_not_taken_in_after_the_permission_ran_out(): void
+    {
+        $this->authorized_user(['approve data sharing', 'fulfil data sharing']);
+        $request = $this->request([DataCategory::Identity], expiresOn: now()->addDays(3));
+        app(RequestDataSharing::class)->approve($request);
+        $package = app(FulfilDataSharingRequest::class)->fulfil($request->fresh());
+
+        $this->travel(5)->days();
+
+        $this->assertThrows(
+            fn () => app(FulfilDataSharingRequest::class)->receive($package),
+            InvalidValueException::class,
+            'This permission ran out before the records were taken in. Ask the other school again.',
+        );
+        $this->assertFalse($package->fresh()->wasReceived());
+    }
+
     public function test_a_school_asks_again_once_the_first_answer_is_no(): void
     {
         $this->authorized_user(['approve data sharing']);

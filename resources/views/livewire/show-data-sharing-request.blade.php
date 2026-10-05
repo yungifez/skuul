@@ -138,6 +138,10 @@
         @endif
     </section>
 
+    @if ($hiddenCategories !== [])
+        <p class="text-sm text-muted-foreground">{{ collect($hiddenCategories)->map(fn ($category) => $category->label())->join(', ', ' and ') }} {{ count($hiddenCategories) === 1 ? 'is' : 'are' }} hidden. You need the permission to read {{ count($hiddenCategories) === 1 ? 'it' : 'them' }} at this campus.</p>
+    @endif
+
     @foreach ($sections as $index => $section)
         <section wire:key="package-section-{{ $index }}" aria-labelledby="package-section-{{ $index }}" class="flex flex-col gap-4">
             <h3 id="package-section-{{ $index }}" class="text-base font-semibold">{{ $section['label'] }}</h3>

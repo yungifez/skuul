@@ -73,6 +73,19 @@ class DataSharingRequest extends Model
     }
 
     /**
+     * Get the restricted categories the person may not read at the campus they work in now.
+     *
+     * @return array<int, DataCategory>
+     */
+    public function categoriesUnreadableBy(User $user): array
+    {
+        return array_values(array_filter(
+            $this->categories(),
+            fn (DataCategory $category): bool => !$category->isReadableBy($user),
+        ));
+    }
+
+    /**
      * Check if the permission ran out.
      */
     public function hasExpired(mixed $on = null): bool

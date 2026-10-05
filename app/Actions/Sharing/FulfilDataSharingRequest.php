@@ -80,7 +80,7 @@ class FulfilDataSharingRequest
      * Take the package in at the school that asked for it.
      *
      * @throws InvalidValueException when the enrollment belongs to another school, it was taken in already,
-     *                               or the holding school took the permission back
+     *                               or the holding school took the permission back, or the permission ran out
      */
     public function receive(TransferPackage $package, ?StudentRecord $enrollment = null, ?User $actor = null): TransferPackage
     {
@@ -97,10 +97,14 @@ class FulfilDataSharingRequest
 
             // Taking the permission back after the hand-over still counts
             // until the records are taken in.
-            $status = DataSharingRequest::query()->whereKey($package->data_sharing_request_id)->value('status');
+            $request = DataSharingRequest::query()->findOrFail($package->data_sharing_request_id);
 
-            if ($status === DataSharingStatus::Revoked) {
+            if ($request->status === DataSharingStatus::Revoked) {
                 throw new InvalidValueException('The other school took this permission back. The records cannot be taken in.');
+            }
+
+            if ($request->hasExpired()) {
+                throw new InvalidValueException('This permission ran out before the records were taken in. Ask the other school again.');
             }
 
             $package->forceFill([

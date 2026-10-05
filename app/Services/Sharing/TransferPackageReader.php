@@ -29,16 +29,17 @@ class TransferPackageReader
     /**
      * Get the sections of the package.
      *
+     * @param  array<int, DataCategory>  $hidden  the categories the reader may not see
      * @return list<array{label: string, fields: list<array{label: string, value: string}>, tables: list<array{label: string|null, columns: list<string>, rows: list<list<string>>}>}>
      */
-    public function sections(TransferPackage $package): array
+    public function sections(TransferPackage $package, array $hidden = []): array
     {
         $sections = [];
 
         foreach ($package->categories as $value) {
             $category = DataCategory::tryFrom($value);
 
-            if ($category === null) {
+            if ($category === null || in_array($category, $hidden, true)) {
                 continue;
             }
 

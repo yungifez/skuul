@@ -316,7 +316,7 @@ class DataSharingScreenTest extends TestCase
             ->assertDontSee('Peanuts');
 
         // The permission can still be taken back until the records are taken in.
-        $this->authorized_user(['request data sharing'], $asking);
+        $this->authorized_user(['request data sharing', 'read health record', 'read incident'], $asking);
         $screen = Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request->fresh()])
             ->assertDontSee('Peanuts')
             ->assertDontSee('Admission date')
@@ -325,6 +325,93 @@ class DataSharingScreenTest extends TestCase
         $screen->assertSeeInOrder(['Identity', 'Moved Learner', 'Enrollment', 'Admission date', 'Health', 'Peanuts', 'Discipline', 'Nothing on record'])
             ->assertSeeHtml('<dd class="font-medium break-words">—</dd>')
             ->assertDontSee('Student record id');
+    }
+
+    public function test_a_holder_who_cannot_read_safeguarding_cases_cannot_share_them(): void
+    {
+        $request = $this->requestForThisSchool([DataCategory::Identity, DataCategory::Safeguarding]);
+        $this->authorized_user(['approve data sharing', 'fulfil data sharing']);
+
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request])
+            ->call('decide', DataSharingStatus::Approved->value)
+            ->assertDispatched('status-message', type: 'danger', message: 'You cannot approve Safeguarding. You need the permission to read them at this campus.');
+
+        $this->assertSame(DataSharingStatus::Requested, $request->fresh()->status);
+
+        $this->authorized_user(['approve data sharing', 'fulfil data sharing', 'read safeguarding case']);
+
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request])
+            ->call('decide', DataSharingStatus::Approved->value)
+            ->assertDispatched('status-message', message: 'Request Approved.');
+
+        $this->assertSame(DataSharingStatus::Approved, $request->fresh()->status);
+    }
+
+    public function test_a_holder_who_cannot_read_health_records_cannot_hand_them_over(): void
+    {
+        $request = $this->requestForThisSchool([DataCategory::Health, DataCategory::Finance]);
+        $this->authorized_user(['approve data sharing', 'read health record', 'read fee invoice']);
+        app(RequestDataSharing::class)->approve($request, auth()->user());
+
+        $this->authorized_user(['fulfil data sharing', 'read fee invoice']);
+
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request->fresh()])
+            ->call('fulfil')
+            ->assertDispatched('status-message', type: 'danger', message: 'You cannot hand over Health. You need the permission to read them at this campus.');
+
+        $this->assertSame(0, TransferPackage::count());
+        $this->assertSame(DataSharingStatus::Approved, $request->fresh()->status);
+    }
+
+    public function test_a_school_asks_only_for_restricted_records_it_may_read(): void
+    {
+        $holder = School::factory()->create();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $holder->id]);
+        $this->authorized_user(['request data sharing', 'read health record']);
+
+        Livewire::test(CreateDataSharingRequestForm::class)
+            ->set('holdingSchoolId', (string) $holder->id)
+            ->set('admissionNumber', $enrollment->admission_number)
+            ->set('purpose', 'The learner transferred to us.')
+            ->set('categories', [DataCategory::Health->value, DataCategory::Discipline->value, DataCategory::Wellbeing->value])
+            ->call('save')
+            ->assertHasErrors(['categories'])
+            ->assertSee('You cannot ask for Discipline and Support and wellbeing.');
+
+        $this->assertSame(0, DataSharingRequest::count());
+
+        Livewire::test(CreateDataSharingRequestForm::class)
+            ->set('holdingSchoolId', (string) $holder->id)
+            ->set('admissionNumber', $enrollment->admission_number)
+            ->set('purpose', 'The learner transferred to us.')
+            ->set('categories', [DataCategory::Identity->value, DataCategory::Health->value])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(1, DataSharingRequest::count());
+    }
+
+    public function test_a_received_restricted_record_stays_hidden_from_a_person_who_may_not_read_it(): void
+    {
+        $asking = $this->workingSchool();
+        $holder = School::factory()->create();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $holder->id]);
+        StudentHealthRecord::create(['school_id' => $holder->id, 'student_record_id' => $enrollment->id, 'allergies' => 'Peanuts']);
+
+        $this->authorized_user(['request data sharing', 'read health record'], $asking);
+        $request = app(RequestDataSharing::class)->request($enrollment, $asking, 'The learner transferred to us.', [DataCategory::Enrollment, DataCategory::Health]);
+        $this->authorized_user(['approve data sharing', 'fulfil data sharing', 'read health record'], $holder);
+        app(RequestDataSharing::class)->approve($request, auth()->user());
+        app(FulfilDataSharingRequest::class)->fulfil($request, auth()->user());
+        $this->authorized_user(['request data sharing', 'read health record'], $asking);
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request->fresh()])->call('receive')->assertSee('Peanuts');
+
+        $this->authorized_user(['request data sharing'], $asking);
+
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request->fresh()])
+            ->assertSee('Admission date')
+            ->assertDontSee('Peanuts')
+            ->assertSee('Health is hidden. You need the permission to read it at this campus.');
     }
 
     public function test_shared_figures_read_in_the_order_they_were_built(): void
@@ -376,6 +463,18 @@ class DataSharingScreenTest extends TestCase
         $this->assertSame(DataSharingStatus::Approved, $request->fresh()->status);
     }
 
+    public function test_a_person_who_only_hands_records_over_opens_the_request(): void
+    {
+        $request = $this->requestForThisSchool();
+        $this->authorized_user(['approve data sharing']);
+        app(RequestDataSharing::class)->approve($request, auth()->user());
+
+        $this->authorized_user(['fulfil data sharing']);
+
+        $this->get(route('data-sharing-requests.index'))->assertOk();
+        $this->get(route('data-sharing-requests.show', $request))->assertOk()->assertSee('Hand the records over');
+    }
+
     public function test_a_school_that_is_neither_side_reads_nothing(): void
     {
         $request = $this->requestForThisSchool();
@@ -393,8 +492,10 @@ class DataSharingScreenTest extends TestCase
 
     /**
      * Have another school ask this one for a learner's records.
+     *
+     * @param  array<int, DataCategory>  $categories
      */
-    private function requestForThisSchool(): DataSharingRequest
+    private function requestForThisSchool(array $categories = [DataCategory::Enrollment, DataCategory::AcademicResults]): DataSharingRequest
     {
         $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
 
@@ -402,7 +503,7 @@ class DataSharingScreenTest extends TestCase
             $enrollment,
             School::factory()->create(),
             'The learner applied to us.',
-            [DataCategory::Enrollment, DataCategory::AcademicResults],
+            $categories,
         );
     }
 }

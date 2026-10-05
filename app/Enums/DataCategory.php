@@ -2,6 +2,8 @@
 
 namespace App\Enums;
 
+use App\Models\User;
+
 /**
  * The kinds of information one school can ask another for.
  *
@@ -53,6 +55,33 @@ enum DataCategory: string
             self::Wellbeing,
             self::Finance,
         ], true);
+    }
+
+    /**
+     * Get the permission a person needs to read this category at a campus.
+     *
+     * Ordinary categories need none beyond the sharing permissions.
+     */
+    public function readPermission(): ?string
+    {
+        return match ($this) {
+            self::Health => 'read health record',
+            self::Discipline => 'read incident',
+            self::Safeguarding => 'read safeguarding case',
+            self::Wellbeing => 'read confidential support plan',
+            self::Finance => 'read fee invoice',
+            default => null,
+        };
+    }
+
+    /**
+     * Check if the person may read this category at the campus they work in now.
+     */
+    public function isReadableBy(User $user): bool
+    {
+        $permission = $this->readPermission();
+
+        return $permission === null || $user->can($permission);
     }
 
     /**

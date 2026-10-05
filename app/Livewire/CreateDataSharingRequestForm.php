@@ -71,6 +71,17 @@ class CreateDataSharingRequestForm extends Component
             'expiresOn' => 'end date',
         ]);
 
+        $unreadable = collect($this->categories)
+            ->map(fn (string $value): DataCategory => DataCategory::from($value))
+            ->reject(fn (DataCategory $category): bool => $category->isReadableBy(auth()->user()));
+
+        if ($unreadable->isNotEmpty()) {
+            $names = $unreadable->map(fn (DataCategory $category): string => $category->label())->join(', ', ' and ');
+            $this->addError('categories', "You cannot ask for {$names}. You need the permission to read them at this campus.");
+
+            return;
+        }
+
         $guessKey = 'data-sharing-lookup:'.auth()->id();
 
         if (RateLimiter::tooManyAttempts($guessKey, self::MissedLookupsPerHour)) {
