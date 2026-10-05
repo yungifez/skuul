@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Staff\ManageStaffLeave;
+use App\Actions\Staff\ManageStaffProfile;
 use App\Console\Commands\EndLeaversAccess;
 use App\Enums\EmploymentType;
 use App\Enums\Feature;
@@ -332,6 +333,27 @@ class StaffScreenTest extends TestCase
             ->set('status', StaffStatus::Active->value)
             ->call('saveJob')
             ->assertHasErrors(['status' => 'This person is now a learner. A learner cannot be made staff.']);
+
+        $this->assertSame(StaffStatus::Left, $profile->fresh()->status);
+        $this->assertFalse($profile->user->refresh()->belongsToSchool($profile->school_id));
+    }
+
+    public function test_a_person_holding_more_cannot_be_taken_back_by_somebody_holding_less(): void
+    {
+        $profile = $this->profile();
+        $profile->user->assignRole('admin');
+        app(ManageStaffProfile::class)->update($profile, [
+            'employment_type' => $profile->employment_type->value,
+            'status' => StaffStatus::Left->value,
+            'left_on' => now()->subDays(2)->toDateString(),
+        ]);
+        $this->authorized_user(['read staff profile', 'update staff profile']);
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile->fresh()])
+            ->call('startEditingJob')
+            ->set('status', StaffStatus::Active->value)
+            ->call('saveJob')
+            ->assertHasErrors(['status' => 'This person holds more at this school than you do, so you cannot take them back.']);
 
         $this->assertSame(StaffStatus::Left, $profile->fresh()->status);
         $this->assertFalse($profile->user->refresh()->belongsToSchool($profile->school_id));

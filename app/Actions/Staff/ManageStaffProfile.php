@@ -102,6 +102,11 @@ class ManageStaffProfile
                     throw new InvalidValueException('This person holds more at this school than you do, so you cannot record that they left.');
                 }
 
+                if ($isComingBack && $actor !== null && $actor->id !== $profile->user_id
+                    && $this->roleAuthority->holdsMoreThan($profile->user()->firstOrFail(), $actor, School::query()->findOrFail($profile->school_id))) {
+                    throw new InvalidValueException('This person holds more at this school than you do, so you cannot take them back.');
+                }
+
                 if ($isLeaving && $profile->status !== StaffStatus::Left) {
                     $this->failIfTheLastRoleManagerLeaves($profile);
                 }
