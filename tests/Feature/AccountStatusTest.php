@@ -283,6 +283,26 @@ class AccountStatusTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_a_suspended_account_cannot_use_its_profile_settings(): void
+    {
+        $user = User::factory()->suspended()->create(['password' => Hash::make('Str0ng-Passw0rd!')]);
+
+        $this->actingAs($user)->get('/user/profile')->assertForbidden();
+        $this->assertGuest();
+
+        $this->actingAs($user)->put('/user/password', [
+            'current_password' => 'Str0ng-Passw0rd!',
+            'password' => 'An0ther-Passw0rd!',
+            'password_confirmation' => 'An0ther-Passw0rd!',
+        ])->assertForbidden();
+        $this->assertTrue(Hash::check('Str0ng-Passw0rd!', $user->fresh()->password));
+    }
+
+    public function test_an_active_account_can_open_its_profile_settings(): void
+    {
+        $this->actingAs(User::factory()->create())->get('/user/profile')->assertOk();
+    }
+
     public function test_an_active_account_can_use_the_dashboard()
     {
         $user = User::factory()->create();

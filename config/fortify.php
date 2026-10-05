@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsActive;
 use Laravel\Fortify\Features;
 
 return [
@@ -88,7 +89,7 @@ return [
     |
     */
 
-    'middleware' => ['web'],
+    'middleware' => ['web', EnsureAccountIsActive::class],
 
     /*
     |--------------------------------------------------------------------------
