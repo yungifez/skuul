@@ -292,6 +292,46 @@ class AccountInvitationManagementTest extends TestCase
             ->assertDontSee('Far Away Campus');
     }
 
+    public function test_a_campus_administrator_cannot_stop_the_invitation_of_a_person_who_works_at_another_campus(): void
+    {
+        $administrator = $this->schoolAdministrator();
+        $invitee = $this->invitedMember();
+        $otherSchool = School::factory()->create();
+        $this->memberOf($otherSchool, $invitee);
+        school_context()->set($otherSchool, remember: false);
+        $invitee->givePermissionTo('manage account access');
+        $invitation = AccountInvitation::factory()->create(['user_id' => $invitee->id]);
+        school_context()->set($this->workingSchool(), remember: false);
+
+        Livewire::actingAs($administrator)
+            ->test(ListAccountInvitations::class)
+            ->assertSee($invitee->email)
+            ->call('revoke', $invitation->id)
+            ->assertForbidden();
+
+        Livewire::actingAs($administrator)
+            ->test(ListAccountInvitations::class)
+            ->call('resend', $invitation->id)
+            ->assertForbidden();
+
+        $this->assertNull($invitation->fresh()->revoked_at);
+    }
+
+    public function test_a_campus_administrator_cannot_stop_the_invitation_of_a_person_who_holds_more_here(): void
+    {
+        $administrator = $this->schoolAdministrator();
+        $invitee = $this->invitedMember();
+        $invitee->givePermissionTo(['manage account access', 'manage role']);
+        $invitation = AccountInvitation::factory()->create(['user_id' => $invitee->id]);
+
+        Livewire::actingAs($administrator)
+            ->test(ListAccountInvitations::class)
+            ->call('revoke', $invitation->id)
+            ->assertForbidden();
+
+        $this->assertNull($invitation->fresh()->revoked_at);
+    }
+
     public function test_a_platform_administrator_reads_every_school(): void
     {
         $otherSchool = School::factory()->create();

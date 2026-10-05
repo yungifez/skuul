@@ -119,6 +119,25 @@ class AccountInvitationVisibility
     }
 
     /**
+     * Check if this person reaches the invited person through the platform or an organization.
+     *
+     * Without that reach, only the authority of the current campus counts.
+     */
+    public function reachesBeyondThisCampus(User $user, User $invitee): bool
+    {
+        if ($this->systemPermissionScope->allows($user, PlatformPermission::AccessAllSchools)) {
+            return true;
+        }
+
+        $schoolIds = $this->organizationSchoolIds($user);
+
+        return $schoolIds !== [] && $invitee->schoolMemberships()
+            ->active()
+            ->whereIn('school_id', $schoolIds)
+            ->exists();
+    }
+
+    /**
      * Get the names of the invited person's schools that this person may see.
      *
      * Another school's name is never shown, even when the invited person can

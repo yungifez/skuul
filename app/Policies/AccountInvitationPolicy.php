@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\AccountInvitation;
 use App\Models\User;
+use App\Services\Authorization\RoleAuthority;
 use App\Services\Identity\AccountInvitationVisibility;
 
 /**
@@ -59,7 +60,22 @@ class AccountInvitationPolicy
      */
     private function canAct(User $user, AccountInvitation $invitation): bool
     {
-        return $user->id !== $invitation->user_id
-            && $this->visibility->allows($user, $invitation);
+        $invitee = $invitation->user;
+
+        if ($invitee === null || $user->id === $invitee->id || !$this->visibility->allows($user, $invitation)) {
+            return false;
+        }
+
+        if ($this->visibility->reachesBeyondThisCampus($user, $invitee)) {
+            return true;
+        }
+
+        // A campus manager acts only on a person this campus fully holds,
+        // as App\Policies\UserPolicy::manageAccountAccess does.
+        $school = current_school();
+
+        return $school !== null
+            && !$invitee->holdsPowerBeyond($school)
+            && !app(RoleAuthority::class)->holdsMoreThan($invitee, $user, $school);
     }
 }
