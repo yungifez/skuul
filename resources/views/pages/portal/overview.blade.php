@@ -45,7 +45,9 @@
                             <div class="flex flex-wrap gap-2">
                                 @foreach ($areasOf[$enrollment->id] as $area)
                                     @php($route = match ($area) {
+                                        \App\Enums\PortalArea::Results => route('portal.results.index', $enrollment),
                                         \App\Enums\PortalArea::Attendance => route('portal.attendance.show', $enrollment),
+                                        \App\Enums\PortalArea::Timetable => route('portal.timetable.show', $enrollment),
                                         \App\Enums\PortalArea::Notices => route('portal.notices.index', $enrollment),
                                         \App\Enums\PortalArea::Calendar => route('portal.calendar.index', $enrollment),
                                         \App\Enums\PortalArea::Invoices => route('portal.invoices.index', $enrollment),

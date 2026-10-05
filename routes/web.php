@@ -38,6 +38,8 @@ use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\OvernightLeaveController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\PortalGraduationController;
+use App\Http\Controllers\PortalResultController;
+use App\Http\Controllers\PortalTimetableController;
 use App\Http\Controllers\PortalInvoicesController;
 use App\Http\Controllers\PortalProgramController;
 use App\Http\Controllers\SchoolController;
@@ -115,6 +117,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     // Families use portal authorization, not a staff working-school membership.
     Route::get('portal/overview', ['App\Http\Controllers\PortalOverviewController', 'index'])->name('portal.overview');
     Route::get('portal/notification-preferences', [NoticeNotificationPreferenceController::class, 'portalEdit'])->name('portal.notification-preferences.edit');
+    Route::get('portal/enrollments/{studentRecord}/results', [PortalResultController::class, 'index'])->name('portal.results.index');
+    Route::get('portal/enrollments/{studentRecord}/timetable', [PortalTimetableController::class, 'show'])->name('portal.timetable.show');
     Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
     Route::get('portal/enrollments/{studentRecord}/calendar', ['App\Http\Controllers\PortalCalendarController', 'index'])->name('portal.calendar.index');
     Route::get('portal/enrollments/{studentRecord}/invoices', [PortalInvoicesController::class, 'index'])->name('portal.invoices.index');
