@@ -13,6 +13,7 @@ use App\Models\BoardingRoll;
 use App\Models\Dormitory;
 use App\Models\DormitoryBed;
 use App\Models\DormitoryRoom;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -228,6 +229,25 @@ class BoardingRollTest extends TestCase
         $entry->update(['status' => BoardingRollEntryStatus::Present, 'recorded_at' => now()]);
 
         $this->actingAs($student->user)
+            ->get(route('portal.boarding.index', $student))
+            ->assertOk()
+            ->assertSee('Latest boarding check')
+            ->assertSee('Present');
+    }
+
+    /**
+     * A family member signed in at another campus still reads the learner's roll.
+     */
+    public function test_the_latest_roll_shows_when_the_family_works_at_another_campus(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal, config: ['boarding' => true]);
+        features()->enable(Feature::Boarding);
+        [$student, $house] = $this->boarder();
+        $roll = app(StartBoardingRoll::class)->start($house, BoardingRollType::Evening);
+        $roll->entries()->sole()->update(['status' => BoardingRollEntryStatus::Present, 'recorded_at' => now()]);
+
+        $this->actingAsMemberOf(School::factory()->create(), $student->user)
             ->get(route('portal.boarding.index', $student))
             ->assertOk()
             ->assertSee('Latest boarding check')

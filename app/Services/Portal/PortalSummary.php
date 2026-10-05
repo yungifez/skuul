@@ -221,9 +221,9 @@ class PortalSummary
         $room = $bed?->room;
         $house = $room?->dormitory;
         $latestRollEntry = $place?->isBoarding()
-            ? BoardingRollEntry::inSchool()
+            ? BoardingRollEntry::inSchool($enrollment->school_id)
                 ->where('student_record_id', $enrollment->id)
-                ->whereHas('roll', fn ($roll) => $roll->where('school_id', $enrollment->school_id)->whereDate('taken_on', '<=', school_today()->toDateString()))
+                ->whereHas('roll', fn ($roll) => $roll->where('school_id', $enrollment->school_id)->whereDate('taken_on', '<=', school_today($enrollment->school_id)->toDateString()))
                 ->with('roll')
                 ->latest('id')
                 ->first()
