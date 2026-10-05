@@ -73,7 +73,7 @@ class EndSchoolMembership
 
             $user->schoolMemberships()->where('school_id', $school->id)->update(['is_primary' => false]);
 
-            $this->endDutiesFrom($user, $school->id, school_today());
+            $this->endDutiesFrom($user, $school->id, school_today($school));
 
             // A copy held for somebody who no longer comes in goes to the next person.
             $this->reservations->cancelEveryReservation($user, $school->id);
@@ -118,7 +118,7 @@ class EndSchoolMembership
                 ->delete();
 
             // A leaver still at work keeps their cases until they go.
-            if ($firstDayAway->lessThanOrEqualTo(school_today())) {
+            if ($firstDayAway->lessThanOrEqualTo(school_today($schoolId))) {
                 $this->handBackOpenCases($user, $schoolId);
                 $this->handBackTheirClasses($user, $schoolId);
             }

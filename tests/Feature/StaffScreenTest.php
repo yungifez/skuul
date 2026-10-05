@@ -24,6 +24,7 @@ use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -358,6 +359,27 @@ class StaffScreenTest extends TestCase
         $this->travel(1)->days();
         $this->artisan(EndLeaversAccess::class)->assertSuccessful();
         $this->assertFalse($profile->user->refresh()->belongsToSchool($profile->school_id));
+    }
+
+    /**
+     * The daily run reads each leaver's own campus clock, not the server's.
+     */
+    public function test_the_daily_run_ends_access_by_the_leavers_campus_date(): void
+    {
+        $this->travelTo(Carbon::parse('2026-10-05 12:00', 'UTC'));
+        $this->authorized_user(['read staff profile']);
+        $farEast = School::factory()->create(['timezone' => 'Pacific/Kiritimati']);
+        $leaver = $this->memberOf($farEast);
+        StaffProfile::factory()->create([
+            'school_id' => $farEast->id,
+            'user_id' => $leaver->id,
+            'status' => StaffStatus::Left->value,
+            'left_on' => '2026-10-05',
+        ]);
+
+        $this->artisan(EndLeaversAccess::class)->expectsOutput('1 leavers lost access.')->assertSuccessful();
+
+        $this->assertFalse($leaver->refresh()->belongsToSchool($farEast->id), 'It is already 6 October at the campus.');
     }
 
     public function test_a_qualification_and_working_hours_are_added_and_removed(): void
