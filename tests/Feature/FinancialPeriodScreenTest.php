@@ -53,6 +53,52 @@ class FinancialPeriodScreenTest extends TestCase
             ->assertHasErrors(['name' => 'unique', 'endsOn' => 'after_or_equal']);
     }
 
+    public function test_a_period_cannot_overlap_a_closed_period(): void
+    {
+        $this->authorized_user(['manage financial period']);
+        FinancialPeriod::query()->inSchool()->delete();
+        $closed = FinancialPeriod::create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Spring term',
+            'starts_on' => '2027-01-01',
+            'ends_on' => '2027-03-31',
+            'status' => FinancialPeriodStatus::Closed,
+        ]);
+
+        Livewire::test(ManageFinancialPeriods::class)
+            ->set('isAdding', true)
+            ->set('name', 'Late spring')
+            ->set('startsOn', '2027-03-15')
+            ->set('endsOn', '2027-05-31')
+            ->call('save')
+            ->assertHasErrors(['startsOn'])
+            ->assertSee('These dates overlap Spring term, 1 Jan 2027 to 31 Mar 2027.');
+
+        $this->assertSame(1, FinancialPeriod::query()->inSchool()->count());
+        $this->assertSame(FinancialPeriodStatus::Closed, $closed->fresh()->status);
+    }
+
+    public function test_a_period_can_start_the_day_after_another_ends(): void
+    {
+        $this->authorized_user(['manage financial period']);
+        FinancialPeriod::query()->inSchool()->delete();
+        FinancialPeriod::create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Spring term',
+            'starts_on' => '2027-01-01',
+            'ends_on' => '2027-03-31',
+        ]);
+
+        Livewire::test(ManageFinancialPeriods::class)
+            ->set('name', 'Summer term')
+            ->set('startsOn', '2027-04-01')
+            ->set('endsOn', '2027-06-30')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(2, FinancialPeriod::query()->inSchool()->count());
+    }
+
     public function test_the_bursar_closes_and_reopens_a_period(): void
     {
         $this->authorized_user(['manage financial period']);

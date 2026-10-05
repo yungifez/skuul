@@ -7,6 +7,7 @@ use App\Enums\FinancialPeriodStatus;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\FinancialPeriod;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -39,12 +40,33 @@ class ManageFinancialPeriods extends Component
             'endsOn' => ['required', 'date', 'after_or_equal:startsOn'],
         ], attributes: ['startsOn' => 'start date', 'endsOn' => 'end date']);
 
-        FinancialPeriod::create([
-            'name' => $validated['name'],
-            'starts_on' => $validated['startsOn'],
-            'ends_on' => $validated['endsOn'],
-            'school_id' => current_school_id(),
-        ]);
+        $overlapping = DB::transaction(function () use ($validated): ?FinancialPeriod {
+            // Each date belongs to one period. An open period laid over a
+            // closed one would let money be posted into the closed dates.
+            $overlapping = FinancialPeriod::query()
+                ->inSchool()
+                ->whereDate('starts_on', '<=', $validated['endsOn'])
+                ->whereDate('ends_on', '>=', $validated['startsOn'])
+                ->lockForUpdate()
+                ->first();
+
+            if ($overlapping === null) {
+                FinancialPeriod::create([
+                    'name' => $validated['name'],
+                    'starts_on' => $validated['startsOn'],
+                    'ends_on' => $validated['endsOn'],
+                    'school_id' => current_school_id(),
+                ]);
+            }
+
+            return $overlapping;
+        });
+
+        if ($overlapping !== null) {
+            $this->addError('startsOn', "These dates overlap {$overlapping->name}, {$overlapping->starts_on->format('j M Y')} to {$overlapping->ends_on->format('j M Y')}. Each date can belong to one period only.");
+
+            return;
+        }
 
         $this->reset('isAdding', 'name', 'startsOn', 'endsOn');
         $this->notify('Financial period added.');

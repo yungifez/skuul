@@ -16,21 +16,27 @@ class FinancialPeriodResolver
     public function openFor(int $schoolId, CarbonInterface|string $date): FinancialPeriod
     {
         $date = $date instanceof CarbonInterface ? $date : now()->parse($date);
-        $period = FinancialPeriod::query()
+        // Periods made before overlaps were refused can still cover the same
+        // date. A closed one among them wins, so its dates stay closed.
+        $periods = FinancialPeriod::query()
             ->inSchool($schoolId)
             ->whereDate('starts_on', '<=', $date)
             ->whereDate('ends_on', '>=', $date)
-            ->first();
+            ->orderByDesc('starts_on')
+            ->orderByDesc('id')
+            ->get();
 
-        if ($period === null) {
+        if ($periods->isEmpty()) {
             throw new InvalidValueException('Create a financial period for this date before recording finance activity.');
         }
 
-        if (!$period->isOpen()) {
-            throw new InvalidValueException("Financial period {$period->name} is closed.");
+        $closed = $periods->first(fn (FinancialPeriod $period): bool => !$period->isOpen());
+
+        if ($closed !== null) {
+            throw new InvalidValueException("Financial period {$closed->name} is closed.");
         }
 
-        return $period;
+        return $periods->first();
     }
 
     /**

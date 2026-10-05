@@ -115,6 +115,23 @@ class LedgerTest extends TestCase
         $this->assertSame(0, LedgerTransaction::query()->where('financial_period_id', $period->id)->count());
     }
 
+    public function test_an_old_overlapping_open_period_does_not_reopen_closed_dates(): void
+    {
+        $schoolId = $this->workingSchool()->id;
+        FinancialPeriod::query()->inSchool($schoolId)->update(['status' => FinancialPeriodStatus::Closed]);
+        FinancialPeriod::create([
+            'school_id' => $schoolId,
+            'name' => 'Laid over the closed dates',
+            'starts_on' => now()->startOfMonth()->toDateString(),
+            'ends_on' => now()->endOfMonth()->toDateString(),
+        ]);
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('Financial period Current finance period is closed.');
+
+        app(FinancialPeriodResolver::class)->openFor($schoolId, now());
+    }
+
     public function test_a_posted_entry_cannot_be_changed_or_deleted(): void
     {
         $this->authorized_user([]);
