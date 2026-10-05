@@ -85,7 +85,9 @@ class StudentAgingReport implements Report
             ->inSchool($schoolId)
             ->when(
                 ($parameters['only_attending'] ?? true) === true,
-                fn ($query) => $query->where('status', EnrollmentStatus::Active),
+                fn ($query) => $query->where(fn ($kept) => $kept
+                    ->where('status', EnrollmentStatus::Active)
+                    ->orWhereIn('id', FeeInvoice::query()->ofSchool($schoolId)->select('student_record_id'))),
             )
             ->with(['user', 'academicCycleSection.academicLevel'])
             ->get();

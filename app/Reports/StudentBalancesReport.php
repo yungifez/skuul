@@ -64,14 +64,25 @@ class StudentBalancesReport implements Report
     {
         $schoolId = (int) ($parameters['school_id'] ?? current_school_id());
 
+        $moneyHere = LedgerLine::query()->select('student_record_id')->whereIn('ledger_account_id', [
+            $this->chart->account('fees_receivable', $schoolId)->id,
+            $this->chart->account('unapplied_credits', $schoolId)->id,
+        ]);
+
+        // A learner who left this campus owing money is still a debtor of it.
         $enrollments = StudentRecord::query()
             ->inSchool($schoolId)
             ->when(
                 ($parameters['only_attending'] ?? true) === true,
-                fn ($query) => $query->where('status', EnrollmentStatus::Active)
+                fn ($query) => $query->where(fn ($kept) => $kept
+                    ->where('status', EnrollmentStatus::Active)
+                    ->orWhereIn('id', $moneyHere))
             )
             ->with(['user', 'academicCycleSection.academicLevel'])
-            ->get();
+            ->get()
+            ->reject(fn (StudentRecord $enrollment): bool => $enrollment->status !== EnrollmentStatus::Active
+                && $this->ledger->balance($enrollment, $schoolId) === 0.0
+                && $this->ledger->unappliedCredit($enrollment, $schoolId) === 0.0);
 
         /** @var Collection<int, array<int, mixed>> $rows */
         $rows = $enrollments->map(fn (StudentRecord $enrollment): array => [

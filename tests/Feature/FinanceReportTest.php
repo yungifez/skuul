@@ -6,6 +6,7 @@ use App\Actions\Finance\ChargeStudent;
 use App\Actions\Finance\PostLedgerTransaction;
 use App\Actions\Finance\ReceivePayment;
 use App\Actions\Finance\SetBudget;
+use App\Enums\EnrollmentStatus;
 use App\Models\AcademicYear;
 use App\Models\Fee;
 use App\Models\FeeCategory;
@@ -234,6 +235,30 @@ class FinanceReportTest extends TestCase
         $rows = app(ReportRegistry::class)->get('general-ledger')->rows(['school_id' => $elsewhere->id]);
 
         $this->assertTrue($rows->isEmpty());
+    }
+
+    /**
+     * A learner who withdrew with money owed is the debt the office most needs to chase.
+     */
+    public function test_a_learner_who_left_this_campus_owing_money_stays_on_the_debtor_reports(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $withdrawn = $this->enrollment();
+        $this->invoiceFor($withdrawn, 250, now()->subDays(45));
+        $withdrawn->forceFill(['status' => EnrollmentStatus::Withdrawn])->save();
+        $graduated = $this->enrollment();
+        $graduated->forceFill(['status' => EnrollmentStatus::Graduated])->save();
+
+        $balances = app(ReportRegistry::class)->get('student-balances')->rows($this->parameters());
+        $aging = app(ReportRegistry::class)->get('student-aging')->rows($this->parameters());
+
+        $balance = $balances->firstWhere(0, $withdrawn->admission_number);
+        $this->assertNotNull($balance, 'The withdrawn learner who owes money is missing from the balances.');
+        $this->assertSame(EnrollmentStatus::Withdrawn->label(), $balance[4]);
+        $this->assertSame(250.0, $balance[5]);
+        $this->assertSame(250.0, $aging->firstWhere(0, $withdrawn->admission_number)[9] ?? null);
+        $this->assertNull($balances->firstWhere(0, $graduated->admission_number), 'A learner who left owing nothing crowds the list.');
     }
 
     /**
