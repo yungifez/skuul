@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\AuditAction;
 use App\Enums\Feature;
+use App\Enums\PortalArea;
 use App\Livewire\Layouts\Menu;
 use App\Livewire\ManageSchoolFeatures;
 use App\Models\AuditEvent;
@@ -11,6 +12,7 @@ use App\Models\GraduationPlan;
 use App\Models\Program;
 use App\Models\School;
 use App\Services\Feature\FeatureManager;
+use App\Services\Portal\PortalAccess;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -159,6 +161,51 @@ class FeatureSettingTest extends TestCase
         $this->assertFalse(app(FeatureManager::class)->enabled(Feature::Attendance));
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::FeatureDisabled)->first());
         $this->assertDatabaseHas('feature_settings', ['school_id' => $this->workingSchool()->id, 'feature' => 'attendance', 'enabled' => false, 'updated_by' => auth()->id()]);
+    }
+
+    public function test_a_school_hides_one_family_page_and_keeps_the_others(): void
+    {
+        $this->authorized_user(['manage school settings']);
+        $features = app(FeatureManager::class);
+        $features->enable(Feature::Portal, config: [PortalArea::Invoices->value => false]);
+
+        Livewire::test(ManageSchoolFeatures::class)
+            ->assertSee('Family pages')
+            ->assertSet('portalAreas.invoices', false)
+            ->set('portalAreas.results', false)
+            ->assertDispatched('status-message', type: 'success', message: 'Results is hidden from families.');
+
+        $access = app(PortalAccess::class);
+        $this->assertFalse($access->areaIsOpen(PortalArea::Results, $this->workingSchool()->id));
+        $this->assertFalse($access->areaIsOpen(PortalArea::Invoices, $this->workingSchool()->id));
+        $this->assertTrue($access->areaIsOpen(PortalArea::Documents, $this->workingSchool()->id));
+
+        Livewire::test(ManageSchoolFeatures::class)->set('enabled.portal', false)->set('enabled.portal', true);
+
+        $this->assertFalse($access->areaIsOpen(PortalArea::Results, $this->workingSchool()->id), 'Turning the portal off and on forgot the hidden page.');
+    }
+
+    public function test_family_pages_cannot_change_while_the_portal_is_off(): void
+    {
+        $this->authorized_user(['manage school settings']);
+        app(FeatureManager::class)->disable(Feature::Portal);
+
+        Livewire::test(ManageSchoolFeatures::class)
+            ->assertDontSee('Family pages')
+            ->set('portalAreas.results', false)
+            ->assertSet('portalAreas.results', true);
+
+        $this->assertTrue((bool) features()->config(Feature::Portal, PortalArea::Results->value, true));
+    }
+
+    public function test_a_family_page_waits_for_its_tool(): void
+    {
+        $this->authorized_user(['manage school settings']);
+        $features = app(FeatureManager::class);
+        $features->enable(Feature::Portal);
+        $features->disable(Feature::Library);
+
+        Livewire::test(ManageSchoolFeatures::class)->assertSee('Hidden while '.Feature::Library->label().' is off');
     }
 
     public function test_a_school_turns_boarding_on_and_the_sidebar_follows(): void

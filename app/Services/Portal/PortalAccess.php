@@ -22,6 +22,20 @@ use Illuminate\Support\Collection as SupportCollection;
 class PortalAccess
 {
     /**
+     * The campus tool each family page also needs, keyed by portal area.
+     *
+     * @var array<string, Feature>
+     */
+    public const AREA_FEATURES = [
+        'attendance' => Feature::Attendance,
+        'calendar' => Feature::Events,
+        'library' => Feature::Library,
+        'boarding' => Feature::Boarding,
+        'graduation' => Feature::GraduationPlans,
+        'programmes' => Feature::Programmes,
+    ];
+
+    /**
      * The enrollments a family keeps reading.
      *
      * A learner who graduated, transferred, or was withdrawn still has report
@@ -100,15 +114,7 @@ class PortalAccess
             return false;
         }
 
-        $feature = match ($area) {
-            PortalArea::Attendance => Feature::Attendance,
-            PortalArea::Calendar => Feature::Events,
-            PortalArea::Library => Feature::Library,
-            PortalArea::Boarding => Feature::Boarding,
-            PortalArea::Graduation => Feature::GraduationPlans,
-            PortalArea::Programmes => Feature::Programmes,
-            default => null,
-        };
+        $feature = self::AREA_FEATURES[$area->value] ?? null;
 
         if ($feature !== null && features()->disabled($feature, $schoolId)) {
             return false;
