@@ -72,6 +72,14 @@ class AssignStudentsToParent extends Component
     {
         Gate::authorize('update', [$this->parent, 'parent']);
 
+        $linked = collect($this->children)->firstWhere('id', $this->studentId);
+
+        if ($linked !== null) {
+            $this->notify("{$linked['name']} is already linked to {$this->parent->name}.");
+
+            return;
+        }
+
         $learner = collect($this->students)->firstWhere('id', $this->studentId) === null
             ? null
             : User::query()->find($this->studentId);
@@ -91,6 +99,7 @@ class AssignStudentsToParent extends Component
         }
 
         $this->loadChildren();
+        $this->loadStudents();
         $this->notify("{$learner->name} is now linked to {$this->parent->name}.");
     }
 
@@ -110,6 +119,7 @@ class AssignStudentsToParent extends Component
         }
 
         $this->loadChildren();
+        $this->loadStudents();
         $this->notify("{$learner->name} is no longer linked to {$this->parent->name}.");
     }
 
@@ -129,6 +139,7 @@ class AssignStudentsToParent extends Component
 
         $this->students = User::role('student')
             ->ofSchool()
+            ->whereNotIn('users.id', array_column($this->children, 'id'))
             ->whereHas('studentRecord', fn ($query) => $query->where('academic_cycle_section_id', $this->academicCycleSectionId))
             ->with(['studentRecord' => function (Relation $query): void {
                 $query->select([

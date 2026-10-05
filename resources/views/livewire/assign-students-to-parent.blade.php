@@ -21,7 +21,7 @@
                 @forelse ($students as $student)
                     <option value="{{ $student['id'] }}">{{ $student['name'] }}@if ($student['admission_number']) · {{ $student['admission_number'] }}@endif</option>
                 @empty
-                    <option value="">No learners in this {{ strtolower(school_term('section', 'section')) }}</option>
+                    <option value="">No learner left to link in this {{ strtolower(school_term('section', 'section')) }}</option>
                 @endforelse
             </select>
             <x-field-error name="studentId" class="mt-1" />

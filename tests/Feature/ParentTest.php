@@ -352,10 +352,31 @@ class ParentTest extends TestCase
             ->set('studentId', $student->user_id);
         $auditsBefore = AuditEvent::query()->where('action', AuditAction::GuardianLinkChanged)->count();
 
-        $component->call('add')->call('add');
+        $component->call('add')
+            ->assertSet('students', [])
+            ->set('studentId', $student->user_id)
+            ->call('add')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success', message: "{$student->user->name} is already linked to {$parent->name}.");
 
         $this->assertSame(1, $parent->parentRecord->students()->count());
         $this->assertSame($auditsBefore + 1, AuditEvent::query()->where('action', AuditAction::GuardianLinkChanged)->count());
+    }
+
+    public function test_an_unlinked_learner_returns_to_the_list(): void
+    {
+        $student = StudentRecord::factory()->create();
+        $parent = $this->guardian();
+        $this->authorized_user(['update parent']);
+
+        Livewire::test(AssignStudentsToParent::class, ['parent' => $parent])
+            ->set('academicCycleSectionId', $student->academic_cycle_section_id)
+            ->set('studentId', $student->user_id)
+            ->call('add')
+            ->assertSet('students', [])
+            ->assertSee('No learner left to link in this section')
+            ->call('remove', $student->user_id)
+            ->assertSet('studentId', $student->user_id);
     }
 
     public function test_a_linked_learner_can_be_unlinked(): void
