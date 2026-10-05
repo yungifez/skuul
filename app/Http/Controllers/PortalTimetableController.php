@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Enums\PortalArea;
 use App\Models\StudentRecord;
+use App\Models\Timetable;
 use App\Services\Portal\PortalAccess;
 use App\Services\Portal\PortalSummary;
 use App\Services\Timetable\TimetableGrid;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Show a learner and their guardian the week of the learner's class.
@@ -37,7 +39,32 @@ class PortalTimetableController extends Controller
         return view('pages.portal.timetable', [
             'studentRecord' => $studentRecord,
             'timetable' => $timetable,
-            'grid' => $timetable === null ? null : $this->grid->of($timetable, viewer: $studentRecord->user),
+            'grid' => $timetable === null ? null : $this->gridFor($timetable, $studentRecord),
         ]);
+    }
+
+    /**
+     * Build the week as the learner sees it at their own campus.
+     *
+     * Roles belong to a campus. A guardian may be working at another one, so
+     * the learner's roles are read at the learner's campus.
+     *
+     * @return array<string, mixed>
+     */
+    private function gridFor(Timetable $timetable, StudentRecord $studentRecord): array
+    {
+        $registrar = app(PermissionRegistrar::class);
+        $before = $registrar->getPermissionsTeamId();
+        $learner = $studentRecord->user;
+
+        try {
+            $registrar->setPermissionsTeamId($studentRecord->school_id);
+            $learner?->unsetRelation('roles')->unsetRelation('permissions');
+
+            return $this->grid->of($timetable, viewer: $learner);
+        } finally {
+            $registrar->setPermissionsTeamId($before);
+            $learner?->unsetRelation('roles')->unsetRelation('permissions');
+        }
     }
 }

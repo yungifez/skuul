@@ -5,11 +5,13 @@ namespace Tests\Feature;
 use App\Enums\Feature;
 use App\Enums\PortalArea;
 use App\Enums\ResultApprovalStatus;
+use App\Enums\RosterMode;
 use App\Enums\TimetableStatus;
 use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
 use App\Models\ParentRecord;
 use App\Models\ResultSnapshot;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\Timetable;
@@ -74,6 +76,33 @@ class PortalResultAndTimetableTest extends TestCase
             ->assertDontSee('Another class lesson');
     }
 
+    public function test_a_guardian_sees_only_the_lessons_their_child_takes(): void
+    {
+        $enrollment = $this->enrollment();
+        $this->publishLessons($enrollment);
+
+        $this->actingAsMemberOf($this->workingSchool(), $this->guardianOf($enrollment))
+            ->get(route('portal.timetable.show', $enrollment))
+            ->assertOk()
+            ->assertSee('Taken biology')
+            ->assertDontSee('Untaken latin');
+    }
+
+    /**
+     * A guardian who works at another campus still sees the lessons of their child's campus.
+     */
+    public function test_a_guardian_working_at_another_campus_sees_their_childs_lessons(): void
+    {
+        $enrollment = $this->enrollment();
+        $this->publishLessons($enrollment);
+
+        $this->actingAsMemberOf(School::factory()->create(), $this->guardianOf($enrollment))
+            ->get(route('portal.timetable.show', $enrollment))
+            ->assertOk()
+            ->assertSee('Taken biology')
+            ->assertDontSee('Untaken latin');
+    }
+
     public function test_a_class_without_a_published_timetable_is_told_so(): void
     {
         $enrollment = $this->enrollment();
@@ -120,6 +149,39 @@ class PortalResultAndTimetableTest extends TestCase
             ->get(route('portal.overview'))
             ->assertDontSee(route('portal.results.index', $enrollment))
             ->assertDontSee(route('portal.timetable.show', $enrollment));
+    }
+
+    /**
+     * Publish a week with one lesson the learner takes and one they do not.
+     */
+    private function publishLessons(StudentRecord $enrollment): void
+    {
+        $timetable = Timetable::factory()->create(['name' => 'Term one week', 'academic_cycle_section_id' => $enrollment->academic_cycle_section_id]);
+        $section = $enrollment->academicCycleSection;
+        $weekday = Weekday::firstOrFail();
+
+        foreach (['Taken biology' => true, 'Untaken latin' => false] as $name => $isTaken) {
+            $subject = Subject::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => $name]);
+            $offering = CourseOffering::factory()->create([
+                'school_id' => $this->workingSchool()->id,
+                'academic_year_id' => $section->academic_year_id,
+                'academic_period_id' => $timetable->academic_period_id,
+                'academic_level_id' => $section->academic_level_id,
+                'subject_id' => $subject->id,
+                'roster_mode' => RosterMode::IndividualRoster,
+            ]);
+            if ($isTaken) {
+                $offering->studentRecords()->attach($enrollment);
+            }
+            $slot = TimetableTimeSlot::create(['timetable_id' => $timetable->id, 'start_time' => $isTaken ? '08:00' : '09:00', 'stop_time' => $isTaken ? '09:00' : '10:00']);
+            TimetableRecord::create([
+                'timetable_time_slot_id' => $slot->id,
+                'weekday_id' => $weekday->id,
+                'timetable_time_slot_weekdayable_id' => $subject->id,
+                'timetable_time_slot_weekdayable_type' => $subject->getMorphClass(),
+            ]);
+        }
+        Timetable::query()->whereKey($timetable->id)->update(['status' => TimetableStatus::Published->value, 'published_at' => now()]);
     }
 
     private function enrollment(): StudentRecord

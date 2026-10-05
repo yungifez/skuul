@@ -86,9 +86,13 @@ class TimetableAudience
         }
 
         if ($viewer->hasRole(Role::Student)) {
-            $student = $viewer->studentRecord()->attending()->first();
+            $student = StudentRecord::query()
+                ->where('user_id', $viewer->id)
+                ->where('academic_cycle_section_id', $section->id)
+                ->attending()
+                ->first();
 
-            if ($student === null || $student->academic_cycle_section_id !== $section->id) {
+            if ($student === null) {
                 return collect();
             }
 
@@ -108,7 +112,7 @@ class TimetableAudience
         Collection $subjectIds,
         User $teacher,
     ): Collection {
-        return TeachingAssignment::inSchool()
+        return TeachingAssignment::inSchool($section->school_id)
             ->where('academic_period_id', $period->id)
             ->forTeacher($teacher)
             ->whereIn('subject_id', $subjectIds)
@@ -135,7 +139,7 @@ class TimetableAudience
         StudentRecord $student,
         Collection $subjectIds,
     ): Collection {
-        return CourseOffering::inSchool()
+        return CourseOffering::inSchool($section->school_id)
             ->where('academic_period_id', $period->id)
             ->whereIn('subject_id', $subjectIds)
             ->where(function (Builder $query) use ($section, $student): void {
