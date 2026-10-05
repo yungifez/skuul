@@ -64,6 +64,7 @@ class PermissionBackfillTest extends TestCase
         $this->assertTrue($this->role('accountant')->hasPermissionTo('create cash deposit'));
         $this->assertFalse($this->role('accountant')->hasPermissionTo('delete fee invoice'));
         $this->assertFalse($this->role('accountant')->hasPermissionTo('manage financial period'));
+        $this->assertTrue($this->role('accountant')->hasPermissionTo('create report'));
     }
 
     public function test_an_old_install_fills_only_an_empty_librarian_or_accountant(): void
@@ -76,6 +77,31 @@ class PermissionBackfillTest extends TestCase
 
         $this->assertTrue($this->role('librarian')->hasPermissionTo('manage library'));
         $this->assertSame(['read fee invoice'], $this->role('accountant')->permissions->pluck('name')->all());
+    }
+
+    public function test_an_old_install_lets_the_accountant_build_reports(): void
+    {
+        $this->role('accountant')->revokePermissionTo('create report');
+
+        $this->runAccountantReportGrant();
+        $this->runAccountantReportGrant();
+
+        $this->assertTrue($this->role('accountant')->hasPermissionTo('create report'));
+    }
+
+    public function test_the_report_grant_keeps_an_accountant_an_admin_narrowed(): void
+    {
+        $this->role('accountant')->syncPermissions(['read fee invoice']);
+
+        $this->runAccountantReportGrant();
+
+        $this->assertSame(['read fee invoice'], $this->role('accountant')->permissions->pluck('name')->all());
+    }
+
+    private function runAccountantReportGrant(): void
+    {
+        $migration = require database_path('migrations/2026_10_05_025807_let_the_accountant_build_reports.php');
+        $migration->up();
     }
 
     private function runBackfill(): void

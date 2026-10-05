@@ -32,6 +32,7 @@ class PermissionSeeder extends Seeder
     public const ACCOUNTANT_PERMISSIONS = [
         'read student',
         'read report',
+        'create report',
         'create fee',
         'read fee',
         'update fee',
