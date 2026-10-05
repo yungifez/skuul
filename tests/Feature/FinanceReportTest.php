@@ -5,6 +5,9 @@ namespace Tests\Feature;
 use App\Actions\Finance\ChargeStudent;
 use App\Actions\Finance\PostLedgerTransaction;
 use App\Actions\Finance\ReceivePayment;
+use App\Actions\Finance\RecordCashDeposit;
+use App\Actions\Finance\RecordExpense;
+use App\Actions\Finance\RefundStudent;
 use App\Actions\Finance\SetBudget;
 use App\Enums\EnrollmentStatus;
 use App\Models\AcademicYear;
@@ -16,6 +19,7 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Services\Fee\FeeInvoiceService;
 use App\Services\Finance\ChartOfAccounts;
+use App\Services\Finance\StudentLedger;
 use App\Services\Report\ReportRegistry;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -259,6 +263,35 @@ class FinanceReportTest extends TestCase
         $this->assertSame(250.0, $balance[5]);
         $this->assertSame(250.0, $aging->firstWhere(0, $withdrawn->admission_number)[9] ?? null);
         $this->assertNull($balances->firstWhere(0, $graduated->admission_number), 'A learner who left owing nothing crowds the list.');
+    }
+
+    /**
+     * The worked reconciliation in the finance guide, step by step.
+     */
+    public function test_the_guide_worked_reconciliation_ends_with_the_cash_and_bank_it_promises(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $chart = app(ChartOfAccounts::class);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, 300);
+
+        app(ReceivePayment::class)->receive($enrollment, 35_000);
+        $this->assertSame(0.0, $invoice->fresh()->balance->getAmount()->toFloat());
+        $this->assertSame(50.0, app(StudentLedger::class)->unappliedCredit($enrollment));
+
+        app(RecordExpense::class)->record($chart->account('operating_expenses'), 40, 'Chalk', 'cash', now());
+        app(RecordCashDeposit::class)->record(200, now());
+        app(RefundStudent::class)->refund($enrollment, 5_000, 'Family asked for the extra back');
+
+        $rows = app(ReportRegistry::class)->get('cash-and-bank')->rows($this->parameters());
+        $cash = $rows->first(fn (array $row): bool => $row[0] === 'Cash');
+        $bank = $rows->first(fn (array $row): bool => $row[0] === 'Bank');
+
+        $this->assertSame([350.0, 290.0, 60.0], [$cash[2], $cash[3], $cash[4]]);
+        $this->assertSame([200.0, 0.0, 200.0], [$bank[2], $bank[3], $bank[4]]);
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($enrollment));
+        $this->assertSame(0.0, app(StudentLedger::class)->balance($enrollment));
     }
 
     /**
