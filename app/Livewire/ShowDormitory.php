@@ -6,6 +6,7 @@ use App\Actions\Boarding\AssignBoardingPlace;
 use App\Actions\Boarding\ManageBoardingRooms;
 use App\Enums\DormitoryBedStatus;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\BoardingPlace;
 use App\Models\Dormitory;
 use App\Models\DormitoryBed;
@@ -26,6 +27,7 @@ use Livewire\Component;
  */
 class ShowDormitory extends Component
 {
+    use DispatchesStatusNotifications;
     use ListsSchoolPeople;
 
     public Dormitory $dormitory;
@@ -192,8 +194,10 @@ class ShowDormitory extends Component
             return;
         }
 
+        $enrollment = StudentRecord::query()->with('user:id,name')->findOrFail($place->student_record_id);
+
         try {
-            $assign->end(StudentRecord::query()->findOrFail($place->student_record_id), $this->leaveReason);
+            $assign->end($enrollment, $this->leaveReason);
         } catch (InvalidValueException $exception) {
             $this->addError('leaveReason', $exception->getMessage());
 
@@ -201,6 +205,7 @@ class ShowDormitory extends Component
         }
 
         $this->reset('leavingBedId', 'leaveReason');
+        $this->notify("{$enrollment->user?->name} no longer boards here.");
     }
 
     /**
@@ -219,10 +224,18 @@ class ShowDormitory extends Component
             'placeBedId.required' => 'Choose the bed.',
         ]);
 
+        $enrollment = StudentRecord::inSchool()->with('user:id,name')->findOrFail($this->placeLearnerId);
+        $bed = $this->bed((int) $this->placeBedId)->load('room.dormitory');
+        $previousBed = BoardingPlace::query()->current()
+            ->where('student_record_id', $enrollment->id)
+            ->with('bed.room.dormitory')
+            ->first()
+            ?->bed;
+
         try {
             $assign->assign(
-                enrollment: StudentRecord::inSchool()->findOrFail($this->placeLearnerId),
-                bed: $this->bed((int) $this->placeBedId),
+                enrollment: $enrollment,
+                bed: $bed,
                 reason: $this->placeReason === '' ? null : $this->placeReason,
             );
         } catch (InvalidValueException $exception) {
@@ -232,6 +245,9 @@ class ShowDormitory extends Component
         }
 
         $this->reset('placeLearnerId', 'placeBedId', 'placeReason');
+        $this->notify($previousBed === null
+            ? "{$enrollment->user?->name} now sleeps in {$this->bedName($bed)}."
+            : "{$enrollment->user?->name} moved from {$this->bedName($previousBed)} to {$this->bedName($bed)}.");
     }
 
     public function cancelEditing(): void
@@ -276,6 +292,17 @@ class ShowDormitory extends Component
         return $this->dormitory->rooms()->findOrFail($roomId);
     }
 
+    /**
+     * Name a bed by its house, room, and bed.
+     */
+    private function bedName(DormitoryBed $bed): string
+    {
+        return "{$bed->room?->dormitory?->name}, {$bed->room?->name}, {$bed->name}";
+    }
+
+    /**
+     * Find a bed of this house.
+     */
     private function bed(int $bedId): DormitoryBed
     {
         return DormitoryBed::query()

@@ -332,15 +332,25 @@ class BoardingTest extends TestCase
         $dormitory = Dormitory::where('name', 'Mandela House')->sole();
         $this->assertSame(6, $dormitory->beds()->count());
 
-        $bed = $dormitory->beds()->first();
+        $bed = $dormitory->beds()->first()->load('room');
+        $nextBed = $dormitory->beds()->whereKeyNot($bed->id)->first()->load('room');
+        $learnerName = $enrollment->user->name;
 
         Livewire::test(ShowDormitory::class, ['dormitory' => $dormitory])
             ->set('placeLearnerId', $enrollment->id)
             ->set('placeBedId', $bed->id)
             ->call('place')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success', message: "{$learnerName} now sleeps in Mandela House, {$bed->room->name}, {$bed->name}.")
+            ->set('placeLearnerId', $enrollment->id)
+            ->set('placeBedId', $nextBed->id)
+            ->call('place')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success', message: "{$learnerName} moved from Mandela House, {$bed->room->name}, {$bed->name} to Mandela House, {$nextBed->room->name}, {$nextBed->name}.");
 
-        $this->assertTrue($bed->fresh()->isTaken());
+        $this->assertFalse($bed->fresh()->isTaken());
+        $this->assertTrue($nextBed->fresh()->isTaken());
+        $bed = $nextBed;
 
         $actor->get(route('dormitories.show', $dormitory->id))
             ->assertOk()
@@ -530,7 +540,8 @@ class BoardingTest extends TestCase
             ->assertHasErrors(['leaveReason' => 'required'])
             ->set('leaveReason', 'Moved to day school')
             ->call('endPlacement')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success', message: "{$enrollment->user->name} no longer boards here.");
 
         $this->assertFalse($bed->fresh()->isTaken());
     }
