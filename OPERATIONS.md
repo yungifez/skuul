@@ -13,7 +13,7 @@ The committed Sail configuration is for local development.
 
 | Part | Purpose | Notes |
 | --- | --- | --- |
-| PHP 8.4 or later | Serves the application | Sail and CI use PHP 8.5; check the locked package requirements |
+| PHP 8.4.1 or later | Serves the application | Sail uses PHP 8.5; CI tests PHP 8.4 and 8.5 |
 | Queue worker container | Runs mail, reports, and exports | `php artisan queue:work --tries=3` |
 | Scheduler | Runs recurring work | Cron entry calling `php artisan schedule:run` every minute |
 | MySQL 8 | Application data | Managed database service is recommended |
@@ -37,6 +37,31 @@ Run `php artisan schedule:run` every minute. All application instances,
 workers, and scheduler processes must use the same Redis cache. Scheduled work
 uses shared locks, and health checks read scheduler and queue heartbeats there.
 
+### Scheduled work
+
+The scheduler runs these tasks. Times are in UTC. Run `php artisan schedule:list`
+to see the next run of each task.
+
+| Task | When | What it does |
+| --- | --- | --- |
+| Scheduler and queue heartbeats | Every minute | Record that the scheduler and a queue worker are alive. |
+| `skuul:prune-expired-invitations` | Hourly | Revokes account invitations that expired. |
+| `skuul:process-notices` | Every 15 minutes | Publishes scheduled notices and expires finished ones. |
+| `skuul:end-leavers-access` | Daily, 00:15 | Ends the campus membership of staff whose last day has passed. |
+| `skuul:advance-academic-calendar` | Daily, 00:30 | Opens academic periods whose start date has arrived. It never closes a period. |
+| `skuul:backup --with-files` | Daily, 01:30 | Backs up the database and uploaded files. See [Take a backup](#take-a-backup). |
+| `skuul:process-library-holds` | Daily, 06:00 | Ends library holds that nobody collected and passes the copy on. |
+| `skuul:check-backup` | Daily, 07:00 | Checks that a recent backup exists. |
+| `skuul:send-academic-calendar-reminders` | Daily, 07:15 | Reminds staff before periods start or need closure. |
+| `skuul:generate-upcoming-cycles` | Monday, 01:00 | Drafts the next academic cycle for campuses whose current cycle is ending. |
+| `skuul:send-syllabus-behind-reminders` | Monday, 07:30 | Sends teachers the classes that are behind their syllabus. |
+| `skuul:rehearse-restore` | Sunday, 03:00 | Restores the newest backup into a separate database. See [Rehearse the restore](#rehearse-the-restore). |
+| `queue:prune-failed`, `queue:prune-batches` | Daily, 00:00 | Remove failed jobs and job batches older than 14 days. |
+| `skuul:refresh-demo` | Hourly, demo mode only | Resets the demo school to its seeded data. Never enable demo mode on live data. |
+
+The [command reference](https://yungifez.github.io/skuul.org/current/reference/commands)
+describes the commands you run by hand, such as `skuul:init` and `skuul:create-super-admin`.
+
 ## 2. Deploy
 
 For a fresh installation, configure an empty application database, install
@@ -55,6 +80,9 @@ It runs the required production seeders. Leave demo data disabled. Complete the
 school setup checklist after signing in. Cache configuration after installation.
 
 ### Breaking upgrade from V2
+
+V2 is deprecated. V3 intentionally replaces its application structure and data model.
+This release does not provide a supported in-place V2 upgrade.
 
 **Moving V2 data to the current development code is a breaking change with data loss in the live database.**
 Migrations delete legacy course offerings, unsupported gradebook records and result snapshots, exam results, and grading definitions.
@@ -164,12 +192,14 @@ another account or another region: a backup kept beside the database is not a
 backup. The scheduler runs this every day at 01:30.
 
 `--with-files` reads the filesystem disk named by `monitoring.backup.files_disk`.
-The current `config/monitoring.php` does not define that setting, and
-`BACKUP_FILES_DISK` alone has no effect. Configure the setting to the disk that
-contains uploaded files before using this option. Keep the backup disk separate
-from the source disk. Until this is configured and tested, take a database
-backup with `php artisan skuul:backup` and back up uploads with your storage
-provider. Verify both before an update.
+Set `BACKUP_FILES_DISK=local` for the default storage layout.
+That disk covers private uploads and the `public` subdirectory under `storage/app`.
+The command excludes the configured backup and rehearsal directories to prevent copying backups into each new archive.
+Keep both directory paths nonempty. Store backups outside the application server through a configured disk or verified copy process.
+If uploads use another disk, set the source disk and back up any remaining locations separately.
+An unreadable upload or failed archive write fails the command.
+An empty source disk produces only the database backup.
+Verify the output contains a file archive when uploads exist. Test recovery of those files before an update.
 
 ### Encryption
 
@@ -208,7 +238,7 @@ The proposed default is:
 
 The data owner must replace these defaults with the required jurisdictional
 policy, record the approved version in `RELEASE_RETENTION_POLICY_VERSION`, and
-set `RELEASE_RETENTION_POLICY_APPROVED=true`. Until then, the release gate
+set `RELEASE_RETENTION_POLICY_APPROVED=true`. Until then, the production deployment gate
 fails and no destructive retention task is allowed.
 
 ### Point-in-time recovery
@@ -218,9 +248,10 @@ the binary logs cover the hours between dumps.
 
 ### Check the backups
 
-`php artisan skuul:check-backup` reads the age of the newest file in the backup
-folder. Keep that folder limited to backup files. The command fails when no
-backup exists or the newest file is older than `BACKUP_MAX_AGE_HOURS`.
+`php artisan skuul:check-backup` reads the age of the newest database backup in the backup folder.
+It considers only files ending in `.sql.gz` or `.sql.gz.enc`.
+Uploads archives and unrelated files do not satisfy the check.
+The command fails when no database backup exists or it exceeds `BACKUP_MAX_AGE_HOURS`.
 It also fails when no completed restore falls within `BACKUP_REHEARSAL_MAX_AGE_DAYS`.
 It writes each failure to the log. The scheduler runs it every day at
 07:00. A successful result does not verify file integrity, uploaded file
@@ -247,8 +278,10 @@ Set up the rehearsal database once:
 Create the database first. Use a dedicated database user that has access only
 to the rehearsal database. Set `BACKUP_REHEARSAL_USERNAME` and
 `BACKUP_REHEARSAL_PASSWORD` for that user. Verify the resolved host and database
-before running the command. It writes SQL into the target and does not prevent
-you from selecting a live connection.
+before running the command. The command rejects the application connection and any target with the same database name.
+The name check uses resolved connection settings, including database URLs.
+Use a different database name even when the rehearsal runs on another host.
+The dedicated user must have no access to the live database.
 
 `--check-only` inspects the dump without restoring it. An unset rehearsal
 connection also causes inspection only. Neither result counts as a completed
@@ -310,14 +343,23 @@ requires; it is the record of who changed access and results.
 
 `.github/workflows/laravel-tests.yml` runs on every push and pull request:
 
+- `composer validate --strict` and `composer check-platform-reqs` for dependency and runtime requirements.
 - `vendor/bin/pint --test` for code style.
 - `vendor/bin/phpstan analyse` for static analysis, against the baseline.
-- `composer audit` for dependency vulnerabilities.
-- `php artisan test` for the unit and feature tests.
+- `composer audit` and `npm audit --audit-level=high` for dependency vulnerabilities.
+- `npm ci` and `npm run build` with Node.js 24 for frontend assets.
+- `php artisan test --compact` on PHP 8.4 and 8.5 with an isolated MySQL 8 database.
+- Production boot and configuration, route, and view caching after installing without development packages.
 
-A pull request must pass all four before it is merged.
+Each test job uses `.env.testing`. The MySQL service grants its application user access only to `testing`.
+The workflow uses read-only permissions and cancels earlier validation runs for the same branch or pull request.
+Every job must pass before merging. See [CONTRIBUTING.md](CONTRIBUTING.md) for open-source release preparation.
 
 ## 6. Release-readiness gate
+
+Publishing an open-source V3 release requires passing project quality checks and documenting breaking changes.
+Retention approval and recovery exercises belong to each production deployment.
+Each operator chooses and verifies those settings for their own installation.
 
 Run the configuration gate before a production deployment:
 
@@ -325,8 +367,8 @@ Run the configuration gate before a production deployment:
 php artisan skuul:release-readiness
 ```
 
-It checks that the retention policy has an approval, recovery targets are
-recorded, and the pilot report set is registered. The pilot set is:
+It checks that demo mode is disabled and the file backup disk is configured.
+It also checks retention approval, recovery targets, and registered pilot reports. The pilot set is:
 
 - class list;
 - student balances;
@@ -334,15 +376,15 @@ recorded, and the pilot report set is registered. The pilot set is:
 - transcripts.
 
 The current recovery targets are an RPO of 24 hours and an RTO of 4 hours.
-Change them only with an owner-approved operations decision. Before a release,
+Change them only with an owner-approved operations decision. Before a production deployment,
 run the backup and restore checks as well:
 
 ```bash
 php artisan skuul:release-readiness --check-backups
 ```
 
-That command requires a recent backup-folder file and a recent record of a
+That command requires a recent database backup and a recent record of a
 completed database restore. It does not independently verify encryption,
 file coverage, application behavior, or measured RPO and RTO.
 The rehearsal database must be isolated, disposable, and never the production
-database. Record the observed restore time and row checks with the release.
+database. Record the observed restore time and row checks with the deployment.

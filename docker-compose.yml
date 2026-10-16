@@ -20,7 +20,6 @@ services:
             XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
         volumes:
             - '.:/var/www/html'
-            - '../april-ui:/var/www/april-ui'
         networks:
             - sail
         depends_on:

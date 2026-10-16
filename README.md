@@ -12,8 +12,10 @@ Its source is [yungifez/skuul.org](https://github.com/yungifez/skuul.org).
 The guides cover installation, campus setup, user workflows, family access,
 operations, and developer reference.
 
-This branch uses Laravel 13 and Livewire 4. Use the **Current development**
-guides for this branch. The V2 guides describe older releases. Check the
+V3 is being prepared for release. This branch uses Laravel 13 and Livewire 4. Use the **V3**
+guides for this branch. V2 is deprecated. V3 intentionally replaces its application structure and data model.
+The V2 guides describe older releases. Read
+[What's new in V3](https://yungifez.github.io/skuul.org/current/whats-new) and the
 [release notes](https://github.com/yungifez/skuul/releases) before installing
 or updating a released version.
 
@@ -26,9 +28,9 @@ or updating a released version.
 
 ## Requirements
 
-- PHP 8.4 or later. Sail and CI use PHP 8.5.
+- PHP 8.4.1 or later, as required by the locked packages. Sail uses PHP 8.5; CI tests PHP 8.4 and 8.5.
 - Composer 2.
-- Node.js and npm. Sail provides Node.js 24; CI currently uses Node.js 20.
+- Node.js 24 and npm, matching Sail and CI.
 - MySQL 8 and Redis.
 - Docker with Compose for local development with Sail.
 - MySQL client tools for the backup and restore commands.
@@ -38,11 +40,30 @@ target runtime to check its PHP version and extensions.
 
 ## Local setup
 
-1. Clone this repository and enter its directory.
-2. Install the locked Composer dependencies with a compatible PHP runtime.
+These commands use the current V3 development branch. Use a release tag when installing a published release.
+
+1. Clone the development branch and enter its directory:
+
+   ```sh
+   git clone --branch modernization/domain-slices https://github.com/yungifez/skuul.git skuul
+   cd skuul
+   ```
+
+2. Install the locked Composer dependencies with PHP 8.4.1 or later and Composer 2:
+
+   ```sh
+   composer install --no-interaction --prefer-dist
+   ```
+
    Sail is available after this first install.
-3. Copy `.env.example` to `.env`. Set `DB_DATABASE=skuul` before starting a
-   new Sail database. Keep `testing` for the test suite.
+3. Copy `.env.example` to `.env`. The example uses `DB_DATABASE=skuul`.
+   Keep `testing` for the test suite. Sail creates both databases on a new volume.
+   Changing the database name on an existing volume does not create that database or grant access.
+
+   ```sh
+   cp .env.example .env
+   ```
+
 4. Start Sail and prepare the application:
 
    ```sh
@@ -80,16 +101,35 @@ restore checks, and monitoring.
 
 Tests use the `testing` MySQL database and can replace its data. Keep local
 application data in a separate database.
+Use `.env.testing` for Artisan commands with `--env=testing`.
+Do not run tests in parallel against this shared database or bypass its test lock.
+Tests refuse cached application configuration because it can override the test database settings.
+If this check fails, run `vendor/bin/sail artisan config:clear` in your local development checkout.
 
 ```sh
+vendor/bin/sail composer validate --strict
+vendor/bin/sail composer check-platform-reqs
+vendor/bin/sail bin pint --dirty --format agent
 vendor/bin/sail artisan test --compact
 vendor/bin/sail php vendor/bin/phpstan analyse --memory-limit=2G
 vendor/bin/sail composer audit
+vendor/bin/sail npm audit --audit-level=high
 vendor/bin/sail npm run build
 ```
 
-CI also checks PHP formatting with Pint. Follow the project instructions in
+CI runs the full suite on PHP 8.4 and 8.5 with MySQL 8 and Node.js 24.
+It checks formatting, static analysis, dependency locks, platform requirements, and dependency security.
+It also verifies configuration, route, and view caching without development packages.
+The [Laravel tests workflow](.github/workflows/laravel-tests.yml) defines these checks.
+
+Follow the project instructions in
 [AGENTS.md](AGENTS.md) and the rules in `.ai/rules` when changing code.
+
+## Contributing and releases
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for test requirements, bug reports, documentation changes, and release preparation.
+Open-source publication requires passing quality checks and clear breaking-change notes.
+Each operator must complete the deployment and recovery checks in [OPERATIONS.md](OPERATIONS.md) for their installation.
 
 ## License
 
