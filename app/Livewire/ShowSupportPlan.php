@@ -112,7 +112,11 @@ class ShowSupportPlan extends Component
     {
         Gate::authorize('update', $this->plan);
 
-        $manageSupportPlan->completeAction($this->plan->actions()->findOrFail($actionId), auth()->user());
+        try {
+            $manageSupportPlan->completeAction($this->plan->actions()->findOrFail($actionId), auth()->user());
+        } catch (InvalidValueException $exception) {
+            $this->addError('actionDescription', $exception->getMessage());
+        }
     }
 
     /**

@@ -178,6 +178,48 @@ class SupportPlanTest extends TestCase
         $manager->addAction($plan, 'Meet the family');
     }
 
+    public function test_a_finished_plan_does_not_mark_steps_done(): void
+    {
+        $this->authorized_user(['create support plan']);
+        $manager = app(ManageSupportPlan::class);
+        $plan = $manager->open($this->enrollment(), 'Extra reading');
+        $step = $manager->addAction($plan, 'Meet the family');
+        $manager->changeStatus($plan, SupportPlanStatus::Active);
+        $manager->changeStatus($plan, SupportPlanStatus::Completed);
+
+        try {
+            $manager->completeAction($step->fresh());
+            $this->fail('A finished plan marked a step done.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame('This plan is finished. Reopen it before you change its steps.', $exception->getMessage());
+        }
+
+        $this->assertFalse($step->fresh()->isDone());
+    }
+
+    public function test_a_plan_finished_before_it_starts_does_not_end_before_it_starts(): void
+    {
+        $this->authorized_user(['create support plan']);
+        $manager = app(ManageSupportPlan::class);
+        $startsOn = school_today()->addDays(4);
+        $plan = $manager->open($this->enrollment(), 'Extra reading', startsOn: $startsOn);
+        $manager->changeStatus($plan, SupportPlanStatus::Cancelled);
+
+        $this->assertSame($startsOn->toDateString(), $plan->fresh()->ends_on->toDateString());
+    }
+
+    public function test_a_refused_move_names_the_states_in_words(): void
+    {
+        $this->authorized_user(['create support plan']);
+        $manager = app(ManageSupportPlan::class);
+        $plan = $manager->open($this->enrollment(), 'Extra reading');
+        $manager->changeStatus($plan, SupportPlanStatus::Cancelled);
+
+        $this->expectExceptionMessage('A support plan cannot move from '.SupportPlanStatus::Cancelled->label().' to '.SupportPlanStatus::Active->label().'.');
+
+        $manager->changeStatus($plan, SupportPlanStatus::Active);
+    }
+
     public function test_a_note_is_written_once(): void
     {
         $this->authorized_user(['create support plan']);

@@ -84,7 +84,7 @@
                                 @endif
                             </p>
                         </div>
-                        @if ($action->completed_at === null && $canUpdate)
+                        @if ($action->completed_at === null && $canUpdate && $isOpen)
                             <button type="button" wire:click="completeAction({{ $action->id }})" wire:loading.attr="disabled"
                                 class="inline-flex h-11 shrink-0 items-center gap-1 rounded-md border px-3 text-sm font-medium select-none hover:bg-muted">
                                 <x-lucide-check class="size-4" aria-hidden="true" />

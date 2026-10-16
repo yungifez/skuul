@@ -105,7 +105,7 @@ class ManageStaffLeave
             }
 
             if (!$current->canMoveTo($status)) {
-                throw new InvalidValueException("Leave cannot move from {$current->value} to {$status->value}.");
+                throw new InvalidValueException('Leave cannot move from '.$current->label().' to '.$status->label().'.');
             }
 
             if ($current === LeaveStatus::Declined && $status === LeaveStatus::Requested) {

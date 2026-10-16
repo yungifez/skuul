@@ -116,7 +116,7 @@ class ReportIncident
             }
 
             if (!$current->canMoveTo($status)) {
-                throw new InvalidValueException("A case cannot move from {$current->value} to {$status->value}.");
+                throw new InvalidValueException('A case cannot move from '.$current->label().' to '.$status->label().'.');
             }
 
             $incident->status = $status;

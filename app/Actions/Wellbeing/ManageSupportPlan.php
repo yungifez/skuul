@@ -98,13 +98,14 @@ class ManageSupportPlan
             }
 
             if (!$current->canMoveTo($status)) {
-                throw new InvalidValueException("A support plan cannot move from {$current->value} to {$status->value}.");
+                throw new InvalidValueException('A support plan cannot move from '.$current->label().' to '.$status->label().'.');
             }
 
             $plan->status = $status;
 
             if (!$status->isOpen() && $plan->ends_on === null) {
-                $plan->ends_on = school_today($plan->school_id);
+                $today = school_today($plan->school_id);
+                $plan->ends_on = $plan->starts_on !== null && $plan->starts_on->greaterThan($today) ? $plan->starts_on : $today;
             }
 
             $plan->save();
@@ -205,6 +206,10 @@ class ManageSupportPlan
     {
         if ($action->completed_at !== null) {
             return $action;
+        }
+
+        if (!$action->supportPlan->status->isOpen()) {
+            throw new InvalidValueException('This plan is finished. Reopen it before you change its steps.');
         }
 
         $action->completed_at = now();

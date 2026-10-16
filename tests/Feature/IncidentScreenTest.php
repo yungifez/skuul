@@ -235,6 +235,26 @@ class IncidentScreenTest extends TestCase
         $this->assertFalse($action->fresh()->isOutstanding());
     }
 
+    public function test_a_closed_case_does_not_mark_actions_done(): void
+    {
+        $this->authorized_user(['read incident', 'create incident', 'update incident']);
+        $incident = app(ReportIncident::class)->report('Broke a window');
+        Livewire::test(ShowIncident::class, ['incident' => $incident])
+            ->set('actionType', 'Meeting')
+            ->set('actionDescription', 'Speak to the guardian.')
+            ->call('addAction')
+            ->assertHasNoErrors();
+        $action = $incident->actions()->sole();
+        app(ReportIncident::class)->changeStatus($incident, IncidentStatus::Closed);
+
+        Livewire::test(ShowIncident::class, ['incident' => $incident->fresh()])
+            ->assertDontSee('Mark done')
+            ->call('completeAction', $action->id)
+            ->assertHasErrors('actionType');
+
+        $this->assertTrue($action->fresh()->isOutstanding());
+    }
+
     public function test_a_reader_without_update_permission_sees_no_forms(): void
     {
         $this->authorized_user(['read incident', 'create incident']);

@@ -120,6 +120,12 @@ class ShowIncident extends Component
     {
         Gate::authorize('update', $this->incident);
 
+        if (!$this->incident->status->isOpen()) {
+            $this->addError('actionType', 'This case is finished. Reopen it before you change its actions.');
+
+            return;
+        }
+
         $this->incident->actions()->findOrFail($actionId)->complete();
     }
 
