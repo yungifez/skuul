@@ -49,7 +49,7 @@ class BudgetPlanner extends Component
 
         // The cycle select shows the cycle the page loads, not its first option.
         if ($this->academicYearId === '') {
-            $this->academicYearId = (string) ($this->academicYear()?->id ?? '');
+            $this->academicYearId = (string) ($this->academicYear()->id ?? '');
         }
     }
 
