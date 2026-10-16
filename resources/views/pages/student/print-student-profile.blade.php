@@ -8,6 +8,7 @@
     @php
         $section = $studentRecord?->academicCycleSection;
         $dash = '—';
+        $showsContactDetails = auth()->user()->can('viewContactDetails', $student);
         $address = collect([$student->address, $student->address_line_2, $student->city, $student->state, $student->postal_code, $student->country])->filter()->implode(', ');
     @endphp
 
@@ -37,14 +38,19 @@
                     <th>Date of birth</th><td>{{ $student->birthday ? \Illuminate\Support\Carbon::parse($student->birthday)->format('j M Y') : $dash }}</td>
                     <th>Nationality</th><td>{{ $student->nationality ? ucfirst($student->nationality) : $dash }}</td>
                 </tr>
-                <tr>
-                    <th>Email</th><td>{{ $student->email ?: $dash }}</td>
-                    <th>Phone</th><td>{{ $student->phone ?: $dash }}</td>
-                </tr>
-                <tr>
-                    <th>Address</th><td colspan="3">{{ $address ?: $dash }}</td>
-                </tr>
+                @if ($showsContactDetails)
+                    <tr>
+                        <th>Email</th><td>{{ $student->email ?: $dash }}</td>
+                        <th>Phone</th><td>{{ $student->phone ?: $dash }}</td>
+                    </tr>
+                    <tr>
+                        <th>Address</th><td colspan="3">{{ $address ?: $dash }}</td>
+                    </tr>
+                @endif
             </table>
+            @unless ($showsContactDetails)
+                <p class="muted">This learner now attends another campus. That campus holds their contact details.</p>
+            @endunless
         </section>
 
         <section>
@@ -74,13 +80,15 @@
                 <p class="muted">None recorded.</p>
             @else
                 <table class="list">
-                    <thead><tr><th>Name</th><th>Phone</th><th>Email</th></tr></thead>
+                    <thead><tr><th>Name</th>@if ($showsContactDetails)<th>Phone</th><th>Email</th>@endif</tr></thead>
                     <tbody>
                         @foreach ($guardians as $guardian)
                             <tr>
                                 <td>{{ $guardian->user?->name ?? $dash }}</td>
-                                <td>{{ $guardian->user?->phone ?: $dash }}</td>
-                                <td>{{ $guardian->user?->email ?: $dash }}</td>
+                                @if ($showsContactDetails)
+                                    <td>{{ $guardian->user?->phone ?: $dash }}</td>
+                                    <td>{{ $guardian->user?->email ?: $dash }}</td>
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>

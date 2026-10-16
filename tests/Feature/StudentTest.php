@@ -13,6 +13,7 @@ use App\Livewire\GraduateStudents;
 use App\Livewire\ListPromotionsTable;
 use App\Livewire\ListStudentsTable;
 use App\Livewire\PromoteStudents;
+use App\Livewire\ShowUserProfile;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\Promotion;
@@ -855,5 +856,36 @@ class StudentTest extends TestCase
         $this->actingAsMemberOf($school, $person);
 
         return $person->refresh();
+    }
+
+    public function test_the_old_campus_no_longer_sees_how_to_reach_a_moved_learner(): void
+    {
+        $office = $this->authorized_user(['read student']);
+        $here = $this->workingSchool();
+        $sibling = School::factory()->create(['organization_id' => $here->organization_id]);
+
+        $learner = $this->memberOf($sibling, $this->memberOf($here));
+        $learner->syncRoles([Role::Student]);
+        $learner->forceFill(['email' => 'moved.learner@example.test', 'phone' => '5550147', 'nationality' => 'Ghanaian'])->save();
+        $enrollment = StudentRecord::factory()->create(['user_id' => $learner->id, 'school_id' => $here->id, 'status' => EnrollmentStatus::Active]);
+
+        Livewire::test(ShowUserProfile::class, ['user' => $learner])
+            ->assertSee('moved.learner@example.test')
+            ->assertSee('5550147');
+
+        $enrollment->forceFill(['school_id' => $sibling->id])->save();
+        $learner->refresh();
+
+        Livewire::test(ShowUserProfile::class, ['user' => $learner])
+            ->assertDontSee('moved.learner@example.test')
+            ->assertDontSee('5550147')
+            ->assertSee('Ghanaian')
+            ->assertSee('That campus holds their contact details.');
+
+        $office->get(route('students.print-profile', $learner))
+            ->assertOk()
+            ->assertDontSee('moved.learner@example.test')
+            ->assertDontSee('5550147')
+            ->assertSee('That campus holds their contact details.');
     }
 }

@@ -15,21 +15,29 @@
         </div>
     </div>
 
+    @php
+        $showsContactDetails = auth()->user()->can('viewContactDetails', $user);
+    @endphp
+
     <dl class="grid grid-cols-1 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-2 lg:grid-cols-3">
-        @foreach ([
-            'Email address' => $user->email,
-            'Phone number' => $user->phone,
+        @foreach (array_filter([
+            'Email address' => $showsContactDetails ? $user->email : false,
+            'Phone number' => $showsContactDetails ? $user->phone : false,
             'Gender' => $user->gender,
             'Date of birth' => $user->birthday === null ? null : \Illuminate\Support\Carbon::parse($user->birthday)->format('j M Y'),
             'Nationality' => $user->nationality,
-            'Address' => collect([$user->address, $user->address_line_2, $user->city, $user->state, $user->postal_code, $user->country])->filter()->implode(', '),
-        ] as $label => $value)
+            'Address' => $showsContactDetails ? collect([$user->address, $user->address_line_2, $user->city, $user->state, $user->postal_code, $user->country])->filter()->implode(', ') : false,
+        ], fn ($value): bool => $value !== false) as $label => $value)
             <div class="min-w-0">
                 <dt class="text-sm text-muted-foreground">{{ $label }}</dt>
                 <dd @class(['break-words', 'text-muted-foreground' => blank($value)])>{{ filled($value) ? $value : '—' }}</dd>
             </div>
         @endforeach
     </dl>
+
+    @unless ($showsContactDetails)
+        <p class="text-sm text-muted-foreground">This learner now attends another campus. That campus holds their contact details.</p>
+    @endunless
 </section>
 
 @can('manageAccountAccess', $user)

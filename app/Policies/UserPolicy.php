@@ -89,6 +89,17 @@ class UserPolicy
     }
 
     /**
+     * Hide how to reach a learner from a campus they have left.
+     *
+     * The old campus keeps the learner's history, but their contact details
+     * now belong to the campus they attend.
+     */
+    public function viewContactDetails(User $user, User $model): bool
+    {
+        return $user->id === $model->id || !$model->isEnrolledOnlyElsewhere(current_school_id());
+    }
+
+    /**
      * Reject self-directed access changes and targets above the actor's authority.
      * Return null otherwise so the platform administrator gate can apply.
      */
