@@ -17,6 +17,7 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\Timetable;
 use App\Models\TranscriptSnapshot;
+use App\Models\User;
 use App\Services\Attendance\AttendanceSummary;
 use App\Services\Finance\StudentLedger;
 use Illuminate\Support\Collection;
@@ -86,22 +87,30 @@ class PortalSummary
     }
 
     /**
-     * Get the notices sent to the student.
+     * Get the notices sent to the student, and to the guardian reading them.
      *
      * @return Collection<int, NoticeRecipient>
      */
-    public function notices(StudentRecord $enrollment): Collection
+    public function notices(StudentRecord $enrollment, ?User $reader = null): Collection
     {
         if (!$this->access->areaIsOpen(PortalArea::Notices, $enrollment->school_id)) {
             return collect();
         }
 
+        // A guardian also sees what the campus sent to them, so the family has
+        // one notices page instead of a second staff list.
+        $recipientIds = array_unique(array_filter([$enrollment->user_id, $reader?->id]));
+
         return NoticeRecipient::query()
-            ->where('user_id', $enrollment->user_id)
-            ->whereHas('notice', fn ($query) => $query->where('status', NoticeStatus::Published))
+            ->whereIn('user_id', $recipientIds)
+            ->whereHas('notice', fn ($query) => $query
+                ->where('status', NoticeStatus::Published)
+                ->where('school_id', $enrollment->school_id))
             ->with('notice')
             ->orderByDesc('id')
-            ->get();
+            ->get()
+            ->unique('notice_id')
+            ->values();
     }
 
     /**

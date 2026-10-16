@@ -385,6 +385,43 @@ class PortalTest extends TestCase
         $this->assertSame([$published->id], $notices->pluck('notice_id')->all());
     }
 
+    public function test_a_guardian_sees_notices_sent_to_them_beside_the_childs_notices(): void
+    {
+        features()->enable(Feature::Portal);
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+        $otherCampus = School::factory()->create();
+        $notice = fn (string $title, int $schoolId): Notice => Notice::create([
+            'school_id' => $schoolId,
+            'title' => $title,
+            'content' => 'Message.',
+            'start_date' => now()->toDateString(),
+            'stop_date' => now()->addWeek()->toDateString(),
+            'status' => NoticeStatus::Published,
+        ]);
+        $toChild = $notice('Sent to the child', $enrollment->school_id);
+        $toGuardian = $notice('Sent to the guardian', $enrollment->school_id);
+        $toBoth = $notice('Sent to both', $enrollment->school_id);
+        $elsewhere = $notice('Sent by another campus', $otherCampus->id);
+        NoticeRecipient::create(['notice_id' => $toChild->id, 'user_id' => $enrollment->user_id, 'state' => NoticeRecipientState::Delivered]);
+        NoticeRecipient::create(['notice_id' => $toGuardian->id, 'user_id' => $guardian->id, 'state' => NoticeRecipientState::Delivered]);
+        NoticeRecipient::create(['notice_id' => $toBoth->id, 'user_id' => $enrollment->user_id, 'state' => NoticeRecipientState::Delivered]);
+        NoticeRecipient::create(['notice_id' => $toBoth->id, 'user_id' => $guardian->id, 'state' => NoticeRecipientState::Delivered]);
+        NoticeRecipient::create(['notice_id' => $elsewhere->id, 'user_id' => $guardian->id, 'state' => NoticeRecipientState::Delivered]);
+
+        $notices = app(PortalSummary::class)->notices($enrollment, $guardian);
+
+        $this->assertEqualsCanonicalizing([$toChild->id, $toGuardian->id, $toBoth->id], $notices->pluck('notice_id')->all());
+        $this->assertSame([$toChild->id, $toBoth->id], app(PortalSummary::class)->notices($enrollment)->pluck('notice_id')->sort()->values()->all());
+
+        $this->actingAs($guardian)
+            ->get(route('portal.notices.index', $enrollment))
+            ->assertOk()
+            ->assertSee('Sent to the guardian')
+            ->assertSee('Sent to the child')
+            ->assertDontSee('Sent by another campus');
+    }
+
     public function test_a_closed_results_area_shows_no_results(): void
     {
         $this->unauthorized_user();

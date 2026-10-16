@@ -17,7 +17,7 @@
             </slot:content>
         </april:card>
     @empty
-        <april:card><slot:title>No notices yet</slot:title><slot:description>Messages sent to this student will appear here.</slot:description></april:card>
+        <april:card><slot:title>No notices yet</slot:title><slot:description>Messages the school sends will appear here.</slot:description></april:card>
     @endforelse
 </div>
 @endsection

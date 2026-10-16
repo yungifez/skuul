@@ -153,6 +153,35 @@ class SidebarStateTest extends TestCase
         $this->assertNotContains('Timetables', $items);
     }
 
+    public function test_a_family_account_does_not_see_the_staff_students_or_notices_lists(): void
+    {
+        $this->authorized_user(['read student', 'read notice']);
+        auth()->user()->assignRole('parent');
+
+        $items = collect(Livewire::test(Menu::class)->get('menu'))
+            ->filter(fn (array $item): bool => $item['visible'] ?? true)
+            ->pluck('route')
+            ->filter()
+            ->all();
+
+        $this->assertNotContains('students.index', $items);
+        $this->assertNotContains('notices.index', $items);
+    }
+
+    public function test_staff_keep_the_students_and_notices_lists(): void
+    {
+        $this->authorized_user(['read student', 'read notice']);
+
+        $items = collect(Livewire::test(Menu::class)->get('menu'))
+            ->filter(fn (array $item): bool => $item['visible'] ?? true)
+            ->pluck('route')
+            ->filter()
+            ->all();
+
+        $this->assertContains('students.index', $items);
+        $this->assertContains('notices.index', $items);
+    }
+
     public function test_the_sidebar_shows_the_replacement_academic_structure_without_legacy_navigation(): void
     {
         $this->authorized_user([
