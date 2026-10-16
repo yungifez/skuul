@@ -54,6 +54,50 @@ enum PortalArea: string
     }
 
     /**
+     * Get the route that shows this area for one enrollment.
+     */
+    public function routeName(): string
+    {
+        return match ($this) {
+            self::Results => 'portal.results.index',
+            self::Attendance => 'portal.attendance.show',
+            self::Timetable => 'portal.timetable.show',
+            self::Calendar => 'portal.calendar.index',
+            self::Notices => 'portal.notices.index',
+            self::Invoices => 'portal.invoices.index',
+            self::Documents => 'portal.documents.index',
+            self::Library => 'portal.library.index',
+            self::Boarding => 'portal.boarding.index',
+            self::Requests => 'portal.requests.index',
+            self::Graduation => 'portal.graduation.show',
+            self::Programmes => 'portal.programmes.index',
+            self::Syllabi => 'portal.syllabi.index',
+        };
+    }
+
+    /**
+     * Get the sidebar icon for this area.
+     */
+    public function icon(): string
+    {
+        return match ($this) {
+            self::Results => 'chart-column',
+            self::Attendance => 'clipboard-check',
+            self::Timetable => 'clock',
+            self::Calendar => 'calendar-days',
+            self::Notices => 'megaphone',
+            self::Invoices => 'receipt',
+            self::Documents => 'file-text',
+            self::Library => 'library',
+            self::Boarding => 'bed-double',
+            self::Requests => 'message-square',
+            self::Graduation => 'graduation-cap',
+            self::Programmes => 'sparkles',
+            self::Syllabi => 'book-open',
+        };
+    }
+
+    /**
      * Get the values a form may send.
      *
      * @return array<int, string>

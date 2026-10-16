@@ -115,6 +115,19 @@ class PortalAccess
     }
 
     /**
+     * Get the areas this enrollment's campus has open, in menu order.
+     *
+     * @return list<PortalArea>
+     */
+    public function openAreas(StudentRecord $enrollment): array
+    {
+        return array_values(array_filter(
+            PortalArea::cases(),
+            fn (PortalArea $area): bool => $this->areaIsOpen($area, $enrollment->school_id),
+        ));
+    }
+
+    /**
      * Get the campuses where this person may manage notice delivery.
      *
      * @return SupportCollection<int, School>

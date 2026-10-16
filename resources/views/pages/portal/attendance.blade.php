@@ -11,9 +11,9 @@
     $rate = $attendance['rate'];
     $recorded = $attendance['recorded'];
     $figures = [
-        ['label' => 'Present', 'value' => $attendance['present'], 'hint' => 'Days your child was in school'],
-        ['label' => 'Absent', 'value' => $attendance['absent'], 'hint' => 'Days your child missed'],
-        ['label' => 'Late', 'value' => $attendance['late'], 'hint' => 'Days your child arrived after the start'],
+        ['label' => 'Present', 'value' => $attendance['present'], 'hint' => 'Days in school'],
+        ['label' => 'Absent', 'value' => $attendance['absent'], 'hint' => 'Days missed'],
+        ['label' => 'Late', 'value' => $attendance['late'], 'hint' => 'Days of arriving after the start'],
         ['label' => 'Excused', 'value' => $attendance['excused'], 'hint' => 'Absences the school agreed to'],
     ];
 @endphp
@@ -22,7 +22,7 @@
     <div class="space-y-6">
         <april:card>
             <slot:title>{{ $studentRecord->user?->name ?? $studentRecord->admission_number }}</slot:title>
-            <slot:description>The school counts only the days it took a register. A day nobody recorded does not count against your child.</slot:description>
+            <slot:description>The school counts only the days it took a register. A day with no register does not count as an absence.</slot:description>
             <slot:content>
                 @if ($recorded === 0)
                     <x-empty-state icon="lucide-calendar-off" title="No attendance recorded yet"

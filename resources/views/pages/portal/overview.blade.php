@@ -44,27 +44,9 @@
                         @else
                             <div class="flex flex-wrap gap-2">
                                 @foreach ($areasOf[$enrollment->id] as $area)
-                                    @php($route = match ($area) {
-                                        \App\Enums\PortalArea::Results => route('portal.results.index', $enrollment),
-                                        \App\Enums\PortalArea::Attendance => route('portal.attendance.show', $enrollment),
-                                        \App\Enums\PortalArea::Timetable => route('portal.timetable.show', $enrollment),
-                                        \App\Enums\PortalArea::Notices => route('portal.notices.index', $enrollment),
-                                        \App\Enums\PortalArea::Calendar => route('portal.calendar.index', $enrollment),
-                                        \App\Enums\PortalArea::Invoices => route('portal.invoices.index', $enrollment),
-                                        \App\Enums\PortalArea::Documents => route('portal.documents.index', $enrollment),
-                                        \App\Enums\PortalArea::Boarding => route('portal.boarding.index', $enrollment),
-                                        \App\Enums\PortalArea::Library => route('portal.library.index', $enrollment),
-                                        \App\Enums\PortalArea::Requests => route('portal.requests.index', $enrollment),
-                                        \App\Enums\PortalArea::Graduation => route('portal.graduation.show', $enrollment),
-                                        \App\Enums\PortalArea::Programmes => route('portal.programmes.index', $enrollment),
-                                        \App\Enums\PortalArea::Syllabi => route('portal.syllabi.index', $enrollment),
-                                        default => null,
-                                    })
-                                    @if ($route !== null)
-                                        <april:button-link href="{{ $route }}" variant="outline" size="sm">
-                                            {{ $area->label() }}
-                                        </april:button-link>
-                                    @endif
+                                    <april:button-link href="{{ route($area->routeName(), $enrollment) }}" variant="outline" size="sm">
+                                        {{ $area->label() }}
+                                    </april:button-link>
                                 @endforeach
                             </div>
                         @endif

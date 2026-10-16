@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Feature;
 use App\Enums\PortalArea;
 use App\Models\StudentRecord;
 use App\Services\Portal\PortalAccess;
@@ -52,28 +51,12 @@ class PortalOverviewController extends Controller
      * all rather than a link that refuses.
      *
      * @param  Collection<int, StudentRecord>  $enrollments
-     * @return array<int, array<int, PortalArea>>
+     * @return array<int, list<PortalArea>>
      */
     private function openAreas(Collection $enrollments): array
     {
-        $areas = [];
-
-        foreach ($enrollments as $enrollment) {
-            $open = [];
-
-            foreach ([PortalArea::Results, PortalArea::Attendance, PortalArea::Timetable, PortalArea::Notices, PortalArea::Calendar, PortalArea::Invoices, PortalArea::Documents, PortalArea::Boarding, PortalArea::Library, PortalArea::Requests, PortalArea::Graduation, PortalArea::Programmes, PortalArea::Syllabi] as $area) {
-                if ($area === PortalArea::Boarding && !features()->enabled(Feature::Boarding, $enrollment->school_id)) {
-                    continue;
-                }
-
-                if ($this->access->areaIsOpen($area, $enrollment->school_id)) {
-                    $open[] = $area;
-                }
-            }
-
-            $areas[$enrollment->id] = $open;
-        }
-
-        return $areas;
+        return $enrollments
+            ->mapWithKeys(fn (StudentRecord $enrollment): array => [$enrollment->id => $this->access->openAreas($enrollment)])
+            ->all();
     }
 }

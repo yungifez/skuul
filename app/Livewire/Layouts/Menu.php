@@ -28,6 +28,8 @@ use Livewire\Component;
 
 class Menu extends Component
 {
+    private const PortalEnrollmentKey = 'portal.sidebar_enrollment_id';
+
     /**
      * @var Collection<int, School>
      */
@@ -55,7 +57,7 @@ class Menu extends Component
         // so the sidebar must render before any school is chosen.
         $organization = current_school()?->organization;
         $portalEnrollment = $this->portalEnrollment($user);
-        $readsOwnRecords = $this->readsOwnRecords($user);
+        $readsSeveralEnrollments = app(PortalAccess::class)->enrollmentsFor($user)->count() > 1;
         $this->menu = [
             [
                 'type' => 'menu-item',
@@ -63,30 +65,20 @@ class Menu extends Component
                 'text' => 'Dashboard',
                 'route' => 'dashboard',
             ],
-            ...(!$readsOwnRecords && $portalEnrollment === null ? [] : [
-                ['header' => 'My school'],
-            ]),
-            ...(!$readsOwnRecords ? [] : [
-                [
+            ...($portalEnrollment === null ? [] : [
+                ['header' => $readsSeveralEnrollments && $portalEnrollment->user !== null && !$portalEnrollment->user->is($user) ? $portalEnrollment->user->name : 'My school'],
+                ...$this->portalAreaItems($portalEnrollment),
+                ...(!$readsSeveralEnrollments ? [] : [[
                     'type' => 'menu-item',
                     'icon' => 'layout-list',
                     'text' => 'Everything of mine',
                     'route' => 'portal.overview',
-                ],
+                ]]),
                 [
                     'type' => 'menu-item',
                     'icon' => 'bell',
                     'text' => 'Notification settings',
                     'route' => 'portal.notification-preferences.edit',
-                ],
-            ]),
-            ...($portalEnrollment === null ? [] : [
-                [
-                    'type' => 'menu-item',
-                    'icon' => 'calendar-days',
-                    'text' => 'School calendar',
-                    'route' => 'portal.calendar.index',
-                    'parameters' => [$portalEnrollment],
                 ],
             ]),
             ['header' => 'Organization'],
@@ -586,48 +578,51 @@ class Menu extends Component
     }
 
     /**
-     * Check whether this person has records of their own to read.
+     * Choose the enrollment whose pages the sidebar lists.
      *
-     * A guardian of children at two campuses, and a learner enrolled at two,
-     * both get one page that names every campus. Staff hold no enrollment, so
-     * they never see it.
-     */
-    private function readsOwnRecords(User $user): bool
-    {
-        $access = app(PortalAccess::class);
-
-        foreach ($access->enrollmentsFor($user) as $enrollment) {
-            if ($access->isOpen($enrollment->school_id)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Prefer current enrollments when choosing the initial family portal link.
-     * Staff without an enrollment or guardian link receive no family links.
+     * The enrollment on the open portal page wins, so a parent who opens a
+     * second child's page sees that child's links. The session keeps the
+     * choice for the next page. Otherwise a current enrollment comes first.
      */
     private function portalEnrollment(User $user): ?StudentRecord
     {
         $access = app(PortalAccess::class);
-        $enrollments = $access->enrollmentsFor($user);
+        $enrollments = $access->enrollmentsFor($user)
+            ->filter(fn (StudentRecord $enrollment): bool => $access->isOpen($enrollment->school_id));
+
+        $onPage = request()->route('studentRecord');
+        $chosenId = $onPage instanceof StudentRecord ? $onPage->id : session(self::PortalEnrollmentKey);
 
         /** @var StudentRecord|null $enrollment */
-        $enrollment = $enrollments->first(fn (StudentRecord $enrollment): bool => in_array($enrollment->status, EnrollmentStatus::enrolled(), true))
+        $enrollment = $enrollments->firstWhere('id', $chosenId)
+            ?? $enrollments->first(fn (StudentRecord $enrollment): bool => in_array($enrollment->status, EnrollmentStatus::enrolled(), true))
             ?? $enrollments->last();
 
-        if ($enrollment === null) {
-            return null;
+        if ($enrollment !== null) {
+            session([self::PortalEnrollmentKey => $enrollment->id]);
         }
 
-        // A family holds no working school, so both gates read the school the
-        // child attends.
-        $isOpen = $access->areaIsOpen(PortalArea::Calendar, $enrollment->school_id)
-            && features()->enabled(Feature::Events, $enrollment->school_id);
+        return $enrollment;
+    }
 
-        return $isOpen ? $enrollment : null;
+    /**
+     * Link each open portal page of the chosen enrollment.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function portalAreaItems(?StudentRecord $enrollment): array
+    {
+        if ($enrollment === null) {
+            return [];
+        }
+
+        return array_map(fn (PortalArea $area): array => [
+            'type' => 'menu-item',
+            'icon' => $area->icon(),
+            'text' => $area->label(),
+            'route' => $area->routeName(),
+            'parameters' => [$enrollment],
+        ], app(PortalAccess::class)->openAreas($enrollment));
     }
 
     /**
