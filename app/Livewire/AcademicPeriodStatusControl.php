@@ -7,6 +7,7 @@ use App\Enums\AcademicPeriodStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
+use App\Services\Calendar\ClosureReadinessCheck;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -96,15 +97,17 @@ class AcademicPeriodStatusControl extends Component
         $this->resetErrorBag();
     }
 
-    public function render(): View
+    public function render(ClosureReadinessCheck $readiness): View
     {
         $status = $this->period->status;
+        $canClose = $status === AcademicPeriodStatus::Closing && Gate::allows('close', $this->period);
 
         return view('livewire.academic-period-status-control', [
             'status' => $status,
             'periodName' => $this->period instanceof AcademicYear ? $this->period->name : $this->period->displayName,
             'canBeginClosing' => $status === AcademicPeriodStatus::Open && Gate::allows('close', $this->period),
-            'canClose' => $status === AcademicPeriodStatus::Closing && Gate::allows('close', $this->period),
+            'canClose' => $canClose,
+            'findings' => $canClose && $this->step === 'close' ? $readiness->for($this->period) : collect(),
             'canReopen' => in_array($status, [AcademicPeriodStatus::Closing, AcademicPeriodStatus::Closed], true) && Gate::allows('reopen', $this->period),
         ]);
     }

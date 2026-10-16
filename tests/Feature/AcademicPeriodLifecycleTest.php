@@ -225,6 +225,30 @@ class AcademicPeriodLifecycleTest extends TestCase
         $this->assertTrue($academicPeriod->fresh()->isOpen());
     }
 
+    public function test_the_close_form_lists_the_outstanding_work(): void
+    {
+        $academicPeriod = $this->openAcademicPeriod();
+        $academicPeriod->update(['status' => AcademicPeriodStatus::Closing]);
+        $this->leaveAnAssessmentUnrecorded($academicPeriod);
+        $this->authorized_user(['close academic period']);
+
+        Livewire::test(AcademicPeriodStatusControl::class, ['period' => $academicPeriod->fresh()])
+            ->assertDontSee('Grade entries are still incomplete.')
+            ->call('open', 'close')
+            ->assertSee('Grade entries are still incomplete.')
+            ->assertSee('Stops the close.');
+    }
+
+    public function test_the_close_form_says_when_nothing_is_outstanding(): void
+    {
+        $year = AcademicYear::factory()->create(['school_id' => current_school_id(), 'status' => AcademicPeriodStatus::Closing]);
+        $this->authorized_user(['close academic period']);
+
+        Livewire::test(AcademicPeriodStatusControl::class, ['period' => $year])
+            ->call('open', 'close')
+            ->assertSee('Nothing is outstanding.');
+    }
+
     public function test_a_closing_period_offers_no_reopen_without_the_permission(): void
     {
         $academicPeriod = $this->openAcademicPeriod();

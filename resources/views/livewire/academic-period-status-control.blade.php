@@ -32,6 +32,25 @@
 
     @if (($canClose && $step === 'close') || ($canReopen && $step === 'reopen'))
         <form wire:submit="{{ $step }}" class="flex w-full max-w-md flex-col gap-3" aria-label="{{ $step === 'close' ? 'Close' : 'Reopen' }} {{ $periodName }}">
+            @if ($step === 'close')
+                @if ($findings->isEmpty())
+                    <p class="text-sm text-muted-foreground">Nothing is outstanding.</p>
+                @else
+                    <ul class="flex flex-col gap-2 text-sm" aria-label="Outstanding work">
+                        @foreach ($findings as $finding)
+                            <li wire:key="finding-{{ $finding->key }}" class="flex items-start gap-2">
+                                @if ($finding->blocking)
+                                    <x-lucide-circle-alert class="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
+                                    <span>{{ $finding->summary }} <span class="text-muted-foreground">Stops the close.</span></span>
+                                @else
+                                    <x-lucide-info class="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                                    <span>{{ $finding->summary }} <span class="text-muted-foreground">Worth checking. It does not stop the close.</span></span>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            @endif
             <div>
                 <label for="{{ $fieldId }}" class="sr-only">{{ $step === 'close' ? 'Note' : 'Why it is reopening' }}</label>
                 <input id="{{ $fieldId }}" wire:model="reason" maxlength="500" placeholder="{{ $step === 'close' ? 'Note (optional)' : 'Why it is reopening' }}" class="{{ $controlClasses }}" {{ field_error_bindings('reason') }}>
