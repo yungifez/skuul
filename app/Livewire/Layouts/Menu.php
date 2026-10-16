@@ -465,7 +465,7 @@ class Menu extends Component
                 'text' => 'Activity logs',
                 'route' => 'log-viewer.index',
                 'icon' => 'sticky-note',
-                'can' => 'view logs',
+                'can' => 'viewLogViewer',
             ],
         ];
 

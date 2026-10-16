@@ -70,7 +70,7 @@ return [
     |
     */
 
-    'middleware' => ['web', 'role:super-admin',  AuthorizeLogViewer::class],
+    'middleware' => ['web', 'auth', AuthorizeLogViewer::class],
 
     /*
     |--------------------------------------------------------------------------

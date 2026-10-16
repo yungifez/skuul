@@ -105,6 +105,9 @@ class AppServiceProvider extends ServiceProvider
             return null;
         });
 
+        // Server logs can hold any school's data, so only the platform reads them.
+        Gate::define('viewLogViewer', fn (?User $user): bool => $user?->can(PlatformPermission::ManagePlatform->value) ?? false);
+
         Event::listen(Registered::class, SendEmailVerificationNotification::class);
 
         // Sensitive changes go to the audit log as they happen.

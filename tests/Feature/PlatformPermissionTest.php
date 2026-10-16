@@ -55,6 +55,28 @@ class PlatformPermissionTest extends TestCase
             ->assertOk();
     }
 
+    public function test_only_the_platform_reads_the_server_logs(): void
+    {
+        $school = School::factory()->create();
+        $user = $this->memberOf($school, User::factory()->platformAdmin()->create());
+
+        $this->actingAsMemberOf($school, $user)
+            ->get(route('dashboard'))
+            ->assertSee(route('log-viewer.index'), false);
+        $this->get(route('log-viewer.index'))->assertOk();
+        $this->getJson(route('log-viewer.files'))->assertOk();
+    }
+
+    public function test_a_school_administrator_cannot_read_the_server_logs(): void
+    {
+        $this->authorized_user(['manage school settings'])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee(route('log-viewer.index'), false);
+        $this->get(route('log-viewer.index'))->assertForbidden();
+        $this->getJson(route('log-viewer.files'))->assertForbidden();
+    }
+
     public function test_school_staff_can_see_the_shared_dashboard_workspace(): void
     {
         $this->authorized_user(['read student', 'read calendar event'])
