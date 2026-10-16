@@ -289,6 +289,29 @@ class BudgetTest extends TestCase
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::BudgetRemoved)->first());
     }
 
+    public function test_the_cycle_select_starts_on_the_cycle_the_page_shows(): void
+    {
+        $this->authorized_user(['read budget']);
+        AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
+
+        Livewire::test(BudgetPlanner::class)
+            ->assertSet('academicYearId', (string) current_academic_year_id());
+    }
+
+    public function test_the_demo_refuses_to_remove_a_plan_and_says_why(): void
+    {
+        config(['demo.enabled' => true]);
+        $this->authorized_user(['read budget', 'manage budget']);
+        $budget = app(SetBudget::class)->set($this->cycle(), app(ChartOfAccounts::class)->account('operating_expenses'), 800);
+
+        Livewire::test(BudgetPlanner::class)
+            ->call('remove', $budget->id)
+            ->assertDispatched('status-message', type: 'danger', message: 'Deleting is turned off in the demo. Every other change works, and the demo resets every hour.');
+
+        $this->assertNotNull($budget->fresh());
+        $this->assertNull(AuditEvent::ofAction(AuditAction::BudgetRemoved)->first());
+    }
+
     public function test_a_plan_of_another_campus_is_never_touched(): void
     {
         $this->authorized_user(['read budget', 'manage budget']);

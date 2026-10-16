@@ -46,6 +46,11 @@ class BudgetPlanner extends Component
     public function mount(): void
     {
         Gate::authorize('viewAny', Budget::class);
+
+        // The cycle select shows the cycle the page loads, not its first option.
+        if ($this->academicYearId === '') {
+            $this->academicYearId = (string) ($this->academicYear()?->id ?? '');
+        }
     }
 
     public function updatedAcademicYearId(): void
