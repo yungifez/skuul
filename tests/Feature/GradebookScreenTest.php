@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Curriculum\AssignTeacher;
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\GradeAggregation;
 use App\Enums\GradeItemType;
 use App\Enums\ResultApprovalStatus;
+use App\Enums\Role;
 use App\Livewire\GradebookMarkSheet;
 use App\Livewire\GradebookSetup;
 use App\Models\AcademicCycleSection;
@@ -72,7 +74,7 @@ class GradebookScreenTest extends TestCase
 
     public function test_staff_can_manage_and_publish_from_the_offering_gradebook_screen(): void
     {
-        $this->authorized_user(['read gradebook', 'manage gradebook', 'publish result', 'approve result', 'update subject']);
+        $this->authorized_user(['read gradebook', 'manage gradebook', 'publish result', 'approve result', 'read subject', 'update subject']);
         [$courseOffering, $enrollment] = $this->offeringAndEnrollment();
 
         $this->get(route('course-offerings.gradebook.show', $courseOffering))
@@ -80,7 +82,7 @@ class GradebookScreenTest extends TestCase
             ->assertSeeLivewire(GradebookSetup::class)
             ->assertSee('Add assessment')
             ->assertSee('Editing open')
-            ->assertSee('Back to '.strtolower(school_terms('course', 'courses')).' being taught')
+            ->assertSee('Back to '.strtolower(school_terms('course', 'Course').' being taught'))
             ->assertSeeLivewire(GradebookMarkSheet::class);
 
         $setup = Livewire::test(GradebookSetup::class, ['courseOffering' => $courseOffering])
@@ -126,6 +128,21 @@ class GradebookScreenTest extends TestCase
             ->call('approveResult', $snapshot->id);
 
         $this->assertSame(ResultApprovalStatus::Approved, $snapshot->fresh()->approval_status);
+    }
+
+    public function test_a_teacher_without_the_offering_list_goes_back_to_gradebooks(): void
+    {
+        $this->authorized_user(['read gradebook', 'manage gradebook']);
+        $teacher = auth()->user();
+        $teacher->assignRole(Role::Teacher->value);
+        [$courseOffering] = $this->offeringAndEnrollment();
+        app(AssignTeacher::class)->assign($courseOffering, $teacher->fresh());
+
+        $this->get(route('course-offerings.gradebook.show', $courseOffering))
+            ->assertOk()
+            ->assertSee('Back to gradebooks')
+            ->assertSee('href="'.route('gradebooks.index').'"', false)
+            ->assertDontSee('href="'.route('course-offerings.index').'"', false);
     }
 
     public function test_a_closed_gradebook_explains_that_editing_is_locked(): void

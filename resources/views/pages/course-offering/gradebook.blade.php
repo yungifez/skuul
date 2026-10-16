@@ -1,6 +1,12 @@
+@php
+    $backToOfferings = auth()->user()->can('viewAny', \App\Models\CourseOffering::class);
+    $backHref = $backToOfferings ? route('course-offerings.index') : route('gradebooks.index');
+    $backText = $backToOfferings ? school_terms('course', 'Course').' being taught' : 'Gradebooks';
+@endphp
+
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('course-offerings.index'), 'text' => school_terms('course', 'Course').' being taught'],
+    ['href' => $backHref, 'text' => $backText],
     ['href' => route('course-offerings.gradebook.show', $courseOffering), 'text' => 'Gradebook', 'active'],
 ]])
 
@@ -8,7 +14,7 @@
 @section('page_heading', 'Gradebook')
 
 @section('page_actions')
-    <april:button-link href="{{ route('course-offerings.index') }}" variant="outline">Back to {{ strtolower(school_terms('course', 'courses')) }} being taught</april:button-link>
+    <april:button-link href="{{ $backHref }}" variant="outline">Back to {{ strtolower($backText) }}</april:button-link>
 @endsection
 
 @section('content')
