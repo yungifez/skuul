@@ -413,6 +413,28 @@ class FeeInvoiceTest extends TestCase
         Livewire::test(ListFeeInvoicesTable::class, ['status' => 'all'])->assertOk();
     }
 
+    public function test_the_invoice_list_does_not_show_a_moved_learners_new_section(): void
+    {
+        $school = $this->workingSchool();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $school->id]);
+        // The old campus keeps the learner's membership after a move.
+        $this->memberOf($school, $enrollment->user);
+        FeeInvoice::factory()->for($enrollment->user)->create([
+            'school_id' => $school->id,
+            'student_record_id' => $enrollment->id,
+            'financial_period_id' => FinancialPeriod::query()->where('school_id', $school->id)->where('name', 'Current finance period')->firstOrFail()->id,
+            'due_date' => now()->endOfYear(),
+        ]);
+        $destination = School::factory()->create(['name' => 'Maple Grove']);
+        $theirSection = AcademicCycleSection::factory()->create(['school_id' => $destination->id, 'name' => 'Their 8A']);
+        $enrollment->forceFill(['school_id' => $destination->id, 'academic_cycle_section_id' => $theirSection->id])->save();
+        $this->authorized_user(['read fee invoice']);
+
+        Livewire::test(ListFeeInvoicesTable::class, ['status' => 'all'])
+            ->assertSee('Moved to Maple Grove')
+            ->assertDontSee('Their 8A');
+    }
+
     /**
      * The summary cards and the table below them show the same money, so they
      * have to name the currency the same way.

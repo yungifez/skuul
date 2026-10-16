@@ -57,7 +57,7 @@ class ListFeeInvoicesTable extends DataTableComponent
             ->ofSchool()
             ->when($this->financialPeriodId !== null, fn (Builder $query) => $query->where('financial_period_id', $this->financialPeriodId))
             ->orderByDesc('due_date')
-            ->with(['user', 'studentRecord.academicCycleSection.academicLevel']);
+            ->with(['user', 'studentRecord.school', 'studentRecord.academicCycleSection.academicLevel']);
 
         if ($user->readsLearnersOnlyAsGuardian()) {
             $query->whereRelation('studentRecord.user.parents', 'parent_records.user_id', $user->id);
@@ -100,14 +100,19 @@ class ListFeeInvoicesTable extends DataTableComponent
     protected function serializeRows(Collection $rows): array
     {
         return $rows->map(function (FeeInvoice $invoice): array {
-            $row = $invoice->toArray();
+            // Only the invoice's own columns go to the browser. The loaded
+            // learner can belong to another campus after a move.
+            $row = $invoice->attributesToArray();
             $row['student_name'] = $invoice->user->name;
 
             $studentRecord = $invoice->studentRecord;
             $className = '—';
             $sectionName = '—';
 
-            if ($studentRecord !== null) {
+            if ($studentRecord !== null && $studentRecord->school_id !== $invoice->school_id) {
+                // The learner moved. Their new campus placement is not this campus's business.
+                $className = $studentRecord->school === null ? '—' : "Moved to {$studentRecord->school->name}";
+            } elseif ($studentRecord !== null) {
                 $cycleSection = $studentRecord->academicCycleSection;
 
                 if ($cycleSection !== null) {
