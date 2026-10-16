@@ -98,6 +98,41 @@ class PermissionBackfillTest extends TestCase
         $this->assertSame(['read fee invoice'], $this->role('accountant')->permissions->pluck('name')->all());
     }
 
+    public function test_a_school_administrator_can_share_records(): void
+    {
+        foreach (['request data sharing', 'approve data sharing', 'fulfil data sharing'] as $permission) {
+            $this->assertTrue($this->role('admin')->hasPermissionTo($permission), "A new install's administrator lacks {$permission}.");
+        }
+    }
+
+    public function test_an_old_install_gives_its_administrator_record_sharing(): void
+    {
+        $this->role('admin')->revokePermissionTo(['request data sharing', 'approve data sharing', 'fulfil data sharing']);
+
+        $this->runSharingGrant();
+        $this->runSharingGrant();
+
+        $this->assertTrue($this->role('admin')->hasPermissionTo('approve data sharing'));
+        $this->assertFalse($this->role('teacher')->hasPermissionTo('approve data sharing'));
+    }
+
+    public function test_the_sharing_grant_keeps_a_schools_own_sharing_choice(): void
+    {
+        $this->role('admin')->revokePermissionTo(['approve data sharing', 'fulfil data sharing']);
+
+        $this->runSharingGrant();
+
+        $this->assertTrue($this->role('admin')->hasPermissionTo('request data sharing'));
+        $this->assertFalse($this->role('admin')->hasPermissionTo('approve data sharing'));
+    }
+
+    private function runSharingGrant(): void
+    {
+        $migration = require database_path('migrations/2026_10_16_184100_grant_record_sharing_to_school_administrators.php');
+        $migration->up();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
     private function runAccountantReportGrant(): void
     {
         $migration = require database_path('migrations/2026_10_05_025807_let_the_accountant_build_reports.php');
