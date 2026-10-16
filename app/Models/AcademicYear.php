@@ -67,14 +67,10 @@ class AcademicYear extends Model
     {
         return Attribute::make(
             get: function (): string {
-                if ($this->starts_on === null || $this->ends_on === null) {
-                    return "$this->start_year - $this->stop_year";
-                }
+                $startYear = (string) ($this->starts_on?->format('Y') ?? $this->start_year);
+                $endYear = (string) ($this->ends_on?->format('Y') ?? $this->stop_year);
 
-                $startYear = $this->starts_on->format('Y');
-                $endYear = $this->ends_on->format('Y');
-
-                return $startYear === $endYear ? $startYear : $startYear.'–'.$this->ends_on->format('y');
+                return $startYear === $endYear ? $startYear : $startYear.'–'.substr($endYear, -2);
             },
         );
     }

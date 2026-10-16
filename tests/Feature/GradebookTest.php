@@ -169,7 +169,7 @@ class GradebookTest extends TestCase
 
         $this->get(route('gradebooks.index', ['academic_year_id' => $historicalYear->id]))
             ->assertOk()
-            ->assertSee('2024 - 2025')
+            ->assertSee('2024–25')
             ->assertSee('Historical Mathematics')
             ->assertSee('Historical autumn')
             ->assertSee('Historical spring');

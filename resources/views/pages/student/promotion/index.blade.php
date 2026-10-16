@@ -5,7 +5,7 @@
 @extends('layouts.app', ['breadcrumbs' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
         ['href'=> route('students.index'), 'text'=> 'Students'],
-        ['href'=> route('students.promote'), 'text'=> "Promotions for $currentAcademicYear->start_year - $currentAcademicYear->stop_year", 'active'],
+        ['href'=> route('students.promote'), 'text'=> "Promotions for $currentAcademicYear->name", 'active'],
 
 ]])
 

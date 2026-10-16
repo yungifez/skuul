@@ -39,6 +39,16 @@ class AcademicYearTest extends TestCase
             ->assertSee(school_terms('academic_year', 'School years'));
     }
 
+    public function test_a_year_loaded_without_its_dates_keeps_the_same_name(): void
+    {
+        $academicYear = AcademicYear::factory()->create(['school_id' => current_school_id(), 'start_year' => 2026, 'stop_year' => 2027, 'starts_on' => '2026-08-24', 'ends_on' => '2027-06-11']);
+        $calendarYear = AcademicYear::factory()->create(['school_id' => current_school_id(), 'start_year' => 2028, 'stop_year' => 2028, 'starts_on' => '2028-01-10', 'ends_on' => '2028-12-15']);
+
+        $this->assertSame('2026–27', $academicYear->fresh()->name);
+        $this->assertSame('2026–27', AcademicYear::query()->select(['id', 'start_year', 'stop_year'])->find($academicYear->id)->name);
+        $this->assertSame('2028', AcademicYear::query()->select(['id', 'start_year', 'stop_year'])->find($calendarYear->id)->name);
+    }
+
     public function test_the_working_year_picker_lists_published_years_but_not_drafts(): void
     {
         $academicYear = AcademicYear::factory()->create(['school_id' => current_school_id()]);
