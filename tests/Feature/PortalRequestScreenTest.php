@@ -223,6 +223,21 @@ class PortalRequestScreenTest extends TestCase
         $this->assertSame(auth()->id(), $request->fresh()->answered_by);
     }
 
+    public function test_the_school_cannot_withdraw_a_request_for_the_family(): void
+    {
+        $enrollment = $this->enrollment();
+        $request = $this->request($enrollment);
+        $this->authorized_user(['read portal request', 'answer portal request']);
+
+        Livewire::test(PortalRequestInbox::class)
+            ->assertDontSeeHtml('value="'.PortalRequestStatus::Cancelled->value.'" ')
+            ->set('statusesByRequest.'.$request->id, PortalRequestStatus::Cancelled->value)
+            ->call('changeStatus', $request->id)
+            ->assertHasErrors('statusesByRequest.'.$request->id);
+
+        $this->assertSame(PortalRequestStatus::Submitted, $request->fresh()->status);
+    }
+
     public function test_the_school_cannot_answer_a_request_the_family_took_back(): void
     {
         $enrollment = $this->enrollment();

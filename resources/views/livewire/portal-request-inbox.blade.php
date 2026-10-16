@@ -88,8 +88,8 @@
                             <div class="space-y-1.5">
                                 <label for="request-{{ $request->id }}-status" class="text-sm font-medium">Move to</label>
                                 <select id="request-{{ $request->id }}-status" wire:model.live="statusesByRequest.{{ $request->id }}" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('statusesByRequest.'.$request->id) }}>
-                                    @foreach ($request->status->allowedNext() as $requestStatus)
-                                        <option wire:key="request-{{ $request->id }}-status-{{ $requestStatus->value }}" value="{{ $requestStatus->value }}" @selected(($statusesByRequest[$request->id] ?? $request->status->allowedNext()[0]->value) === $requestStatus->value)>{{ $requestStatus->label() }}</option>
+                                    @foreach ($request->status->schoolChoices() as $requestStatus)
+                                        <option wire:key="request-{{ $request->id }}-status-{{ $requestStatus->value }}" value="{{ $requestStatus->value }}" @selected(($statusesByRequest[$request->id] ?? $request->status->schoolChoices()[0]->value) === $requestStatus->value)>{{ $requestStatus->label() }}</option>
                                     @endforeach
                                 </select>
                                 <x-field-error :name="'statusesByRequest.'.$request->id" />

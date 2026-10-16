@@ -68,6 +68,16 @@ enum PortalRequestStatus: string
     }
 
     /**
+     * Get the states the school may choose. Only the family withdraws a request.
+     *
+     * @return array<int, self>
+     */
+    public function schoolChoices(): array
+    {
+        return array_values(array_filter($this->allowedNext(), fn (self $status): bool => $status !== self::Cancelled));
+    }
+
+    /**
      * Check if this state can move to the given state.
      */
     public function canMoveTo(self $status): bool

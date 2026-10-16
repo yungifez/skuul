@@ -77,13 +77,13 @@ class PortalRequestInbox extends Component
         Gate::authorize('answer', $request);
 
         $this->statusesByRequest[$requestId] ??= $request->status->isOpen()
-            ? $request->status->allowedNext()[0]->value
+            ? $request->status->schoolChoices()[0]->value
             : $request->status->value;
 
         $statusField = 'statusesByRequest.'.$requestId;
         $responseField = 'responsesByRequest.'.$requestId;
         $validated = $this->validate([
-            $statusField => ['required', Rule::enum(PortalRequestStatus::class)],
+            $statusField => ['required', Rule::enum(PortalRequestStatus::class)->except([PortalRequestStatus::Cancelled])],
             $responseField => [
                 'nullable',
                 'string',
