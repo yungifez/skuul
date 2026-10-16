@@ -12,8 +12,12 @@ use App\Models\AcademicLevel;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Student\StudentService;
+use Closure;
+use Illuminate\Contracts\Validation\DataAwareRule;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 
 /**
  * Resolve academic levels and cycle sections by name.
@@ -21,6 +25,11 @@ use Illuminate\Support\Carbon;
  */
 class StudentImporter implements Importer
 {
+    /**
+     * The gender values an account accepts.
+     */
+    private const array GENDERS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+
     public function __construct(
         private ProvisionAccount $provisionAccount,
         private ChangeEnrollmentPlacement $changePlacement,
@@ -83,14 +92,61 @@ class StudentImporter implements Importer
         return [
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', new_email_rule(), 'max:100'],
-            'birthday' => ['required', 'date', 'before:today'],
-            'gender' => ['nullable', 'string', 'max:100'],
+            'birthday' => ['required', 'date_format:Y-m-d', 'before:today'],
+            'gender' => ['nullable', Rule::in(self::GENDERS)],
             'level' => ['required', 'string', 'max:255'],
-            'section' => ['required', 'string', 'max:255'],
+            'section' => ['required', 'string', 'max:255', $this->sectionOfTheLevel()],
             'admission_number' => ['nullable', 'string', 'max:255'],
             'admission_date' => ['nullable', 'date'],
             'phone' => ['nullable', 'string', 'max:100'],
         ];
+    }
+
+    /**
+     * Get the rule that the level and the section exist in this cycle.
+     *
+     * The check finds them the same way the write does, so a row that passes
+     * the check does not fail when it is written.
+     */
+    private function sectionOfTheLevel(): ValidationRule
+    {
+        return new class implements DataAwareRule, ValidationRule
+        {
+            /** @var array<string, mixed> */
+            private array $row = [];
+
+            /**
+             * @param  array<string, mixed>  $data
+             */
+            public function setData(array $data): static
+            {
+                $this->row = $data;
+
+                return $this;
+            }
+
+            public function validate(string $attribute, mixed $value, Closure $fail): void
+            {
+                $levelName = (string) ($this->row['level'] ?? '');
+                $academicLevel = AcademicLevel::inSchool()->where('name', $levelName)->first();
+
+                if ($academicLevel === null) {
+                    $fail("There is no level called {$levelName}.");
+
+                    return;
+                }
+
+                $sectionExists = AcademicCycleSection::inSchool()
+                    ->where('academic_year_id', current_academic_year_id())
+                    ->where('academic_level_id', $academicLevel->id)
+                    ->where('name', $value)
+                    ->exists();
+
+                if (!$sectionExists) {
+                    $fail("The level {$levelName} has no section called {$value} in this cycle.");
+                }
+            }
+        };
     }
 
     /**

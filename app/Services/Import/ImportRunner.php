@@ -120,10 +120,13 @@ class ImportRunner
             $applied++;
         }
 
+        $invalid = $batch->rows()->broken()->count();
+
         $batch->forceFill([
             'status' => ImportStatus::Applied,
             'applied_count' => $applied,
-            'invalid_count' => $batch->rows()->broken()->count(),
+            'valid_count' => $batch->row_count - $invalid,
+            'invalid_count' => $invalid,
             'applied_at' => now(),
         ])->save();
 

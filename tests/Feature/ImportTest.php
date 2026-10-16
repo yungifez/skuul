@@ -162,6 +162,59 @@ class ImportTest extends TestCase
         );
     }
 
+    public function test_the_check_refuses_a_row_that_could_not_be_written(): void
+    {
+        $this->authorized_user(['create import']);
+        [$academicLevel, $cycleSection] = $this->levelAndSection();
+
+        $batch = app(ImportRunner::class)->stage('students', [
+            $this->studentRow(['email' => 'ada.bell@gmail.com', 'level' => $academicLevel->name, 'section' => $cycleSection->name]),
+            $this->studentRow(['email' => 'grace.ola@gmail.com', 'level' => 'Level nine', 'section' => $cycleSection->name]),
+            $this->studentRow(['email' => 'tom.eze@gmail.com', 'level' => $academicLevel->name, 'section' => 'Z']),
+            $this->studentRow(['email' => 'ifeoma.obi@gmail.com', 'level' => $academicLevel->name, 'section' => $cycleSection->name, 'gender' => 'F']),
+            $this->studentRow(['email' => 'kemi.ade@gmail.com', 'level' => $academicLevel->name, 'section' => $cycleSection->name, 'birthday' => '01/04/2012']),
+        ]);
+
+        $this->assertSame(1, $batch->valid_count);
+        $this->assertSame(4, $batch->invalid_count);
+        $this->assertSame(['There is no level called Level nine.'], $batch->rows()->where('line_number', 3)->sole()->errors);
+        $this->assertSame(["The level {$academicLevel->name} has no section called Z in this cycle."], $batch->rows()->where('line_number', 4)->sole()->errors);
+    }
+
+    public function test_a_staff_import_reads_birthday_and_gender(): void
+    {
+        $this->authorized_user(['create import', 'apply import']);
+        $runner = app(ImportRunner::class);
+
+        $runner->apply($runner->stage('staff', [$this->staffRow(['email' => 'ada.bell@gmail.com'])]));
+
+        $person = User::where('email', 'ada.bell@gmail.com')->firstOrFail();
+
+        $this->assertStringStartsWith('1990-04-01', (string) $person->getRawOriginal('birthday'));
+        $this->assertSame('Female', $person->gender);
+        $this->assertContains('birthday', app(ImportRegistry::class)->get('staff')->optionalColumns());
+    }
+
+    public function test_the_counts_add_up_after_writing(): void
+    {
+        $this->authorized_user(['create import', 'apply import']);
+        $runner = app(ImportRunner::class);
+        $batch = $runner->stage('staff', [
+            $this->staffRow(['email' => 'ada.bell@gmail.com']),
+            $this->staffRow(['email' => 'grace.ola@gmail.com']),
+        ]);
+        StudentRecord::factory()->create([
+            'user_id' => User::factory()->create(['email' => 'grace.ola@gmail.com'])->id,
+            'school_id' => $this->workingSchool()->id,
+        ]);
+
+        $batch = $runner->apply($batch);
+
+        $this->assertSame(1, $batch->applied_count);
+        $this->assertSame(1, $batch->valid_count);
+        $this->assertSame(1, $batch->invalid_count);
+    }
+
     public function test_a_student_import_places_the_student(): void
     {
         $this->authorized_user(['create import', 'apply import']);

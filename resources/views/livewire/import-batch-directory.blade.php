@@ -65,7 +65,7 @@
                             <april:data-table-row>
                                 <april:data-table-cell class="font-medium">
                                     {{ $batch->source_name ?? 'Unnamed file' }}
-                                    <span class="block text-xs text-muted-foreground">{{ $batch->type }}</span>
+                                    <span class="block text-xs text-muted-foreground">{{ $batch->typeTitle() }}</span>
                                 </april:data-table-cell>
                                 <april:data-table-cell>
                                     <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">

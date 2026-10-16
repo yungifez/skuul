@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ImportStatus;
+use App\Services\Import\ImportRegistry;
 use App\Traits\InSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -71,5 +72,13 @@ class ImportBatch extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get the name of what the file holds, as people read it.
+     */
+    public function typeTitle(): string
+    {
+        return app(ImportRegistry::class)->all()[$this->type] ?? ucfirst($this->type);
     }
 }

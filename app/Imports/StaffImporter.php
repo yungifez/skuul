@@ -59,6 +59,8 @@ class StaffImporter implements Importer
     {
         return [
             'source_id',
+            'birthday',
+            'gender',
             'staff_number',
             'job_title',
             'department',
@@ -82,8 +84,8 @@ class StaffImporter implements Importer
         return [
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', new_email_rule(), 'max:100'],
-            'birthday' => ['nullable', 'date', 'before:today'],
-            'gender' => ['nullable', 'string', 'max:100'],
+            'birthday' => ['nullable', 'date_format:Y-m-d', 'before:today'],
+            'gender' => ['nullable', Rule::in(['Male', 'Female', 'Non-binary', 'Prefer not to say'])],
             'staff_number' => ['nullable', 'string', 'max:30'],
             'employment_type' => ['nullable', Rule::in(EmploymentType::values())],
             'joined_on' => ['nullable', 'date'],

@@ -60,8 +60,19 @@ class ImportScreenTest extends TestCase
         $this->get(route('imports.show', $batch))
             ->assertOk()
             ->assertSee('Nothing is written yet')
+            ->assertSee('Staff · started')
             ->assertSee('ada.bell@gmail.com')
             ->assertSee('not-an-email');
+    }
+
+    public function test_a_file_without_a_kind_asks_for_one(): void
+    {
+        $this->authorized_user(['read import', 'create import']);
+
+        Livewire::test(ImportFileFormComponent::class)
+            ->set('file', $this->staffFile())
+            ->call('save')
+            ->assertHasErrors(['type' => 'Choose what the file holds.']);
     }
 
     public function test_the_rows_say_what_is_wrong(): void

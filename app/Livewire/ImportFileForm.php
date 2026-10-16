@@ -38,7 +38,7 @@ class ImportFileForm extends Component
         $this->validate([
             'type' => ['required', Rule::in(array_keys($registry->all()))],
             'file' => ['required', 'file', 'mimetypes:text/plain,text/csv,application/csv', 'max:5120'],
-        ], [], ['type' => 'import', 'file' => 'CSV file']);
+        ], ['type.required' => 'Choose what the file holds.'], ['type' => 'import', 'file' => 'CSV file']);
 
         try {
             $batch = $runner->stage(
