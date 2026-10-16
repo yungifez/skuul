@@ -82,6 +82,10 @@ class RoleAuthority
         if ($role->school_id !== null && $role->school_id !== $school->id) {
             throw new InvalidValueException('That role belongs to another campus.');
         }
+
+        if ($role->isSystemScoped()) {
+            throw new InvalidValueException("$role->name is given by the platform, not by a campus.");
+        }
     }
 
     /**
@@ -96,6 +100,10 @@ class RoleAuthority
     {
         if ($role->school_id !== null && $role->school_id !== $school->id) {
             throw new InvalidValueException('That role belongs to another campus.');
+        }
+
+        if ($role->isSystemScoped()) {
+            throw new InvalidValueException("$role->name is given by the platform, not by a campus.");
         }
     }
 

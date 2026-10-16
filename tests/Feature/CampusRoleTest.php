@@ -389,6 +389,21 @@ class CampusRoleTest extends TestCase
         $this->assertTrue($person->fresh()->hasRole(Role::Teacher->value));
     }
 
+    public function test_a_platform_role_is_neither_listed_nor_given_at_a_campus(): void
+    {
+        $this->platform_admin();
+        $platformRole = CampusRole::query()->where('name', Role::PlatformAdmin->value)->firstOrFail();
+        $person = $this->memberOf($this->workingSchool());
+
+        $this->get(route('roles.index'))
+            ->assertOk()
+            ->assertDontSee(route('roles.edit', $platformRole->id));
+
+        $this->expectExceptionMessage(Role::PlatformAdmin->value.' is given by the platform, not by a campus.');
+
+        app(AssignCampusRole::class)->give($person, $platformRole, $this->workingSchool(), auth()->user());
+    }
+
     public function test_nobody_gives_out_a_role_holding_more_than_they_do(): void
     {
         $actor = $this->roleManager(['read student']);

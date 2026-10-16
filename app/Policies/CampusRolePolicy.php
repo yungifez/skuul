@@ -58,6 +58,7 @@ class CampusRolePolicy
     public function assign(User $user, CampusRole $role): bool
     {
         return $user->can('manage role')
+            && !$role->isSystemScoped()
             && ($role->school_id === null || $role->school_id === current_school_id());
     }
 }

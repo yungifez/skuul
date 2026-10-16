@@ -55,6 +55,14 @@ class CampusRole extends SpatieRole
     }
 
     /**
+     * Check whether the platform, not a campus, gives this role.
+     */
+    public function isSystemScoped(): bool
+    {
+        return BuiltInRole::tryFrom($this->name)?->isSystemScoped() === true;
+    }
+
+    /**
      * Check whether the campus has stopped offering this role.
      */
     public function isArchived(): bool

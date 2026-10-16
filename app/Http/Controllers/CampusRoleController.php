@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Role;
 use App\Models\CampusRole;
 use App\Services\Authorization\RoleAuthority;
 use Illuminate\Http\RedirectResponse;
@@ -35,6 +36,10 @@ class CampusRoleController extends Controller
             // campus. A role another campus wrote is not this campus's
             // business at all, and neither are its holders there.
             ->where(fn ($query) => $query->inSchool()->orWhereNull('school_id'))
+            ->whereNotIn('name', array_map(
+                fn (Role $role): string => $role->value,
+                array_filter(Role::cases(), fn (Role $role): bool => $role->isSystemScoped()),
+            ))
             ->withCount([
                 'users' => fn ($query) => $query->where("$pivot.$campusColumn", $schoolId),
                 'permissions',
