@@ -139,7 +139,7 @@ class Menu extends Component
                 'text' => 'Students',
                 'icon' => 'user',
                 'route' => 'students.index',
-                'can' => 'read student',
+                'visible' => !$user->isPortalOnly() && $user->can('read student'),
             ],
             [
                 'type' => 'menu-item',
@@ -335,7 +335,7 @@ class Menu extends Component
                 'text' => 'Notices',
                 'icon' => 'bell',
                 'route' => 'notices.index',
-                'can' => 'read notice',
+                'visible' => !$user->isPortalOnly() && $user->can('read notice'),
             ],
             [
                 'type' => 'menu-item',

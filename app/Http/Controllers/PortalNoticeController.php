@@ -24,7 +24,7 @@ class PortalNoticeController extends Controller
         abort_unless($this->access->canRead($request->user(), $studentRecord), 403);
         abort_unless($this->access->areaIsOpen(PortalArea::Notices, $studentRecord->school_id), 404);
 
-        $notices = $this->summary->notices($studentRecord);
+        $notices = $this->summary->notices($studentRecord, $request->user());
 
         foreach ($notices as $recipient) {
             $recipient->notice->setAttribute(
