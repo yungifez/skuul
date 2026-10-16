@@ -52,7 +52,7 @@ class ShowNotice extends Component
             NoticeAudienceScope::School => [],
             NoticeAudienceScope::Classes => AcademicLevel::query()->inSchool()->whereKey($audience['academic_level_ids'] ?? [])->orderBy('name')->pluck('name')->all(),
             NoticeAudienceScope::Section => AcademicCycleSection::query()->inSchool()->whereKey($audience['academic_cycle_section_ids'] ?? [])->with('academicLevel:id,name')->get()
-                ->map(fn (AcademicCycleSection $section): string => trim(($section->academicLevel?->name ?? '').' · '.($section->label ?? $section->name), ' ·'))
+                ->map(fn (AcademicCycleSection $section): string => trim($section->academicLevel->name.' · '.($section->label ?? $section->name), ' ·'))
                 ->sort()
                 ->all(),
         };
