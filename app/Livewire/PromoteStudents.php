@@ -43,8 +43,7 @@ class PromoteStudents extends Component
         $this->cycleSections = AcademicCycleSection::inSchool()
             ->with('academicLevel')
             ->where('academic_year_id', current_academic_year_id())
-            ->orderBy('position')
-            ->orderBy('name')
+            ->orderedByLevel()
             ->get()
             ->map(fn (AcademicCycleSection $cycleSection): array => [
                 'id' => $cycleSection->id,

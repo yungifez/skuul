@@ -35,7 +35,7 @@
                         <x-lucide-chevron-left class="mr-1 size-4" /> Previous day
                     </april:button>
                     <april:button type="button" variant="outline" wire:click="goToToday">Today</april:button>
-                    <april:button type="button" variant="outline" wire:click="moveDay(1)">
+                    <april:button type="button" variant="outline" wire:click="moveDay(1)" :disabled="$isTodayOrLater">
                         Next day <x-lucide-chevron-right class="ml-1 size-4" />
                     </april:button>
                     <span class="w-full text-sm text-muted-foreground sm:ml-auto sm:w-auto">{{ \Illuminate\Support\Carbon::parse($attendedOn)->format('l, j F Y') }}</span>

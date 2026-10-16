@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\AcademicStructureStatus;
 use App\Traits\InSchool;
 use Database\Factories\AcademicCycleSectionFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -79,6 +80,24 @@ class AcademicCycleSection extends Model
         $level = $this->academicLevel?->name;
 
         return $level === null ? $this->displayName() : $level.' · '.$this->displayName();
+    }
+
+    /**
+     * Order sections the way the school lists its levels.
+     *
+     * Sections of the first level come first, so "Grade 9 · 9A" does not
+     * land after "Grade 12 · 12B" in a select.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeOrderedByLevel(Builder $query): Builder
+    {
+        return $query
+            ->orderBy(AcademicLevel::query()->select('position')->whereColumn('academic_levels.id', 'academic_cycle_sections.academic_level_id'))
+            ->orderBy(AcademicLevel::query()->select('name')->whereColumn('academic_levels.id', 'academic_cycle_sections.academic_level_id'))
+            ->orderBy('academic_cycle_sections.position')
+            ->orderBy('academic_cycle_sections.name');
     }
 
     /**

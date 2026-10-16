@@ -127,6 +127,8 @@ class AttendanceRegister extends Component
         $validated = $this->validate([
             'academicCycleSectionId' => ['required', 'integer', Rule::exists((new AcademicCycleSection)->getTable(), 'id')->where('school_id', current_school_id())],
             'attendedOn' => ['required', 'date', 'before_or_equal:'.school_today()->toDateString()],
+        ], [
+            'attendedOn.before_or_equal' => 'You cannot take attendance for a future day. Choose today or an earlier day.',
         ]);
 
         $section = $this->selectedSection();
@@ -186,6 +188,7 @@ class AttendanceRegister extends Component
         return ViewFactory::make('livewire.attendance-register', [
             'sections' => $this->register->sections($section?->id),
             'section' => $section,
+            'isTodayOrLater' => $this->day()?->greaterThanOrEqualTo(school_today()) === true,
             'students' => $students,
             'closure' => $section === null || $this->day() === null ? null : $this->register->closure($section, $this->day()),
             'statuses' => AttendanceStatus::cases(),

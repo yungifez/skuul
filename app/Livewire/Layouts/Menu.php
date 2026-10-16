@@ -242,6 +242,13 @@ class Menu extends Component
                 'route' => 'timetables.index',
                 'visible' => !$user->isParentPortalOnly() && $user->can('read timetable'),
             ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Attendance',
+                'icon' => 'clipboard-check',
+                'route' => 'attendance.register',
+                'visible' => feature_enabled(Feature::Attendance) && !$user->isParentPortalOnly() && $user->can('read attendance'),
+            ],
             ['header' => 'Assessment'],
             [
                 'type' => 'menu-item',

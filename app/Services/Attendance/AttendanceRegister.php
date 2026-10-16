@@ -49,7 +49,7 @@ class AttendanceRegister
                     ->where('status', AcademicStructureStatus::Active))
                 ->when($openSectionId !== null, fn ($open) => $open->orWhereKey($openSectionId)))
             ->with('academicLevel:id,name')
-            ->orderBy('name')
+            ->orderedByLevel()
             ->get();
     }
 

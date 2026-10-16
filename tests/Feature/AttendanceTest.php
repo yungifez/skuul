@@ -13,6 +13,7 @@ use App\Enums\Feature;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\AttendanceRegister as AttendanceRegisterComponent;
+use App\Livewire\Layouts\Menu;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -297,9 +298,27 @@ class AttendanceTest extends TestCase
             'attendedOn' => now()->addDay()->toDateString(),
         ])
             ->call('save')
-            ->assertHasErrors('attendedOn');
+            ->assertHasErrors('attendedOn')
+            ->assertSee('You cannot take attendance for a future day. Choose today or an earlier day.')
+            ->assertDontSee('The attended on must be a date before or equal to');
 
         $this->assertSame(0, AttendanceRecord::query()->count());
+    }
+
+    public function test_the_register_screen_does_not_step_past_today(): void
+    {
+        $this->authorized_user(['read attendance']);
+        $sectionId = (string) $this->enrollment()->academic_cycle_section_id;
+
+        Livewire::test(AttendanceRegisterComponent::class, [
+            'academicCycleSectionId' => $sectionId,
+            'attendedOn' => school_today()->toDateString(),
+        ])->assertViewHas('isTodayOrLater', true);
+
+        Livewire::test(AttendanceRegisterComponent::class, [
+            'academicCycleSectionId' => $sectionId,
+            'attendedOn' => school_today()->subDay()->toDateString(),
+        ])->assertViewHas('isTodayOrLater', false);
     }
 
     public function test_register_prefills_daily_status_without_lesson_records_overriding_it(): void
@@ -322,6 +341,25 @@ class AttendanceTest extends TestCase
         features()->disable(Feature::Attendance);
 
         $this->get(route('attendance.register'))->assertNotFound();
+    }
+
+    public function test_the_sidebar_links_to_the_register(): void
+    {
+        $this->authorized_user(['read attendance']);
+
+        Livewire::test(Menu::class)->assertSee(route('attendance.register'));
+    }
+
+    public function test_the_sidebar_hides_the_register_without_the_permission_or_the_feature(): void
+    {
+        $this->authorized_user([]);
+
+        Livewire::test(Menu::class)->assertDontSee(route('attendance.register'));
+
+        $this->authorized_user(['read attendance']);
+        features()->disable(Feature::Attendance);
+
+        Livewire::test(Menu::class)->assertDontSee(route('attendance.register'));
     }
 
     public function test_the_summary_counts_the_days_that_were_recorded(): void
@@ -477,6 +515,36 @@ class AttendanceTest extends TestCase
 
         Livewire::test(AttendanceRegisterComponent::class, ['academicCycleSectionId' => (string) $lastYear->id])
             ->assertSee($lastYear->name);
+    }
+
+    public function test_the_register_lists_sections_in_level_order(): void
+    {
+        $this->authorized_user(['read attendance']);
+        $level = fn (string $name, int $position): AcademicLevel => AcademicLevel::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => $name,
+            'position' => $position,
+        ]);
+        $section = fn (AcademicLevel $level, string $name, int $position = 0): AcademicCycleSection => AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_level_id' => $level->id,
+            'status' => AcademicStructureStatus::Active,
+            'name' => $name,
+            'position' => $position,
+        ]);
+        $twelfth = $level('Grade 12', 4);
+        $ninth = $level('Grade 9', 1);
+        $twelveA = $section($twelfth, '12A');
+        $nineB = $section($ninth, '9B', 2);
+        $nineA = $section($ninth, '9A', 1);
+
+        Livewire::test(AttendanceRegisterComponent::class)
+            ->assertViewHas('sections', fn ($sections): bool => $sections
+                ->whereIn('id', [$twelveA->id, $nineA->id, $nineB->id])
+                ->pluck('id')
+                ->values()
+                ->all() === [$nineA->id, $nineB->id, $twelveA->id]);
     }
 
     public function test_a_learner_who_moved_in_is_not_marked_on_a_day_at_the_old_campus(): void
