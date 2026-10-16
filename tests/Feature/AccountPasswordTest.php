@@ -5,11 +5,13 @@ namespace Tests\Feature;
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Enums\AccountStatus;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Livewire\ManageAccountPassword;
 use App\Models\AccountInvitation;
 use App\Models\AuditEvent;
 use App\Models\School;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
@@ -146,6 +148,23 @@ class AccountPasswordTest extends TestCase
         $this->assertTrue(Gate::denies('manageAccountAccess', $organizationAdmin->refresh()));
 
         Livewire::test(ManageAccountPassword::class, ['user' => $teacherElsewhere])->assertForbidden();
+    }
+
+    public function test_the_old_campus_cannot_change_how_a_moved_learner_signs_in(): void
+    {
+        $this->authorized_user(['manage account access']);
+        $here = $this->workingSchool();
+        $sibling = School::factory()->create(['organization_id' => $here->organization_id]);
+
+        $learner = $this->memberOf($sibling, $this->memberOf($here));
+        $learner->syncRoles([Role::Student]);
+        $enrollment = StudentRecord::factory()->create(['user_id' => $learner->id, 'school_id' => $here->id, 'status' => EnrollmentStatus::Active]);
+        $this->assertTrue(Gate::allows('manageAccountAccess', $learner), 'A learner enrolled here is ours.');
+
+        $enrollment->forceFill(['school_id' => $sibling->id])->save();
+
+        $this->assertTrue(Gate::denies('manageAccountAccess', $learner->refresh()), 'A learner who moved belongs to the new campus.');
+        Livewire::test(ManageAccountPassword::class, ['user' => $learner])->assertForbidden();
     }
 
     public function test_a_password_must_be_confirmed(): void

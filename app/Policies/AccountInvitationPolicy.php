@@ -71,6 +71,7 @@ class AccountInvitationPolicy
 
         return $school !== null
             && !$invitee->holdsPowerBeyond($school)
+            && !$invitee->isEnrolledOnlyElsewhere($school)
             && !app(RoleAuthority::class)->holdsMoreThan($invitee, $user, $school);
     }
 }

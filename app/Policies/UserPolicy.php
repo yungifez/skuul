@@ -101,6 +101,7 @@ class UserPolicy
         if ($user->can('manage account access')
             && $model->belongsToCurrentSchool()
             && !$model->holdsPowerBeyond(current_school_id())
+            && !$model->isEnrolledOnlyElsewhere(current_school_id())
             && !app(RoleAuthority::class)->holdsMoreThan($model, $user, current_school())) {
             return true;
         }

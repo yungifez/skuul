@@ -274,6 +274,24 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check whether the person studies at another campus and not at the given one.
+     *
+     * After a campus move the old campus keeps its history but no longer
+     * holds the learner's account, so it cannot change how they sign in.
+     */
+    public function isEnrolledOnlyElsewhere(School|int $school): bool
+    {
+        $schoolId = $school instanceof School ? $school->id : $school;
+        $enrollments = StudentRecord::query()
+            ->withoutGlobalScopes()
+            ->where('user_id', $this->id)
+            ->whereIn('status', EnrollmentStatus::enrolled());
+
+        return (clone $enrollments)->where('school_id', '!=', $schoolId)->exists()
+            && !(clone $enrollments)->where('school_id', $schoolId)->exists();
+    }
+
+    /**
      * Check if this person can work in the given school.
      */
     public function belongsToSchool(School|int $school): bool
