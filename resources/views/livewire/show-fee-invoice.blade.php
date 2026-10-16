@@ -158,7 +158,13 @@
                             <div class="min-w-0 text-sm">
                                 <p class="flex flex-wrap items-baseline gap-x-2">
                                     <span @class(['font-semibold tabular-nums', 'line-through text-muted-foreground' => $row['payment']->isReversed()])>{{ $row['amount']->formatToLocale($locale) }}</span>
+                                    @if (!$row['amount']->isEqualTo($row['payment']->amount))
+                                        <span class="text-muted-foreground">of {{ $row['payment']->amount->abs()->formatToLocale($locale) }} {{ $row['payment']->isReversal() ? 'taken back' : 'received' }}</span>
+                                    @endif
                                     <span class="text-muted-foreground">{{ $row['payment']->methodLabel() }}</span>
+                                    @if ($row['payment']->isReversal())
+                                        <span class="text-destructive">Reversal</span>
+                                    @endif
                                     @if ($row['payment']->isReversed())
                                         <span class="text-muted-foreground">Taken back</span>
                                     @endif

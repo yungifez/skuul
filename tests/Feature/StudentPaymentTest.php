@@ -10,6 +10,7 @@ use App\Actions\Finance\RelieveStudentFees;
 use App\Actions\Finance\ReversePayment;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\ShowFeeInvoice;
 use App\Livewire\ShowStudentAccount;
 use App\Livewire\TakeInvoicePayment;
 use App\Models\AuditEvent;
@@ -664,6 +665,25 @@ class StudentPaymentTest extends TestCase
 
         $this->assertTrue($payment->fresh()->isReversed());
         $this->assertSame(0, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_the_invoice_page_says_how_much_of_a_larger_receipt_it_took(): void
+    {
+        $this->authorized_user(['read fee invoice']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+        $payment = app(ReceivePayment::class)->receive($enrollment, 12_000);
+
+        Livewire::test(ShowFeeInvoice::class, ['feeInvoice' => $invoice])
+            ->assertSee('of '.$payment->amount->formatToLocale(app()->getLocale()).' received')
+            ->assertDontSee('Reversal');
+
+        app(ReversePayment::class)->reverse($payment, 'The bank returned the transfer');
+
+        Livewire::test(ShowFeeInvoice::class, ['feeInvoice' => $invoice->fresh()])
+            ->assertSee('Reversal')
+            ->assertSee('of '.$payment->amount->formatToLocale(app()->getLocale()).' taken back')
+            ->assertSee('Taken back');
     }
 
     public function test_the_fee_relief_form_names_every_field(): void
