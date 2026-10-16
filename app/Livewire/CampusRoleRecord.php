@@ -140,8 +140,10 @@ class CampusRoleRecord extends Component
             'personId.in' => 'That person does not work at this campus.',
         ], ['personId' => 'person']);
 
+        $person = User::findOrFail((int) $this->personId);
+
         try {
-            $assignCampusRole->give(User::findOrFail((int) $this->personId), $this->role, current_school(), auth()->user());
+            $assignCampusRole->give($person, $this->role, current_school(), auth()->user());
         } catch (InvalidValueException $exception) {
             $this->addError('personId', $exception->getMessage());
 
@@ -149,7 +151,7 @@ class CampusRoleRecord extends Component
         }
 
         $this->reset('personId');
-        $this->notify("{$this->role->name} was given.");
+        $this->notify("{$person->name} now has {$this->role->name}.");
     }
 
     public function take(int $userId, AssignCampusRole $assignCampusRole, RoleAuthority $roleAuthority): void

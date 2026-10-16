@@ -620,7 +620,7 @@ class StaffScreenTest extends TestCase
 
         Livewire::test(StaffLeaveBoard::class)
             ->call('changeStatus', $leave->id, LeaveStatus::Approved->value)
-            ->assertSee('The leave is now Approved.');
+            ->assertSee('The leave is now approved.');
 
         $this->assertSame(LeaveStatus::Approved, $leave->fresh()->status);
 

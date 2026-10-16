@@ -57,7 +57,7 @@ class CreateSchoolForm extends Component
 
         $this->validate(
             ['organizationId' => ['required', 'integer'], ...$this->schoolDetailRules()],
-            [],
+            $this->schoolDetailMessages(),
             ['organizationId' => 'organization', ...$this->schoolDetailAttributes()],
         );
 

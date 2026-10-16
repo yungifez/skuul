@@ -73,6 +73,14 @@ trait EditsSchoolDetails
     /**
      * @return array<string, string>
      */
+    protected function schoolDetailMessages(): array
+    {
+        return ['phone.regex' => 'Use only digits, spaces, and the signs + - ( ) in the phone number.'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
     protected function schoolDetailAttributes(): array
     {
         return ['postalCode' => 'postal code', 'initials' => 'short name', 'timezone' => 'time zone'];

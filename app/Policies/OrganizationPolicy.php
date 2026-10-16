@@ -47,7 +47,7 @@ class OrganizationPolicy
     }
 
     /**
-     * Determine whether the user can add campuses and move them.
+     * Determine whether the user can add campuses and edit them.
      */
     public function manageCampuses(User $user, Organization $organization): bool
     {

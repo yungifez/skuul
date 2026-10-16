@@ -138,7 +138,7 @@ class StaffLeaveBoard extends Component
             return;
         }
 
-        $this->feedback = 'The leave is now '.$nextStatus->label().'.';
+        $this->feedback = 'The leave is now '.mb_strtolower($nextStatus->label()).'.';
     }
 
     public function render(): ViewContract

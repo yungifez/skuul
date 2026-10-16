@@ -196,6 +196,11 @@ class SchoolTest extends TestCase
         $this->authorized_user(['update school'], $school);
 
         Livewire::test(EditSchoolForm::class, ['school' => $school])
+            ->set('phone', 'call me')
+            ->call('save')
+            ->assertHasErrors(['phone' => 'Use only digits, spaces, and the signs + - ( ) in the phone number.']);
+
+        Livewire::test(EditSchoolForm::class, ['school' => $school])
             ->assertSet('name', $school->name)
             ->set('name', 'Renamed school')
             ->set('phone', '')

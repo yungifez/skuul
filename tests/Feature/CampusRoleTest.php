@@ -500,7 +500,8 @@ class CampusRoleTest extends TestCase
         $record = Livewire::test(CampusRoleRecord::class, ['role' => $role])
             ->set('personId', (string) $person->id)
             ->call('give')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success', message: "{$person->name} now has Registrar.");
 
         $this->assertTrue($person->fresh()->can('read student'));
 

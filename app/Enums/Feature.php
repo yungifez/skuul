@@ -32,7 +32,7 @@ enum Feature: string
     case Wellbeing = 'wellbeing';
 
     /**
-     * Staff leave, cover, and appraisals.
+     * Staff leave, qualifications, and cover.
      */
     case StaffOperations = 'staff_operations';
 
@@ -99,7 +99,7 @@ enum Feature: string
             self::Portal => 'The area where learners and guardians sign in to read their own records.',
             self::Discipline => 'Behaviour records, incidents, and safeguarding cases.',
             self::Wellbeing => 'Health notes, counselling, and support plans.',
-            self::StaffOperations => 'Staff leave, cover for absent teachers, and appraisals.',
+            self::StaffOperations => 'Staff leave, qualifications, and cover for absent teachers.',
             self::Events => 'The school calendar and the events on it.',
             self::Ranking => 'Positions that compare one learner with another.',
             self::Imports => 'Bulk uploads and links to outside systems.',

@@ -42,7 +42,7 @@ class EditSchoolForm extends Component
     {
         Gate::authorize('update', $this->school);
 
-        $this->validate($this->schoolDetailRules(), [], $this->schoolDetailAttributes());
+        $this->validate($this->schoolDetailRules(), $this->schoolDetailMessages(), $this->schoolDetailAttributes());
 
         $schoolService->updateSchool($this->school, $this->schoolDetails());
 
