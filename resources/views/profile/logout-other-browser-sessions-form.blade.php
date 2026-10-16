@@ -48,6 +48,16 @@
             </div>
         @endif
 
+        @if (config('session.driver') === 'database')
+            <april:button type="button" variant="outline" size="sm" wire:click="confirmLogout" wire:loading.attr="disabled">
+                {{ __('Log out other browser sessions') }}
+            </april:button>
+        @else
+            <p class="text-sm text-muted-foreground">
+                {{ __('Managing other browser sessions is unavailable on this site. Contact your site operator.') }}
+            </p>
+        @endif
+
         <april:dialog dismissable x-effect="open = $wire.confirmingLogout">
             <slot:content class="sm:max-w-md">
                 <april:dialog-header>
