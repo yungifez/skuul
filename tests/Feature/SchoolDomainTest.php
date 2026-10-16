@@ -150,11 +150,20 @@ class SchoolDomainTest extends TestCase
         app(AddSchoolDomain::class)->add($organization, 'lagos.example.school');
     }
 
+    public function test_the_applications_own_address_cannot_be_claimed(): void
+    {
+        config(['app.url' => 'https://app.skuul.test']);
+
+        $this->expectExceptionMessage('app.skuul.test is the address of this application. Use an address the organization owns.');
+
+        app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'APP.skuul.test');
+    }
+
     public function test_a_proved_address_cannot_be_claimed_by_another_organization(): void
     {
         SchoolDomain::factory()->verified()->create(['host' => 'lagos.example.school']);
 
-        $this->expectExceptionMessage('[lagos.example.school] is already claimed.');
+        $this->expectExceptionMessage('lagos.example.school is already claimed.');
 
         app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'lagos.example.school');
     }
@@ -187,7 +196,7 @@ class SchoolDomainTest extends TestCase
 
         app(VerifySchoolDomain::class)->verify($first);
 
-        $this->expectExceptionMessage('Another organization proved [lagos.example.school] first.');
+        $this->expectExceptionMessage('Another organization proved lagos.example.school first.');
 
         app(VerifySchoolDomain::class)->verify($second);
     }
@@ -297,7 +306,7 @@ class SchoolDomainTest extends TestCase
             ->set('host', 'Taken.example.school')
             ->call('claim')
             ->assertHasErrors('host')
-            ->assertSee('[taken.example.school] is already claimed.');
+            ->assertSee('taken.example.school is already claimed.');
 
         $this->assertSame(0, $organization->domains()->count());
     }

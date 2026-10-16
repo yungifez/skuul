@@ -42,7 +42,11 @@ class AddSchoolDomain
         $host = SchoolDomain::tidy($host);
 
         if (!$this->looksLikeAHost($host)) {
-            throw new InvalidValueException("[$host] is not a web address this application can answer on.");
+            throw new InvalidValueException("{$host} is not a web address this application can answer on.");
+        }
+
+        if ($this->isTheApplicationsOwnHost($host)) {
+            throw new InvalidValueException("{$host} is the address of this application. Use an address the organization owns.");
         }
 
         if ($school !== null && $school->organization_id !== $organization->id) {
@@ -53,7 +57,7 @@ class AddSchoolDomain
             return DB::transaction(fn (): SchoolDomain => $this->claim($organization, $host, $school, $isPrimary, $actor));
         } catch (UniqueConstraintViolationException) {
             // Another organization claimed the same address a moment earlier.
-            throw new InvalidValueException("[$host] is already claimed.");
+            throw new InvalidValueException("{$host} is already claimed.");
         }
     }
 
@@ -73,7 +77,7 @@ class AddSchoolDomain
             ->exists();
 
         if ($isTaken) {
-            throw new InvalidValueException("[$host] is already claimed.");
+            throw new InvalidValueException("{$host} is already claimed.");
         }
 
         if ($isPrimary) {
@@ -98,6 +102,16 @@ class AddSchoolDomain
         );
 
         return $domain;
+    }
+
+    /**
+     * Check whether the address is the one this application itself answers on.
+     */
+    private function isTheApplicationsOwnHost(string $host): bool
+    {
+        $applicationHost = SchoolDomain::tidy((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+
+        return $applicationHost !== '' && $host === $applicationHost;
     }
 
     /**

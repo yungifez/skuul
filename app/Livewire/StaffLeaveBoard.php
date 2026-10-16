@@ -90,6 +90,12 @@ class StaffLeaveBoard extends Component
             'reason' => ['nullable', 'string', 'max:500'],
         ], [
             'endsOn.after_or_equal' => 'Leave cannot end before it starts.',
+        ], [
+            'staffProfileId' => 'person',
+            'leaveType' => 'kind of leave',
+            'startsOn' => 'from',
+            'endsOn' => 'to',
+            'reason' => 'why',
         ]);
 
         try {

@@ -138,12 +138,14 @@ class StaffProfileRecord extends Component
             'credentialIssuer' => ['nullable', 'string', 'max:150'],
             'credentialIssuedOn' => ['nullable', 'date'],
             'credentialExpiresOn' => ['nullable', 'date', 'after_or_equal:credentialIssuedOn'],
-        ], [], [
+        ], [
+            'credentialExpiresOn.after_or_equal' => 'A qualification cannot run out before it was issued.',
+        ], [
             'credentialType' => 'kind',
             'credentialName' => 'name',
-            'credentialIssuer' => 'issuer',
-            'credentialIssuedOn' => 'issue date',
-            'credentialExpiresOn' => 'end date',
+            'credentialIssuer' => 'issued by',
+            'credentialIssuedOn' => 'issued on',
+            'credentialExpiresOn' => 'runs out on',
         ]);
 
         $manageStaffProfile->addCredential($this->profile, [

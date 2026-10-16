@@ -95,7 +95,12 @@ class LibraryShelvingForm extends Component
             'barcode' => ['required', 'string', 'max:60'],
             'copies' => ['required', 'integer', 'min:1', 'max:50'],
             'shelfMark' => ['nullable', 'string', 'max:60'],
-        ], [], ['shelfMark' => 'shelf mark']);
+        ], [], [
+            'authors' => 'author',
+            'isbn' => 'ISBN',
+            'copies' => 'number of copies',
+            'shelfMark' => 'shelf mark',
+        ]);
 
         $title = $this->titleId === null ? null : LibraryTitle::forSchool()->find($this->titleId);
 

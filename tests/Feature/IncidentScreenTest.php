@@ -138,6 +138,13 @@ class IncidentScreenTest extends TestCase
         $incident = app(ReportIncident::class)->report('Broke a window');
 
         Livewire::test(ShowIncident::class, ['incident' => $incident])
+            ->call('addAction')
+            ->assertHasErrors([
+                'actionType' => 'Say what kind of step it is.',
+                'actionDescription' => 'Say what has to happen.',
+            ]);
+
+        Livewire::test(ShowIncident::class, ['incident' => $incident])
             ->set('actionType', 'Meeting')
             ->set('actionDescription', 'Speak to the guardian.')
             ->set('actionAssigneeId', $parent->id)

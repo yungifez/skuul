@@ -46,7 +46,7 @@ class VerifySchoolDomain
         } catch (UniqueConstraintViolationException) {
             $domain->verified_at = null;
 
-            throw new InvalidValueException("Another organization proved [$domain->host] first.");
+            throw new InvalidValueException("Another organization proved {$domain->host} first.");
         }
 
         $this->auditor->record(

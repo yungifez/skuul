@@ -61,7 +61,7 @@ class ShowIncident extends Component
         $this->validate([
             'nextStatus' => ['required', Rule::enum(IncidentStatus::class)],
             'statusReason' => ['nullable', 'string', 'max:500'],
-        ]);
+        ], [], ['statusReason' => 'why']);
 
         try {
             $reportIncident->changeStatus(
@@ -93,7 +93,15 @@ class ShowIncident extends Component
             'actionDescription' => ['required', 'string', 'max:1000'],
             'actionDueOn' => ['nullable', 'date'],
             'actionAssigneeId' => ['nullable', 'integer', Rule::in($this->schoolWorkers()->modelKeys())],
-        ], ['actionAssigneeId.in' => 'Choose somebody who works in this school.']);
+        ], [
+            'actionType.required' => 'Say what kind of step it is.',
+            'actionDescription.required' => 'Say what has to happen.',
+            'actionAssigneeId.in' => 'Choose somebody who works in this school.',
+        ], [
+            'actionType' => 'what kind',
+            'actionDescription' => 'what has to happen',
+            'actionDueOn' => 'due date',
+        ]);
 
         try {
             $reportIncident->addAction(

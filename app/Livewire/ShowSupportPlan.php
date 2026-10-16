@@ -55,7 +55,7 @@ class ShowSupportPlan extends Component
         $this->validate([
             'nextStatus' => ['required', Rule::enum(SupportPlanStatus::class)],
             'statusReason' => ['nullable', 'string', 'max:500'],
-        ]);
+        ], [], ['statusReason' => 'why']);
 
         try {
             $manageSupportPlan->changeStatus(
@@ -86,7 +86,13 @@ class ShowSupportPlan extends Component
             'actionDescription' => ['required', 'string', 'max:1000'],
             'actionDueOn' => ['nullable', 'date'],
             'actionAssigneeId' => ['nullable', 'integer', Rule::in($this->schoolWorkers()->modelKeys())],
-        ], ['actionAssigneeId.in' => 'Choose somebody who works in this school.']);
+        ], [
+            'actionDescription.required' => 'Say what has to happen.',
+            'actionAssigneeId.in' => 'Choose somebody who works in this school.',
+        ], [
+            'actionDescription' => 'what has to happen',
+            'actionDueOn' => 'due date',
+        ]);
 
         try {
             $manageSupportPlan->addAction(
@@ -126,7 +132,7 @@ class ShowSupportPlan extends Component
     {
         Gate::authorize('update', $this->plan);
 
-        $this->validate(['noteBody' => ['required', 'string', 'max:5000']]);
+        $this->validate(['noteBody' => ['required', 'string', 'max:5000']], ['noteBody.required' => 'Write the note.'], ['noteBody' => 'note']);
 
         try {
             $manageSupportPlan->addNote(plan: $this->plan, body: $this->noteBody, actor: auth()->user());

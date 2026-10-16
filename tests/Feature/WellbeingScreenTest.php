@@ -179,7 +179,9 @@ class WellbeingScreenTest extends TestCase
 
         Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
             ->call('addAction')
-            ->assertHasErrors(['actionDescription' => 'required']);
+            ->assertHasErrors(['actionDescription' => 'Say what has to happen.'])
+            ->call('addNote')
+            ->assertHasErrors(['noteBody' => 'Write the note.']);
 
         $manager = app(ManageSupportPlan::class);
         $manager->changeStatus($plan, SupportPlanStatus::Active);
@@ -448,7 +450,7 @@ class WellbeingScreenTest extends TestCase
             ->call('save')
             ->assertHasErrors('values.notes')
             ->assertSee('The health record was not saved')
-            ->assertSee('The notes must not be greater than 5000 characters.');
+            ->assertSee('Anything else is too long. Use 5000 characters or fewer.');
 
         $this->assertSame(
             'Keep the inhaler in the front office.',

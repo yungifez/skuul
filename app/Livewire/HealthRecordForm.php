@@ -73,7 +73,7 @@ class HealthRecordForm extends Component
             'values.emergency_contact_phone' => ['nullable', 'string', 'max:50'],
             'values.emergency_contact_relationship' => ['nullable', 'string', 'max:50'],
             'values.notes' => ['nullable', 'string', 'max:5000'],
-        ], [], collect(self::LABELS)->mapWithKeys(fn (string $label, string $field): array => ["values.{$field}" => str_replace('_', ' ', $field)])->all());
+        ], ['values.*.max' => ':attribute is too long. Use :max characters or fewer.'], collect(self::LABELS)->mapWithKeys(fn (string $label, string $field): array => ["values.{$field}" => $label])->all());
 
         $changed = array_filter(
             $this->values,
