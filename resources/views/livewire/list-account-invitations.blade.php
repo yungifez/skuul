@@ -58,7 +58,7 @@
 
     <april:card>
         <slot:title>{{ $this->currentStatus()->label() }} invitations</slot:title>
-        <slot:description>{{ $invitations->total() }} invitations in this state.</slot:description>
+        <slot:description>{{ $invitations->total() }} {{ str('invitation')->plural($invitations->total()) }} in this state.</slot:description>
         <slot:content class="space-y-4">
             @forelse ($rows as $row)
                 <div class="rounded-lg border p-4" wire:key="invitation-{{ $row['id'] }}">

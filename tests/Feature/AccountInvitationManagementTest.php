@@ -65,7 +65,8 @@ class AccountInvitationManagementTest extends TestCase
             ->assertSee($invitee->email)
             ->assertSee($administrator->name)
             ->assertSee($school->name)
-            ->assertSee('Pending');
+            ->assertSee('Pending')
+            ->assertSee('1 invitation in this state.');
     }
 
     public function test_the_search_leaves_out_the_invitations_that_do_not_match(): void
