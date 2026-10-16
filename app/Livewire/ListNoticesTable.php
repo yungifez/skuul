@@ -40,8 +40,8 @@ class ListNoticesTable extends DataTableComponent
     {
         return [
             Column::make('Title', 'title')->searchable()->sortable(),
-            Column::make('Start date', 'start_date_for_humans'),
-            Column::make('Stop date', 'stop_date_for_humans'),
+            Column::make('From', 'start_date_for_humans'),
+            Column::make('Until', 'stop_date_for_humans'),
         ];
     }
 

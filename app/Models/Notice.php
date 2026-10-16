@@ -167,11 +167,11 @@ class Notice extends Model
 
     public function getStartDateForHumansAttribute()
     {
-        return Carbon::parse($this->start_date)->diffForHumans();
+        return Carbon::parse($this->start_date)->format('j M Y');
     }
 
     public function getStopDateForHumansAttribute()
     {
-        return Carbon::parse($this->stop_date)->diffForHumans();
+        return Carbon::parse($this->stop_date)->format('j M Y');
     }
 }

@@ -47,6 +47,23 @@ class NoticeTest extends TestCase
             ->assertSee('No notices yet');
     }
 
+    public function test_the_notice_list_shows_the_days_a_notice_runs(): void
+    {
+        $this->authorized_user(['read notice', 'update notice']);
+        Notice::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'start_date' => '2026-10-12',
+            'stop_date' => '2026-10-16',
+        ]);
+
+        Livewire::test(ListNoticesTable::class)
+            ->assertSee('From')
+            ->assertSee('Until')
+            ->assertSee('12 Oct 2026')
+            ->assertSee('16 Oct 2026')
+            ->assertDontSee(' ago');
+    }
+
     public function test_an_ordinary_reader_cannot_open_a_draft_notice(): void
     {
         $this->authorized_user(['read notice']);
