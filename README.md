@@ -24,7 +24,7 @@ or updating a released version.
 > They do not automatically convert all V2 history. Selected JSON archives do not replace a full database backup.
 > Do not run this as a routine in-place V2 update. Test a specific migration and recovery plan first.
 > The destructive migrations cannot restore deleted data through rollback.
-> Read [OPERATIONS.md](OPERATIONS.md#breaking-upgrade-from-v2) before migrating an existing installation.
+> Read [Updating](https://yungifez.github.io/skuul.org/current/getting-started/updating#breaking-upgrade-effects) before migrating an existing installation.
 
 ## Requirements
 
@@ -94,7 +94,8 @@ vendor/bin/sail artisan queue:work --tries=3
 vendor/bin/sail artisan schedule:work
 ```
 
-See [OPERATIONS.md](OPERATIONS.md) for production setup, updates, backups,
+See [Deployment](https://yungifez.github.io/skuul.org/current/getting-started/deployment), [Updating](https://yungifez.github.io/skuul.org/current/getting-started/updating),
+and [Backups and monitoring](https://yungifez.github.io/skuul.org/current/operations) for production setup, updates, backups,
 restore checks, and monitoring.
 
 ## Development checks
@@ -129,7 +130,7 @@ Follow the project instructions in
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for test requirements, bug reports, documentation changes, and release preparation.
 Open-source publication requires passing quality checks and clear breaking-change notes.
-Each operator must complete the deployment and recovery checks in [OPERATIONS.md](OPERATIONS.md) for their installation.
+Each operator must complete the deployment and recovery checks in [Backups and monitoring](https://yungifez.github.io/skuul.org/current/operations) for their installation.
 
 ## License
 

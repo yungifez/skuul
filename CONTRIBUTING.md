@@ -91,7 +91,7 @@ Follow its screenshot plan for real browser captures. Record missing captures as
 10. Create the tag and GitHub release for the verified commit when publication is authorized.
 
 This process prepares an open-source release. It does not configure an operator's production installation.
-Each operator follows [OPERATIONS.md](OPERATIONS.md) for deployment, retention, backups, and recovery checks.
+Each operator follows [Deployment](https://yungifez.github.io/skuul.org/current/getting-started/deployment) and [Backups and monitoring](https://yungifez.github.io/skuul.org/current/operations) for deployment, retention, backups, and recovery checks.
 Do not treat `skuul:release-readiness` as evidence that every application workflow passed.
 
 Before accepting changes into the release branch, configure required status checks in GitHub branch protection or a ruleset.
