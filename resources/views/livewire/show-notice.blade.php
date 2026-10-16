@@ -1,18 +1,39 @@
 <div class="card">
     <div class="card-header">
-        <h4 class="card-title">View {{$notice->title}}</h4>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+            <april:badge variant="{{ $notice->status->value === 'published' ? 'default' : 'secondary' }}">
+                {{ $notice->status->label() }}
+            </april:badge>
+            <span>Shows {{ \Illuminate\Support\Carbon::parse($notice->start_date)->format('j M Y') }} to {{ \Illuminate\Support\Carbon::parse($notice->stop_date)->format('j M Y') }}</span>
+            @if ($audience !== null)
+                <span>For {{ $audience }}</span>
+                @if ($notice->send_email)
+                    <span>Also sent by email</span>
+                @endif
+            @endif
+        </div>
     </div>
     <div class="card-body">
-        <p class="mb-3 text-base">
-            {{$notice->content}}
-        </p>
+        <div class="rich-text max-w-none text-sm">{!! $content !!}</div>
         <div class="my-6">
-            @isset($notice->attachment)
-                <a class="bg-blue-600 py-2 px-4 text-white rounded" href="{{asset('storage/'.$notice->attachment)}}" download="{{$notice->title}}-notice">
-                    <i class="fas fa-download "></i>
-                    Download attachment
+            @if($notice->hasManagedAttachment())
+                <a class="inline-flex items-center gap-2 rounded bg-blue-600 px-4 py-2 text-white" href="{{ route('notices.attachments.download', $notice) }}">
+                    <x-lucide-download class="size-4"  />
+                    Download {{ $notice->attachment_name ?? 'attachment' }}
                 </a>
-            @endisset
+            @endif
         </div>
+        @if ($notice->status->value !== 'published' && auth()->user()?->can('update', $notice))
+            <button
+                type="button"
+                wire:click="publishNotice"
+                wire:loading.attr="disabled"
+                class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+                <span wire:loading.remove wire:target="publishNotice">Publish notice</span>
+                <span wire:loading wire:target="publishNotice">Publishing…</span>
+            </button>
+        @endif
+        <x-field-error name="notice" class="mt-3" />
     </div>
 </div>

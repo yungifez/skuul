@@ -2,479 +2,661 @@
 
 namespace App\Livewire\Layouts;
 
+use App\Enums\EnrollmentStatus;
+use App\Enums\Feature;
+use App\Enums\PortalArea;
+use App\Models\AccountInvitation;
+use App\Models\CalendarEvent;
+use App\Models\CampusMoveRequest;
+use App\Models\DataSharingRequest;
+use App\Models\Incident;
+use App\Models\Organization;
+use App\Models\School;
+use App\Models\StaffLeaveRequest;
+use App\Models\StaffProfile;
+use App\Models\StudentHealthRecord;
+use App\Models\StudentRecord;
+use App\Models\SupportPlan;
+use App\Models\User;
+use App\Services\Portal\PortalAccess;
+use App\Services\School\SchoolService;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Menu extends Component
 {
-    public $menu;
+    /**
+     * @var Collection<int, School>
+     */
+    #[Locked]
+    public Collection $schools;
 
-    public function mount()
+    /**
+     * @var list<array<string, mixed>>
+     */
+    #[Locked]
+    public array $menu = [];
+
+    /**
+     * @var list<array{key: string, label: string, group: string, url: string, keywords: string}>
+     */
+    #[Locked]
+    public array $commandItems = [];
+
+    public function mount(SchoolService $schoolService): void
     {
+        $user = auth()->user();
+        $this->schools = $schoolService->getSchoolsForUser($user);
+
+        // A person can hold organization authority without a working school,
+        // so the sidebar must render before any school is chosen.
+        $organization = current_school()?->organization;
+        $portalEnrollment = $this->portalEnrollment($user);
+        $readsOwnRecords = $this->readsOwnRecords($user);
         $this->menu = [
             [
-                'type'  => 'menu-item',
-                'icon'  => 'fas fa-tachometer-alt',
-                'text'  => 'Dashboard',
+                'type' => 'menu-item',
+                'icon' => 'gauge',
+                'text' => 'Dashboard',
                 'route' => 'dashboard',
             ],
-            ['header' => 'Manage Profile'],
-            [
-                'type'  => 'menu-item',
-                'icon'  => 'fas fa-user',
-                'text'  => 'User Profile',
-                'route' => 'profile.show',
-            ],
-            ['header' => 'Multi Schools Management', 'can' => 'header-schools'],
+            ...(!$readsOwnRecords && $portalEnrollment === null ? [] : [
+                ['header' => 'My school'],
+            ]),
+            ...(!$readsOwnRecords ? [] : [
+                [
+                    'type' => 'menu-item',
+                    'icon' => 'layout-list',
+                    'text' => 'Everything of mine',
+                    'route' => 'portal.overview',
+                ],
+                [
+                    'type' => 'menu-item',
+                    'icon' => 'bell',
+                    'text' => 'Notification settings',
+                    'route' => 'portal.notification-preferences.edit',
+                ],
+            ]),
+            ...($portalEnrollment === null ? [] : [
+                [
+                    'type' => 'menu-item',
+                    'icon' => 'calendar-days',
+                    'text' => 'School calendar',
+                    'route' => 'portal.calendar.index',
+                    'parameters' => [$portalEnrollment],
+                ],
+            ]),
+            ['header' => 'Organization'],
             [
                 'type' => 'menu-item',
+                'icon' => 'building-2',
+                'text' => 'Organizations',
+                'route' => 'organizations.index',
+                'visible' => $user->can('viewAny', Organization::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'icon' => 'school',
                 'text' => 'Schools',
-                'icon' => 'fas fa-school',
-                'can'  => 'menu-school',
-
-                'submenu' => [[
-                    'type'  => 'menu-item',
-                    'text'  => 'View Schools',
-                    'route' => 'schools.index',
-                    'can'   => 'read school',
-                ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create School',
-                        'route' => 'schools.create',
-                        'can'   => 'create school',
-                    ],
-                ],
+                'route' => 'schools.index',
+                'can' => 'read school',
             ],
-            ['header' => 'Administration', 'can' => 'header-administrate'],
+            ...($organization === null ? [] : [[
+                'type' => 'menu-item',
+                'icon' => 'calendar-range',
+                'text' => 'Calendar templates',
+                'route' => 'organizations.calendar-templates.index',
+                'parameters' => [$organization],
+                'visible' => $user->can('view', $organization),
+            ]]),
+            ['header' => 'Setup'],
             [
-                'type'  => 'menu-item',
-                'icon'  => 'fas fa-cog',
-                'text'  => 'School Settings',
+                'type' => 'menu-item',
+                'icon' => 'settings',
+                'text' => 'School settings',
                 'route' => 'schools.settings',
-                'can'   => 'manage school settings',
+                'can' => 'manage school settings',
             ],
             [
-                'type'    => 'menu-item',
-                'text'    => 'Classes',
-                'icon'    => 'fas fa-chalkboard',
-                'can'     => 'menu-class',
+                'type' => 'menu-item',
+                'icon' => 'calendar',
+                'text' => school_terms('academic_year', 'School years'),
+                'route' => 'academic-years.index',
+                'can' => 'read academic year',
+            ],
+            [
+                'type' => 'menu-item',
+                'icon' => 'presentation',
+                'text' => school_terms('class_level', 'Class'),
+                'route' => 'academic-levels.index',
+                'can' => 'read class',
+            ],
+            [
+                'type' => 'menu-item',
+                'icon' => 'landmark',
+                'text' => school_terms('section', 'Section'),
+                'route' => 'academic-cycle-sections.index',
+                'can' => 'read section',
+            ],
+            ['header' => 'People'],
+            [
+                'type' => 'menu-item',
+                'text' => 'Students',
+                'icon' => 'user',
+                'route' => 'students.index',
+                'can' => 'read student',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Admissions waitlist',
+                'icon' => 'list-ordered',
+                'route' => 'admissions.waitlist.index',
+                'can' => 'read admission waitlist',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Record sharing',
+                'icon' => 'share-2',
+                'route' => 'data-sharing-requests.index',
+                'visible' => $user->can('viewAny', DataSharingRequest::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Campus moves',
+                'icon' => 'building-2',
+                'route' => 'campus-moves.index',
+                'visible' => $user->can('viewAny', CampusMoveRequest::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Teachers',
+                'icon' => 'graduation-cap',
+                'route' => 'teachers.index',
+                'can' => 'read teacher',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Parents',
+                'icon' => 'users',
+                'route' => 'parents.index',
+                'can' => 'read parent',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Groups',
+                'icon' => 'users-round',
+                'route' => 'cohorts.index',
+                'can' => 'read cohort',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Graduation plans',
+                'icon' => 'graduation-cap',
+                'route' => 'graduation-plans.index',
+                'can' => 'read graduation plan',
+                'visible' => feature_enabled(Feature::GraduationPlans) && $user->can('read graduation plan'),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Promotions',
+                'icon' => 'circle-arrow-up',
+                'route' => 'students.promotions',
+                'can' => 'read promotion',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Graduations',
+                'icon' => 'award',
+                'route' => 'students.graduations',
+                'can' => 'view graduations',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Programmes',
+                'icon' => 'sparkles',
+                'route' => 'programs.index',
+                'can' => 'read program',
+                'visible' => feature_enabled(Feature::Programmes) && $user->can('read program'),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Administrators',
+                'icon' => 'shield-check',
+                'route' => 'admins.index',
+                'can' => 'read admin',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Account invitations',
+                'icon' => 'mail',
+                'route' => 'users.invitations.index',
+                'visible' => $user->can('viewAny', AccountInvitation::class),
+            ],
+            ['header' => 'Teaching'],
+            [
+                'type' => 'menu-item',
+                'text' => 'Subjects',
+                'icon' => 'lightbulb',
+                'route' => 'subjects.index',
+                'can' => 'read subject',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => school_terms('course', 'Course').' being taught',
+                'icon' => 'book-marked',
+                'route' => 'course-offerings.index',
+                'can' => 'read subject',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Syllabi',
+                'icon' => 'list',
+                'route' => 'syllabi.index',
+                'visible' => !$user->isParentPortalOnly() && $user->can('read syllabus'),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Timetables',
+                'icon' => 'list-checks',
+                'route' => 'timetables.index',
+                'visible' => !$user->isParentPortalOnly() && $user->can('read timetable'),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Attendance',
+                'icon' => 'clipboard-check',
+                'route' => 'attendance.register',
+                'visible' => feature_enabled(Feature::Attendance) && !$user->isParentPortalOnly() && $user->can('read attendance'),
+            ],
+            ['header' => 'Assessment'],
+            [
+                'type' => 'menu-item',
+                'text' => 'Gradebooks',
+                'icon' => 'clipboard-pen-line',
+                'route' => 'gradebooks.index',
+                'visible' => $user->can('menu-gradebook') && $user->can('read gradebook'),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Exam schedules',
+                'icon' => 'calendar-days',
+                'route' => 'exams.index',
+                'can' => 'read exam',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Rankings',
+                'icon' => 'list-ordered',
+                'route' => 'rankings.index',
+                'visible' => feature_enabled(Feature::Ranking) && $user->can('read ranking'),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Grading scales',
+                'icon' => 'graduation-cap',
+                'route' => 'grading-scales.index',
+                'can' => 'manage grading scale',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Report cards',
+                'icon' => 'file-badge',
+                'route' => 'report-cards.index',
+                'can' => 'read report',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Transcripts',
+                'icon' => 'scroll-text',
+                'route' => 'transcripts.index',
+                'can' => 'read report',
+            ],
+            ['header' => 'Operations'],
+            [
+                'type' => 'menu-item',
+                'text' => 'Reports',
+                'icon' => 'file-text',
+                'route' => 'reports.index',
+                'can' => 'read report',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Family requests',
+                'icon' => 'message-square',
+                'route' => 'portal-requests.index',
+                'can' => 'read portal request',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Calendar',
+                'icon' => 'calendar-days',
+                'route' => 'calendar-events.index',
+                'visible' => !$user->isPortalOnly()
+                    && feature_enabled(Feature::Events)
+                    && $user->can('viewAny', CalendarEvent::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Notices',
+                'icon' => 'bell',
+                'route' => 'notices.index',
+                'can' => 'read notice',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Cases',
+                'icon' => 'shield-alert',
+                'route' => 'incidents.index',
+                'visible' => feature_enabled(Feature::Discipline) && $user->can('viewAny', Incident::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Student support',
+                'icon' => 'heart-handshake',
                 'submenu' => [
                     [
-                        'type'  => 'menu-item',
-                        'text'  => 'View Classes',
-                        'route' => 'classes.index',
-                        'can'   => 'read class',
+                        'text' => 'Support plans',
+                        'icon' => 'heart-handshake',
+                        'route' => 'support-plans.index',
+                        'visible' => feature_enabled(Feature::Wellbeing) && $user->can('viewAny', SupportPlan::class),
                     ],
                     [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create Class',
-                        'route' => 'classes.create',
-                        'can'   => 'create class',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View Class Groups',
-                        'route' => 'class-groups.index',
-                        'can'   => 'read class group',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create Class Group',
-                        'route' => 'class-groups.create',
-                        'can'   => 'create class group',
+                        'text' => 'Health records',
+                        'icon' => 'heart-pulse',
+                        'route' => 'health-records.index',
+                        'visible' => feature_enabled(Feature::Wellbeing) && $user->can('viewAny', StudentHealthRecord::class),
                     ],
                 ],
             ],
             [
-                'type'    => 'menu-item',
-                'text'    => 'Sections',
-                'icon'    => 'fas fa-landmark',
-                'can'     => 'menu-section',
+                'type' => 'menu-item',
+                'text' => 'Staff',
+                'icon' => 'briefcase',
                 'submenu' => [
                     [
-                        'type'  => 'menu-item',
-                        'text'  => 'View sections',
-                        'route' => 'sections.index',
-                        'can'   => 'read section',
+                        'text' => 'Staff directory',
+                        'icon' => 'briefcase',
+                        'route' => 'staff-profiles.index',
+                        'visible' => feature_enabled(Feature::StaffOperations) && $user->can('viewAny', StaffProfile::class),
                     ],
                     [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create section',
-                        'route' => 'sections.create',
-                        'can'   => 'create section',
+                        'text' => 'Staff leave',
+                        'icon' => 'plane',
+                        'route' => 'staff-leave.index',
+                        'visible' => feature_enabled(Feature::StaffOperations) && $user->can('viewAny', StaffLeaveRequest::class),
                     ],
                 ],
             ],
             [
-                'type'    => 'menu-item',
-                'text'    => 'Students',
-                'icon'    => 'fas fa-user',
-                'can'     => 'menu-student',
+                'type' => 'menu-item',
+                'text' => 'Finance',
+                'icon' => 'dollar-sign',
                 'submenu' => [
                     [
-                        'type'  => 'menu-item',
-                        'text'  => 'View students',
-                        'route' => 'students.index',
-                        'can'   => 'read student',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create student',
-                        'route' => 'students.create',
-                        'can'   => 'create student',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Promote students',
-                        'route' => 'students.promote',
-                        'can'   => 'promote student',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Manage promotions',
-                        'route' => 'students.promotions',
-                        'can'   => 'read promotion',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Graduate students',
-                        'route' => 'students.graduate',
-                        'can'   => 'graduate student',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Manage graduations',
-                        'route' => 'students.graduations',
-                        'can'   => 'view graduations',
-                    ],
-                ],
-            ],
-            [
-                'type'    => 'menu-item',
-                'text'    => 'Teachers',
-                'icon'    => 'fas fa-user',
-                'can'     => 'menu-teacher',
-                'submenu' => [
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View teachers',
-                        'route' => 'teachers.index',
-                        'can'   => 'read teacher',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create teacher',
-                        'route' => 'teachers.create',
-                        'can'   => 'create teacher',
-                    ],
-                ],
-            ],
-            [
-                'type'    => 'menu-item',
-                'text'    => 'Parents',
-                'icon'    => 'fas fa-user',
-                'can'     => 'menu-parent',
-                'submenu' => [
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View parents',
-                        'route' => 'parents.index',
-                        'can'   => 'read parent',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create parent',
-                        'route' => 'parents.create',
-                        'can'   => 'create parent',
-                    ],
-                ],
-            ],
-            [
-                'type'    => 'menu-item',
-                'text'    => 'Admins',
-                'icon'    => 'fas fa-user',
-                'can'     => 'menu-admin',
-                'submenu' => [
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View admins',
-                        'route' => 'admins.index',
-                        'can'   => 'read admin',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create admin',
-                        'route' => 'admins.create',
-                        'can'   => 'create admin',
-                    ],
-                ],
-            ],
-            [
-                'type'    => 'menu-item',
-                'text'    => 'Academic years',
-                'icon'    => 'fas fa-calendar',
-                'can'     => 'menu-academic-year',
-                'submenu' => [
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View academic years',
-                        'route' => 'academic-years.index',
-                        'can'   => 'read academic year',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create academic year',
-                        'route' => 'academic-years.create',
-                        'can'   => 'create academic year',
-                    ],
-                ],
-            ],
-            [
-                'type'    => 'menu-item',
-                'text'    => 'Semesters',
-                'icon'    => 'fas fa-clock',
-                'can'     => 'menu-semester',
-                'submenu' => [
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View semesters',
-                        'route' => 'semesters.index',
-                        'can'   => 'read semester',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create semester',
-                        'route' => 'semesters.create',
-                        'can'   => 'create semester',
-                    ],
-                ],
-            ],
-            [
-                'type'    => 'menu-item',
-                'text'    => 'Fees',
-                'icon'    => 'fas fa-dollar',
-                'can'     => 'menu-fee',
-                'submenu' => [
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View Fee Invoices',
+                        'text' => 'Fee invoices',
+                        'icon' => 'receipt',
                         'route' => 'fee-invoices.index',
-                        'can'   => 'read fee invoice',
+                        'visible' => !$user->isPortalOnly() && $user->can('read fee invoice'),
                     ],
                     [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create Fee Invoice',
-                        'route' => 'fee-invoices.create',
-                        'can'   => 'create fee invoice',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View Fees',
-                        'route' => 'fees.index',
-                        'can'   => 'read fee',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create Fee',
-                        'route' => 'fees.create',
-                        'can'   => 'create fee',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View Fee Categories',
-                        'route' => 'fee-categories.index',
-                        'can'   => 'read fee category',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create Fee Category',
-                        'route' => 'fee-categories.create',
-                        'can'   => 'create fee category',
+                        'text' => 'Budgets',
+                        'icon' => 'wallet',
+                        'route' => 'budgets.index',
+                        'visible' => !$user->isPortalOnly() && $user->can('read budget'),
                     ],
                 ],
             ],
             [
-                'type'    => 'menu-item',
-                'text'    => 'Subjects',
-                'icon'    => 'fas fa-lightbulb',
-                'can'     => 'menu-subject',
+                'type' => 'menu-item',
+                'text' => 'Boarding',
+                'icon' => 'bed-double',
                 'submenu' => [
                     [
-                        'type'  => 'menu-item',
-                        'text'  => 'View subjects',
-                        'route' => 'subjects.index',
-                        'can'   => 'read subject',
+                        'text' => 'Houses',
+                        'icon' => 'house',
+                        'route' => 'dormitories.index',
+                        'visible' => feature_enabled(Feature::Boarding) && $user->can('read boarding'),
                     ],
                     [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create subject',
-                        'route' => 'subjects.create',
-                        'can'   => 'create subject',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Assign teacher to subjects',
-                        'route' => 'subjects.assign-teacher',
-                        'can'   => 'update subject',
+                        'text' => 'Nights away',
+                        'icon' => 'moon',
+                        'route' => 'overnight-leaves.index',
+                        'visible' => feature_enabled(Feature::Boarding) && $user->can('read boarding'),
                     ],
                 ],
             ],
-            ['header' => 'Academics', 'can' => 'header-academics'],
             [
-                'type'    => 'menu-item',
-                'text'    => 'Notices',
-                'icon'    => 'fas fa-bell',
-                'can'     => 'menu-notice',
+                'type' => 'menu-item',
+                'text' => 'Facilities',
+                'icon' => 'building-2',
+                'route' => 'facilities.index',
+                'can' => 'read facility',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Library',
+                'icon' => 'library',
                 'submenu' => [
                     [
-                        'type'  => 'menu-item',
-                        'text'  => 'View notices',
-                        'route' => 'notices.index',
-                        'can'   => 'read notice',
+                        'text' => 'Catalogue',
+                        'icon' => 'library',
+                        'route' => 'library-copies.index',
+                        'visible' => feature_enabled(Feature::Library) && $user->can('read library'),
                     ],
                     [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create notice',
-                        'route' => 'notices.create',
-                        'can'   => 'create notice',
+                        'text' => 'Lending desk',
+                        'icon' => 'book-open-check',
+                        'route' => 'library-loans.index',
+                        'visible' => feature_enabled(Feature::Library) && $user->can('read library'),
+                    ],
+                    [
+                        'text' => 'Library queue',
+                        'icon' => 'clock',
+                        'route' => 'library-reservations.index',
+                        'visible' => feature_enabled(Feature::Library) && $user->can('read library'),
                     ],
                 ],
             ],
             [
-                'type'    => 'menu-item',
-                'text'    => 'Syllabi',
-                'icon'    => 'fas fa-list-alt',
-                'can'     => 'menu-syllabus',
-                'submenu' => [
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View Syllabi',
-                        'route' => 'syllabi.index',
-                        'can'   => 'read syllabus',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create Syllabus',
-                        'route' => 'syllabi.create',
-                        'can'   => 'create syllabus',
-                    ],
-                ],
+                'type' => 'menu-item',
+                'text' => 'Imports',
+                'icon' => 'upload',
+                'route' => 'imports.index',
+                'visible' => feature_enabled(Feature::Imports) && $user->can('read import'),
             ],
             [
-                'type'    => 'menu-item',
-                'text'    => 'Timetables',
-                'icon'    => 'fas fa-tasks',
-                'can'     => 'menu-timetable',
-                'submenu' => [
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View Timetables',
-                        'route' => 'timetables.index',
-                        'can'   => 'read timetable',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create Timetable',
-                        'route' => 'timetables.create',
-                        'can'   => 'create timetable',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View custom items',
-                        'route' => 'custom-timetable-items.index',
-                        'can'   => 'read custom timetable items',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create Custom Items',
-                        'route' => 'custom-timetable-items.create',
-                        'can'   => 'create custom timetable items',
-                    ],
-                ],
+                'type' => 'menu-item',
+                'text' => 'Roles',
+                'icon' => 'shield-check',
+                'route' => 'roles.index',
+                'can' => 'read role',
             ],
+            ['header' => 'System'],
             [
-                'type'    => 'menu-item',
-                'text'    => 'Exams',
-                'icon'    => 'fas fa-book-open',
-                'can'     => 'menu-exam',
-                'submenu' => [
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View Exams',
-                        'route' => 'exams.index',
-                        'can'   => 'read exam',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create Exam',
-                        'route' => 'exams.create',
-                        'can'   => 'create exam',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Manage Exam records',
-                        'route' => 'exam-records.index',
-                        'can'   => 'update exam record',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Exam tabulation sheet',
-                        'route' => 'exams.tabulation',
-                        'can'   => 'read exam',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Semester Result Sheet',
-                        'route' => 'exams.semester-result-tabulation',
-                        'can'   => 'read exam',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Academic Year Result Sheet',
-                        'route' => 'exams.academic-year-result-tabulation',
-                        'can'   => 'read exam',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Result Checker',
-                        'route' => 'exams.result-checker',
-                        'can'   => 'check result',
-                    ],
-                ],
-            ],
-            [
-                'type'    => 'menu-item',
-                'text'    => 'Grade Systems',
-                'icon'    => 'fa fa-graduation-cap',
-                'can'     => 'menu-grade-system',
-                'submenu' => [
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'View Grading System',
-                        'route' => 'grade-systems.index',
-                        'can'   => 'read grade system',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create Grades',
-                        'route' => 'grade-systems.create',
-                        'can'   => 'create grade system',
-                    ],
-                ],
-            ],
-            [
-                'type'  => 'menu-item',
-                'text'  => 'View Logs',
+                'type' => 'menu-item',
+                'text' => 'Activity logs',
                 'route' => 'log-viewer.index',
-                'icon'  => 'fa fa-sticky-note',
-                // this menu item checks with roles for now so this prevents other non super users from viewing menu item
-                'can' => 'view logs',
+                'icon' => 'sticky-note',
+                'can' => 'viewLogViewer',
             ],
         ];
+
+        $this->menu = $this->withVisibility($this->menu);
+        $this->commandItems = $this->buildCommandPaletteItems($this->menu);
+    }
+
+    /**
+     * Rebuild the sidebar after the school turns a tool on or off.
+     */
+    #[On('school-features-changed')]
+    public function rebuild(SchoolService $schoolService): void
+    {
+        $this->mount($schoolService);
+    }
+
+    /**
+     * Work in another school the person belongs to.
+     */
+    public function switchSchool(int $schoolId, SchoolService $schoolService): void
+    {
+        Gate::authorize('setSchool', School::class);
+
+        $school = School::query()->find($schoolId);
+        abort_if($school === null, 404);
+
+        $schoolService->setSchool($school);
+
+        session()->flash('success', __('School set successfully'));
+        $this->redirectRoute('dashboard');
     }
 
     public function render()
     {
         return view('livewire.layouts.menu');
+    }
+
+    /**
+     * Build route entries from the same permission-filtered tree as the sidebar.
+     *
+     * @param  list<array<string, mixed>>  $menu
+     * @return list<array{key: string, label: string, group: string, url: string, keywords: string}>
+     */
+    private function buildCommandPaletteItems(array $menu, string $group = 'Workspace'): array
+    {
+        $items = [];
+        $group = __($group);
+        $schoolTerms = [
+            school_term('academic_year', 'School year'),
+            school_terms('academic_year', 'School years'),
+            school_term('class_level', 'Class'),
+            school_terms('class_level', 'Classes'),
+            school_term('section', 'Section'),
+            school_terms('section', 'Sections'),
+            school_term('period', 'Academic period'),
+            school_terms('period', 'Academic periods'),
+            school_term('course', 'Course offering'),
+            school_terms('course', 'Course offerings'),
+        ];
+
+        foreach ($menu as $menuItem) {
+            if (isset($menuItem['header'])) {
+                $group = __($menuItem['header']);
+
+                continue;
+            }
+
+            if (!($menuItem['visible'] ?? true)) {
+                continue;
+            }
+
+            if (isset($menuItem['submenu'])) {
+                $items = [
+                    ...$items,
+                    ...$this->buildCommandPaletteItems($menuItem['submenu'], $group),
+                ];
+
+                continue;
+            }
+
+            if (!isset($menuItem['route'], $menuItem['text'])) {
+                continue;
+            }
+
+            $label = __($menuItem['text']);
+            $routeName = (string) $menuItem['route'];
+
+            $items[] = [
+                'key' => $routeName.'-'.count($items),
+                'label' => $label,
+                'group' => $group,
+                'url' => route($routeName, $menuItem['parameters'] ?? []),
+                'keywords' => implode(' ', [
+                    $label,
+                    $group,
+                    str_replace(['.', '-', '_'], ' ', $routeName),
+                    ...$schoolTerms,
+                ]),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Check whether this person has records of their own to read.
+     *
+     * A guardian of children at two campuses, and a learner enrolled at two,
+     * both get one page that names every campus. Staff hold no enrollment, so
+     * they never see it.
+     */
+    private function readsOwnRecords(User $user): bool
+    {
+        $access = app(PortalAccess::class);
+
+        foreach ($access->enrollmentsFor($user) as $enrollment) {
+            if ($access->isOpen($enrollment->school_id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Prefer current enrollments when choosing the initial family portal link.
+     * Staff without an enrollment or guardian link receive no family links.
+     */
+    private function portalEnrollment(User $user): ?StudentRecord
+    {
+        $access = app(PortalAccess::class);
+        $enrollments = $access->enrollmentsFor($user);
+
+        /** @var StudentRecord|null $enrollment */
+        $enrollment = $enrollments->first(fn (StudentRecord $enrollment): bool => in_array($enrollment->status, EnrollmentStatus::enrolled(), true))
+            ?? $enrollments->last();
+
+        if ($enrollment === null) {
+            return null;
+        }
+
+        // A family holds no working school, so both gates read the school the
+        // child attends.
+        $isOpen = $access->areaIsOpen(PortalArea::Calendar, $enrollment->school_id)
+            && features()->enabled(Feature::Events, $enrollment->school_id);
+
+        return $isOpen ? $enrollment : null;
+    }
+
+    /**
+     * Mark each item according to its own permission and its visible children.
+     *
+     * @param  list<array<string, mixed>>  $menu
+     * @return list<array<string, mixed>>
+     */
+    private function withVisibility(array $menu): array
+    {
+        return array_map(function (array $menuItem): array {
+            if (isset($menuItem['header'])) {
+                return $menuItem;
+            }
+
+            if (isset($menuItem['submenu'])) {
+                $menuItem['submenu'] = $this->withVisibility($menuItem['submenu']);
+            }
+
+            $hasVisibleSubmenu = !isset($menuItem['submenu'])
+                || collect($menuItem['submenu'])->contains(
+                    fn (array $submenu): bool => $submenu['visible'] ?? true,
+                );
+
+            $menuItem['visible'] = ($menuItem['visible'] ?? true)
+                && (!isset($menuItem['can']) || auth()->user()->can($menuItem['can']))
+                && $hasVisibleSubmenu;
+
+            return $menuItem;
+        }, $menu);
     }
 }

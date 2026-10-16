@@ -1,27 +1,46 @@
-<div class="card">
-   <div class="card-body">
-      <div class=" profile-image-wrapper" >
-         <img src="{{asset($user->profile_photo_url)}}" alt="user photo"  height="200px" class="m-auto rounded-full profile-image" width="200px" style="width: 175px;height: 175px;"/>  
-      </div>
-      <h2 class="text-center text-3xl m-4">{{$user->name}}</h2>
-      <div class="w-full md:w-8/12 m-auto">
-         <h4 class="text-left text-xl my-2">Personal information</h4>
-         <x-show-table :body="[
-               ['First Name' , $user->first_name],
-               ['Last Name' , $user->last_name],
-               ['Other Name' , $user->other_names],
-               ['Email' , $user->email],
-               ['Gender' , $user->gender],
-               ['Birthday' , $user->birthday],
-               ['nationality' , $user->nationality],
-               ['state' , $user->state],
-               ['City' , $user->city],
-               ['Address' , $user->address],
-               ['Religion' , $user->religion],
-               ['Blood Group' , $user->blood_group],
-               ['Phone' , $user->phone],
+<div class="flex flex-col gap-10">
+<section aria-labelledby="profile-heading" class="flex flex-col gap-6">
+    <div class="flex items-center gap-4">
+        <img src="{{ $user->profile_photo_url }}" alt="" class="size-16 shrink-0 rounded-full border object-cover" />
+        <div class="min-w-0">
+            <h2 id="profile-heading" class="truncate text-xl font-semibold tracking-tight">{{ $user->name }}</h2>
+            <p class="flex flex-wrap gap-x-2 text-sm text-muted-foreground">
+                @foreach ($user->roles as $role)
+                    <span>{{ str($role->name)->headline() }}</span>
+                @endforeach
+                @if ($user->can(\App\Enums\PlatformPermission::ManagePlatform))
+                    <span>Platform administrator</span>
+                @endif
+            </p>
+        </div>
+    </div>
 
-         ]"/>
-      </div>
-   </div>
+    @php
+        $showsContactDetails = auth()->user()->can('viewContactDetails', $user);
+    @endphp
+
+    <dl class="grid grid-cols-1 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach (array_filter([
+            'Email address' => $showsContactDetails ? $user->email : false,
+            'Phone number' => $showsContactDetails ? $user->phone : false,
+            'Gender' => $user->gender,
+            'Date of birth' => $user->birthday === null ? null : \Illuminate\Support\Carbon::parse($user->birthday)->format('j M Y'),
+            'Nationality' => $user->nationality,
+            'Address' => $showsContactDetails ? collect([$user->address, $user->address_line_2, $user->city, $user->state, $user->postal_code, $user->country])->filter()->implode(', ') : false,
+        ], fn ($value): bool => $value !== false) as $label => $value)
+            <div class="min-w-0">
+                <dt class="text-sm text-muted-foreground">{{ $label }}</dt>
+                <dd @class(['break-words', 'text-muted-foreground' => blank($value)])>{{ filled($value) ? $value : '—' }}</dd>
+            </div>
+        @endforeach
+    </dl>
+
+    @unless ($showsContactDetails)
+        <p class="text-sm text-muted-foreground">This learner now attends another campus. That campus holds their contact details.</p>
+    @endunless
+</section>
+
+@can('manageAccountAccess', $user)
+    <livewire:manage-account-password :user="$user" />
+@endcan
 </div>

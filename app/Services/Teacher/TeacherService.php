@@ -3,10 +3,13 @@
 namespace App\Services\Teacher;
 
 use App\Enums\Role;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Print\PrintService;
 use App\Services\User\UserService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class TeacherService
 {
@@ -33,21 +36,36 @@ class TeacherService
     /**
      * Create a new teacher.
      *
-     * @param Collection|array $record
-     *
-     * @return void
+     * @param  array<string, mixed>  $record
      */
-    public function createTeacher($record)
+    public function createTeacher(array $record): User
     {
-        $teacher = $this->user->createUser($record);
-        $teacher->assignRole(Role::Teacher);
+        $this->user->failIfAlreadyHolds($record['email'], Role::Teacher);
+
+        $learner = StudentRecord::query()
+            ->whereRelation('user', 'email', $record['email'])
+            ->enrolled()
+            ->with('user:id,name')
+            ->first();
+
+        if ($learner !== null) {
+            throw ValidationException::withMessages([
+                'email' => "{$learner->user?->name} is a learner. A learner cannot be made staff.",
+            ]);
+        }
+
+        return DB::transaction(function () use ($record): User {
+            $teacher = $this->user->createUser($record);
+            $teacher->assignRole(Role::Teacher);
+
+            return $teacher;
+        });
     }
 
     /**
      * Update a teacher.
      *
-     * @param array|object|Collection $records
-     *
+     * @param  array|object|Collection  $records
      * @return void
      */
     public function updateTeacher(User $teacher, $records)
@@ -74,6 +92,6 @@ class TeacherService
      */
     public function printProfile(string $name, string $view, array $data)
     {
-        return PrintService::createPdfFromView($view, $data);
+        return PrintService::page($view, $data);
     }
 }

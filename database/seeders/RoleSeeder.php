@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Role as RoleName;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -14,6 +15,14 @@ class RoleSeeder extends Seeder
      */
     public function run()
     {
+        Role::firstOrCreate([
+            'name' => RoleName::PlatformAdmin,
+            'school_id' => null,
+        ]);
+        Role::firstOrCreate([
+            'name' => RoleName::OrganizationAdmin,
+            'school_id' => null,
+        ]);
         Role::firstOrCreate([
             'name' => 'admin',
         ]);

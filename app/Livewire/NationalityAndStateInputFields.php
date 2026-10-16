@@ -7,73 +7,91 @@ use Nnjeim\World\World;
 
 class NationalityAndStateInputFields extends Component
 {
-    public $nationalities;
+    public $country;
 
-    public $nationality;
+    public $countries;
 
     public $states;
 
     public $state;
 
+    public $nationality;
+
+    /**
+     * Whether this component draws the nationality field.
+     *
+     * A screen that already has its own nationality field passes false. Two
+     * fields with the same id and name confuse a reader, and the second one
+     * is not bound to anything.
+     */
+    public bool $showNationality = true;
+
     protected $rules = [
-        'nationality' => 'string',
-        'state'       => 'string',
+        'country' => 'nullable|string',
+        'state' => 'nullable|string',
     ];
 
     public function mount()
     {
         // @phpstan-ignore-next-line
-        $this->nationalities = World::countries()->data->pluck('name');
+        $this->countries = World::countries()->data->pluck('name');
 
-        // set nationality to null if not found
-        if ($this->nationality != null && !in_array($this->nationality, $this->nationalities->all())) {
-            $this->nationality = null;
+        if ($this->country !== null && !in_array($this->country, $this->countries->all())) {
+            $this->country = null;
         }
     }
 
-    public function updatedNationality()
+    public function updatedCountry(): void
     {
-        // $this->states = collect(World::where('name.common' , $this->nationality)->first()->hydrateStates()->states->pluck('name'));
+        if (blank($this->country)) {
+            $this->states = collect();
+            $this->state = null;
+            $this->dispatch('country-updated', country: null);
+            $this->dispatch('state-updated', state: null);
+
+            return;
+        }
+
         $this->states = collect(World::countries([
-            'fields'  => 'states',
+            'fields' => 'states',
             'filters' => [
-                'name' => $this->nationality,
+                'name' => $this->country,
             ],
         ])->data->pluck('states')->first());
-        if ($this->states->isEmpty()) {
-            $this->states = collect([['name' => $this->nationality]]);
-        }
-        $this->state = $this->states[0]['name'];
+        $this->state = null;
 
-        $this->dispatch('nationality-updated', ['nationality' => $this->nationality]);
-        $this->dispatch('state-updated', ['state' => $this->state]);
+        $this->dispatch('country-updated', country: $this->country);
+        $this->dispatch('state-updated', state: $this->state);
     }
 
-    public function loadInitialStates()
+    public function loadInitialStates(): void
     {
-        if ($this->nationality == null) {
-            $this->nationality = $this->nationalities->first();
+        if (blank($this->country)) {
+            $this->states = collect();
+            $this->state = null;
+
+            $this->dispatch('country-updated', country: null);
+            $this->dispatch('state-updated', state: null);
+
+            return;
         }
         $this->states = collect(World::countries([
-            'fields'  => 'states',
+            'fields' => 'states',
             'filters' => [
-                'name' => $this->nationality,
+                'name' => $this->country,
             ],
         ])->data->pluck('states')->first());
-        if ($this->states->isEmpty()) {
-            $this->states = collect([['name' => $this->nationality]]);
-        }
-        if ($this->state == null || in_array($this->state, $this->states->all())) {
-            $this->state = $this->states[0]['name'];
+        if ($this->state !== null && !$this->states->pluck('name')->contains($this->state)) {
+            $this->state = null;
         }
 
-        $this->dispatch('nationality-updated', ['nationality' => $this->nationality]);
-        $this->dispatch('state-updated', ['state' => $this->state]);
+        $this->dispatch('country-updated', country: $this->country);
+        $this->dispatch('state-updated', state: $this->state);
     }
 
     public function updatedState()
     {
-        $this->dispatch('state-updated', ['state' => $this->state]);
+        $this->dispatch('state-updated', state: $this->state);
     }
 
     public function render()

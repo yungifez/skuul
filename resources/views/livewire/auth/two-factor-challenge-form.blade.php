@@ -8,15 +8,18 @@
         @csrf
 
         <div x-show="! recovery">
-            <x-auth.field name="code" id="code" label="Authentication code" inputmode="numeric" autocomplete="one-time-code" autofocus x-ref="authenticationCode" />
+            <april:input-group name="code" id="code" label="Authentication code" inputmode="numeric" autocomplete="one-time-code" autofocus x-ref="authenticationCode" />
         </div>
 
         <div x-show="recovery" x-cloak>
-            <x-auth.field name="recovery_code" id="recovery-code" label="Recovery code" autocomplete="one-time-code" x-ref="recoveryCode" />
+            <april:input-group name="recovery_code" id="recovery-code" label="Recovery code" autocomplete="one-time-code" x-ref="recoveryCode" />
         </div>
 
         <div class="flex flex-col gap-3">
-            <x-auth.submit label="Log in" class="w-full" />
+            <april:button type="submit" class="w-full justify-center" x-bind:disabled="submitting" x-bind:aria-busy="submitting">
+                <span x-show="! submitting">Log in</span>
+                <span x-show="submitting" x-cloak>Working...</span>
+            </april:button>
 
             <april:button
                 type="button"

@@ -18,10 +18,9 @@ class SubjectFactory extends Factory
     public function definition()
     {
         return [
-            'name'        => $this->faker->name,
-            'short_name'  => $this->faker->lexify('???'),
-            'my_class_id' => 1,
-            'school_id'   => 1,
+            'name' => $this->faker->name,
+            'short_name' => $this->faker->lexify('???'),
+            'school_id' => 1,
         ];
     }
 }

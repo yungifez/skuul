@@ -6,4 +6,50 @@ paths:
 # Models
 
 ## Scope school-owned models with inSchool()
-Every model with a `school_id` column uses the `App\Traits\InSchool` trait. Query them with `Model::inSchool()`, never `where('school_id', current_school_id())`. The scope is the one place that turns "the school I am working in" into a query condition, so a missed local where clause cannot leak another school's records. Datatable views pass it as a filter: `['name' => 'inSchool']`. Models owned through a relation (Fee, Section, Exam, ...) stay scoped through their parent.
+Every model with a `school_id` column uses the `App\Traits\InSchool` trait. Query them with `Model::inSchool()`, never `where('school_id', current_school_id())`. The scope is the one place that turns "the school I am working in" into a query condition, so a missed local where clause cannot leak another school's records. Datatable views pass it as a filter: `['name' => 'inSchool']`. Models owned through a relation (Fee, Section, Exam, ...) stay scoped through their parent. The trait also fills `school_id` on create from the working school, so a write cannot forget it; code that names a school keeps it. `tests/Feature/SchoolScopeTest.php` fails when a new school-owned model misses the trait.
+
+## Enrollment state lives in one place
+`student_records` is the student enrollment. Its state is the `status` column,
+cast to `App\Enums\EnrollmentStatus`; the old `is_graduated` boolean and its
+global scope are gone. Change a state only through
+`App\Actions\Enrollment\ChangeEnrollmentStatus`, which checks the transition,
+skips a repeated request, and writes an `enrollment_status_changes` row with
+the actor, reason, and effective date. That history is append-only: the model
+refuses updates and deletes.
+
+Listings of people who attend now must say so, with `User::activeStudents()`
+or the `activeStudents` datatable filter. Nothing hides graduated students
+automatically any more.
+
+## One person can hold several enrollments
+`student_records.school_id` names the school of the enrollment, so a person
+can attend two schools at once. `User::studentRecords()` returns all of them.
+`User::studentRecord()` returns one: the primary enrollment of the school
+being worked in. Never use it to prove a person has only one enrollment.
+
+## Placement is a history, not a field
+`student_records.my_class_id` and `section_id` are pointers to the newest
+placement. The history lives in `enrollment_placements`, which is append-only.
+Change a placement only through
+`App\Actions\Enrollment\ChangeEnrollmentPlacement`; it checks the class, the
+section, the school, and the period, then writes the next record. Move a
+student between schools with `App\Actions\Enrollment\TransferEnrollment`.
+
+## Organization administration never grants campus data access
+Organizations own schools/campuses. Keep organization_memberships separate from school_memberships and Spatie's school_id team scope. An organization administrator may manage organization/campus setup, but operational records still require an active school membership and school-scoped permission.
+
+## Organization authority is a permission set, not a role name
+`organization_memberships.permissions` is a JSON list of
+`App\Enums\OrganizationPermission` values, or null for full authority. A member
+holds a permission only when the global `organization-admin` Spatie role
+carries it AND the active membership in that one organization carries it, so
+delegation can only narrow, never widen. Ask
+`App\Services\Authorization\OrganizationPermissionScope::allows($user, $organization, $permission)`;
+never read the JSON column directly.
+
+Change scope through the actions:
+`GrantOrganizationMembership`, `RevokeOrganizationMembership`, and
+`SetOrganizationMemberPermissions`. Revoking keeps school memberships, keeps
+the row for history, and keeps the global role while another organization
+still needs it. An organization always keeps one member who can manage
+members: the last one cannot be revoked or delegated away.

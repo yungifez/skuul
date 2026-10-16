@@ -2,76 +2,275 @@
 
 namespace App\Models;
 
+use App\Enums\EnrollmentStatus;
+use App\Traits\InSchool;
 use Carbon\Carbon;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * One student enrollment in a school.
+ *
+ * @property int $id
+ * @property int|null $user_id
+ * @property int|null $school_id
+ * @property bool $is_primary
+ * @property EnrollmentStatus $status
+ * @property string|null $admission_number
+ * @property Carbon|null $admission_date
+ * @property int|null $academic_cycle_section_id
+ */
 class StudentRecord extends Model
 {
     use HasFactory;
+    use InSchool;
 
-    protected $fillable = ['admission_number', 'admission_date', 'my_class_id', 'section_id', 'user_id'];
+    protected static function booted(): void
+    {
+        static::saving(function (StudentRecord $enrollment): void {
+            if (!$enrollment->is_primary || $enrollment->user_id === null) {
+                return;
+            }
+
+            $query = static::query()->where('user_id', $enrollment->user_id);
+
+            if ($enrollment->exists) {
+                $query->whereKeyNot($enrollment->getKey());
+            }
+
+            $query->update(['is_primary' => false]);
+        });
+    }
+
+    protected $fillable = [
+        'admission_number',
+        'admission_date',
+        'academic_cycle_section_id',
+        'user_id',
+        'school_id',
+        'status',
+        'is_primary',
+        'transferred_from_id',
+    ];
 
     /**
-     * The attributes that should be cast.
+     * The default values for a new enrollment.
      *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'status' => EnrollmentStatus::Active->value,
+        'is_primary' => true,
+    ];
+
+    /**
      * @var array<string, string>
      */
     protected $casts = [
         'admission_date' => 'datetime:Y-m-d',
+        'status' => EnrollmentStatus::class,
+        'is_primary' => 'boolean',
     ];
 
     /**
-     * The "booted" method of the model.
+     * Limit the query to learners who attend the campus or were taught there.
      *
-     * @return void
-     */
-    protected static function booted()
-    {
-        // gets only active users
-        static::addGlobalScope('notGraduated', function (Builder $builder) {
-            $builder->where('is_graduated', 0);
-        });
-    }
-
-    // accessor for admission_date
-
-    public function getAdmissionDateAttribute($value)
-    {
-        return Carbon::parse($value)->format('Y-m-d');
-    }
-
-    /**
-     * Get the MyClass that owns the Section.
+     * A learner who moved on keeps the results the old campus published, so
+     * that campus can still issue the report card for the term they studied.
      *
-     * @return BelongsTo
+     * @param  Builder<StudentRecord>  $query
+     * @return Builder<StudentRecord>
      */
-    public function myClass()
+    public function scopeStudiedInSchool(Builder $query, ?int $schoolId = null): Builder
     {
-        return $this->belongsTo(MyClass::class);
+        $schoolId ??= current_school_id();
+
+        return $query->where(fn (Builder $studied) => $studied
+            ->where($this->qualifyColumn('school_id'), $schoolId)
+            ->orWhereIn($this->qualifyColumn('id'), ResultSnapshot::query()->inSchool($schoolId)->select('student_record_id')));
     }
 
     /**
-     * Get the section that owns the StudentRecord.
+     * Limit the query to enrollments the student still attends.
      *
-     * @return BelongsTo
+     * @param  Builder  $query
      */
-    public function section()
+    public function scopeAttending($query): Builder
     {
-        return $this->belongsTo(Section::class);
+        return $query->where('status', EnrollmentStatus::Active);
     }
 
     /**
-     * Get the user that owns the StudentRecord.
+     * Limit the query to enrollments that are still open.
      *
-     * @return BelongsTo
+     * A suspended learner is kept out of class for a while, but still has
+     * marks to finish and a family the school must reach.
+     *
+     * @param  Builder<StudentRecord>  $query
+     * @return Builder<StudentRecord>
      */
-    public function user()
+    public function scopeEnrolled(Builder $query): Builder
     {
-        return $this->belongsTo(User::class);
+        return $query->whereIn('status', EnrollmentStatus::enrolled());
+    }
+
+    /**
+     * Limit the query to enrollments in one state.
+     *
+     * @param  Builder  $query
+     */
+    public function scopeWithStatus($query, EnrollmentStatus $status): Builder
+    {
+        return $query->where('status', $status);
+    }
+
+    /**
+     * Limit the query to the enrollment each student leads with.
+     *
+     * @param  Builder  $query
+     */
+    public function scopePrimary($query): Builder
+    {
+        return $query->where('is_primary', true);
+    }
+
+    /**
+     * Check if the student finished the program.
+     */
+    public function isGraduated(): bool
+    {
+        return $this->status === EnrollmentStatus::Graduated;
+    }
+
+    /**
+     * Keep former-campus accounts accessible when that campus retains billing or ledger records.
+     */
+    public function hasAccountInSchool(): bool
+    {
+        if ($this->school_id === current_school_id()) {
+            return true;
+        }
+
+        return FeeInvoice::inSchool()->where('student_record_id', $this->id)->exists()
+            || StudentPayment::inSchool()->where('student_record_id', $this->id)->exists()
+            || LedgerLine::query()
+                ->where('student_record_id', $this->id)
+                ->whereIn('ledger_account_id', LedgerAccount::inSchool()->select('id'))
+                ->exists();
+    }
+
+    /**
+     * Get the exact cycle section the student is currently placed in.
+     *
+     * @return BelongsTo<AcademicCycleSection, $this>
+     */
+    public function academicCycleSection(): BelongsTo
+    {
+        return $this->belongsTo(AcademicCycleSection::class);
+    }
+
+    /**
+     * Get the person this enrollment belongs to.
+     *
+     * A record of a past learner keeps naming them after the school removes
+     * them, so registers, rolls and report cards can still be read.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class)->withTrashed();
+    }
+
+    /**
+     * Get every recorded state change of this enrollment.
+     */
+    public function statusChanges(): HasMany
+    {
+        return $this->hasMany(EnrollmentStatusChange::class)->orderBy('effective_on')->orderBy('id');
+    }
+
+    /**
+     * Get every class and section this enrollment held, oldest first.
+     *
+     * @return HasMany<EnrollmentPlacement, $this>
+     */
+    public function placements(): HasMany
+    {
+        return $this->hasMany(EnrollmentPlacement::class)->orderBy('effective_on')->orderBy('id');
+    }
+
+    /**
+     * Get the placement the student holds now.
+     *
+     * @return HasOne<EnrollmentPlacement, $this>
+     */
+    public function currentPlacement(): HasOne
+    {
+        return $this->hasOne(EnrollmentPlacement::class)->ofMany(['effective_on' => 'max', 'id' => 'max']);
+    }
+
+    /**
+     * Resolve dated sections from placement history. Fall back to the pointer without history.
+     * Use the first known placement for earlier dates.
+     */
+    public function sectionOn(DateTimeInterface $day): ?AcademicCycleSection
+    {
+        $sectionId = $this->placements()
+            ->reorder('effective_on', 'desc')
+            ->orderByDesc('id')
+            ->whereDate('effective_on', '<=', $day->format('Y-m-d'))
+            ->value('academic_cycle_section_id')
+            ?? $this->placements()->value('academic_cycle_section_id')
+            ?? $this->academic_cycle_section_id;
+
+        return $sectionId === null ? null : AcademicCycleSection::query()->find($sectionId);
+    }
+
+    /**
+     * Get the health facts the school keeps for this child.
+     *
+     * @return HasOne<StudentHealthRecord, $this>
+     */
+    public function healthRecord(): HasOne
+    {
+        return $this->hasOne(StudentHealthRecord::class);
+    }
+
+    /**
+     * Get the plans of help written for this child.
+     *
+     * @return HasMany<SupportPlan, $this>
+     */
+    public function supportPlans(): HasMany
+    {
+        return $this->hasMany(SupportPlan::class)->latest('id');
+    }
+
+    /**
+     * Get the school this enrollment belongs to.
+     *
+     * @return BelongsTo<School, $this>
+     */
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    /**
+     * Get the enrollment this one continues after a transfer.
+     *
+     * @return BelongsTo<StudentRecord, $this>
+     */
+    public function transferredFrom(): BelongsTo
+    {
+        return $this->belongsTo(StudentRecord::class, 'transferred_from_id');
     }
 
     /**
@@ -79,7 +278,10 @@ class StudentRecord extends Model
      */
     public function academicYears(): BelongsToMany
     {
-        return $this->belongsToMany(AcademicYear::class)->as('studentAcademicYearBasedRecords')->using(AcademicYearStudentRecord::class)->withPivot('my_class_id', 'section_id');
+        return $this->belongsToMany(AcademicYear::class)
+            ->as('studentAcademicYearBasedRecords')
+            ->using(AcademicYearStudentRecord::class)
+            ->withPivot('academic_cycle_section_id');
     }
 
     /**
@@ -89,6 +291,6 @@ class StudentRecord extends Model
      */
     public function currentAcademicYear()
     {
-        return $this->academicYears()->wherePivot('academic_year_id', current_school()->academicYear->id);
+        return $this->academicYears()->wherePivot('academic_year_id', current_academic_year()->id);
     }
 }

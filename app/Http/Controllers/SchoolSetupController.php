@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Enums\SchoolSetupStep;
+use App\Models\AcademicYear;
+use App\Models\School;
+use App\Services\School\SchoolSetupProgress;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+
+class SchoolSetupController extends Controller
+{
+    public function __construct(private SchoolSetupProgress $progress) {}
+
+    public function show(School $school, ?string $step = null): View|RedirectResponse
+    {
+        $this->authorize('update', $school);
+        school_context()->set($school, remember: false);
+        $progress = $this->progress->for($school);
+        $requested = $step === null ? $progress['current'] : SchoolSetupStep::tryFrom($step);
+
+        if (!$requested instanceof SchoolSetupStep) {
+            abort(404);
+        }
+
+        $current = $progress['current'];
+        $requestedComplete = data_get(
+            collect($progress['steps'])->firstWhere('value', $requested->value),
+            'complete',
+            false,
+        );
+
+        if ($requested->order() > $current->order() && !$requestedComplete) {
+            $requested = $current;
+        }
+
+        $academicYear = null;
+        $previousAcademicYear = null;
+
+        if (in_array($requested, [SchoolSetupStep::Classes, SchoolSetupStep::AcademicYear], true)) {
+            $academicYear = current_academic_year()
+                ?? AcademicYear::inSchool($school->id)
+                    ->orderByDesc('start_year')
+                    ->orderByDesc('id')
+                    ->first();
+
+            if ($requested === SchoolSetupStep::Classes) {
+                $previousAcademicYear = $academicYear === null
+                    ? null
+                    : AcademicYear::inSchool($school->id)
+                        ->where('start_year', '<', $academicYear->start_year)
+                        ->orderByDesc('start_year')
+                        ->orderByDesc('id')
+                        ->first();
+            }
+        }
+
+        if ($requested === SchoolSetupStep::AcademicYear && $academicYear !== null) {
+            return to_route('academic-years.setup', [$academicYear]);
+        }
+
+        return view('pages.school.setup', [
+            'school' => $school,
+            'currentStep' => $requested,
+            'progress' => $progress,
+            'academicYear' => $academicYear,
+            'previousAcademicYear' => $previousAcademicYear,
+        ]);
+    }
+}

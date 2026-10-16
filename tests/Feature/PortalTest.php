@@ -1,0 +1,936 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
+use App\Actions\Enrollment\TransferEnrollment;
+use App\Actions\Finance\ChargeStudent;
+use App\Actions\Library\IssueLoan;
+use App\Actions\Library\ReserveTitle;
+use App\Actions\Portal\SubmitPortalRequest;
+use App\Enums\AcademicStructureStatus;
+use App\Enums\AccountStatus;
+use App\Enums\AttendanceStatus;
+use App\Enums\EnrollmentStatus;
+use App\Enums\Feature;
+use App\Enums\NoticeRecipientState;
+use App\Enums\NoticeStatus;
+use App\Enums\PortalArea;
+use App\Enums\PortalRequestStatus;
+use App\Enums\PortalRequestType;
+use App\Enums\ResultApprovalStatus;
+use App\Enums\Role;
+use App\Enums\TimetableStatus;
+use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicPeriod;
+use App\Models\AcademicYear;
+use App\Models\AttendanceRecord;
+use App\Models\BoardingPlace;
+use App\Models\CourseOffering;
+use App\Models\Dormitory;
+use App\Models\DormitoryBed;
+use App\Models\DormitoryRoom;
+use App\Models\LibraryCopy;
+use App\Models\LibraryLoan;
+use App\Models\LibraryTitle;
+use App\Models\Notice;
+use App\Models\NoticeRecipient;
+use App\Models\Organization;
+use App\Models\PortalRequest;
+use App\Models\ReportCardSnapshot;
+use App\Models\ResultSnapshot;
+use App\Models\School;
+use App\Models\StudentRecord;
+use App\Models\Subject;
+use App\Models\Timetable;
+use App\Models\TranscriptSnapshot;
+use App\Models\User;
+use App\Services\Portal\PortalAccess;
+use App\Services\Portal\PortalSummary;
+use App\Services\School\SchoolContext;
+use App\Traits\FeatureTestTrait;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+/**
+ * The portal reads what the school published, for the student and for the
+ * guardians of that student, and for nobody else.
+ */
+class PortalTest extends TestCase
+{
+    use FeatureTestTrait;
+    use RefreshDatabase;
+
+    /** @var array<int, CourseOffering> */
+    private array $courseOfferings = [];
+
+    public function test_a_student_reads_their_own_enrollment(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+
+        $this->assertTrue(app(PortalAccess::class)->canRead($enrollment->user, $enrollment));
+    }
+
+    public function test_a_graduate_can_open_the_portal_and_download_their_official_documents(): void
+    {
+        $enrollment = $this->graduatedEnrollment();
+        $reportCard = ReportCardSnapshot::factory()->create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
+        ]);
+
+        $this->get(route('portal.overview'))->assertOk()->assertSee('Graduated');
+        $this->get(route('portal.notification-preferences.edit'))->assertOk();
+        $this->get(route('portal.documents.index', $enrollment))
+            ->assertOk()->assertSee(route('portal.documents.report-cards.download', [$enrollment, $reportCard]));
+        $this->get(route('portal.documents.report-cards.download', [$enrollment, $reportCard]))
+            ->assertOk()->assertDownload("report-card-{$reportCard->id}.html");
+        $this->get(route('portal.invoices.index', $enrollment))->assertOk();
+    }
+
+    public function test_a_graduate_keeps_portal_access_without_a_staff_campus_membership(): void
+    {
+        $enrollment = $this->graduatedEnrollment();
+        $enrollment->user->schoolMemberships()->delete();
+
+        $this->get(route('portal.overview'))->assertOk();
+        $this->get(route('portal.documents.index', $enrollment))->assertOk();
+    }
+
+    public function test_a_graduate_cannot_read_another_familys_documents(): void
+    {
+        $other = $this->enrollment();
+        $graduate = $this->graduatedEnrollment();
+        $reportCard = ReportCardSnapshot::factory()->create([
+            'school_id' => $other->school_id,
+            'student_record_id' => $other->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
+        ]);
+
+        $this->get(route('portal.documents.index', $other))->assertForbidden();
+        $this->get(route('portal.documents.report-cards.download', [$other, $reportCard]))->assertForbidden();
+        $this->get(route('portal.documents.report-cards.download', [$graduate, $reportCard]))->assertNotFound();
+    }
+
+    public function test_a_graduate_is_still_blocked_from_staff_routes(): void
+    {
+        $this->graduatedEnrollment();
+
+        $this->get(route('students.index'))->assertRedirect(route('dashboard'));
+    }
+
+    public function test_a_graduates_suspended_account_cannot_use_the_portal(): void
+    {
+        $enrollment = $this->graduatedEnrollment();
+        $enrollment->user->forceFill(['account_status' => AccountStatus::Suspended])->save();
+
+        $this->get(route('portal.documents.index', $enrollment))->assertForbidden();
+        $this->assertGuest();
+    }
+
+    public function test_a_graduate_cannot_open_a_closed_portal_or_documents_area(): void
+    {
+        $enrollment = $this->graduatedEnrollment();
+        features()->disable(Feature::Portal);
+
+        $this->get(route('portal.documents.index', $enrollment))->assertForbidden();
+
+        features()->enable(Feature::Portal, config: [PortalArea::Documents->value => false]);
+
+        $this->get(route('portal.documents.index', $enrollment))->assertNotFound();
+    }
+
+    public function test_a_graduate_can_download_only_notice_attachments_addressed_to_them(): void
+    {
+        Storage::fake('local');
+        $enrollment = $this->graduatedEnrollment();
+        $path = 'notice-attachments/'.$enrollment->school_id.'/graduate-guide.pdf';
+        Storage::disk('local')->put($path, 'Graduate guide');
+        $notice = Notice::create([
+            'school_id' => $enrollment->school_id,
+            'title' => 'Graduate guide',
+            'content' => 'Keep your official records.',
+            'start_date' => now()->toDateString(),
+            'stop_date' => now()->addWeek()->toDateString(),
+            'status' => NoticeStatus::Published,
+            'active' => true,
+            'attachment' => $path,
+            'attachment_disk' => 'local',
+            'attachment_name' => 'graduate-guide.pdf',
+            'attachment_mime_type' => 'application/pdf',
+            'attachment_size' => Storage::disk('local')->size($path),
+        ]);
+
+        $this->get(route('notices.attachments.download', $notice))->assertForbidden();
+
+        NoticeRecipient::create([
+            'notice_id' => $notice->id,
+            'user_id' => $enrollment->user_id,
+            'state' => NoticeRecipientState::Delivered,
+            'delivered_at' => now(),
+        ]);
+
+        $this->get(route('notices.attachments.download', $notice))->assertOk()->assertDownload('graduate-guide.pdf');
+    }
+
+    public function test_an_enrollment_the_upgrade_could_not_place_stays_out_of_the_portal(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $enrollment->forceFill(['school_id' => null])->save();
+        $this->memberOf($this->workingSchool(), $enrollment->user);
+
+        $this->assertFalse(app(PortalAccess::class)->canRead($enrollment->user, $enrollment));
+        $this->assertTrue(app(PortalAccess::class)->enrollmentsFor($enrollment->user)->isEmpty());
+
+        $this->actingAs($enrollment->user)->get(route('portal.overview'))->assertNotFound();
+        $this->actingAs($enrollment->user)->get(route('portal.notification-preferences.edit'))->assertNotFound();
+    }
+
+    public function test_a_guardian_reads_the_enrollment_of_their_child(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+
+        $access = app(PortalAccess::class);
+
+        $this->assertTrue($access->canRead($guardian, $enrollment));
+        $this->assertSame([$enrollment->id], $access->enrollmentsFor($guardian)->pluck('id')->all());
+    }
+
+    public function test_a_guardian_with_two_children_reads_both(): void
+    {
+        $this->unauthorized_user();
+        $first = $this->enrollment();
+        $second = $this->enrollment();
+        $guardian = $this->guardianOf($first);
+        $guardian->parentRecord->students()->syncWithoutDetaching($second->user);
+
+        $enrollments = app(PortalAccess::class)->enrollmentsFor($guardian->fresh());
+
+        $this->assertSame([$first->id, $second->id], $enrollments->pluck('id')->sort()->values()->all());
+    }
+
+    public function test_a_stranger_reads_nothing(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $stranger = $this->memberOf($this->workingSchool());
+
+        $access = app(PortalAccess::class);
+
+        $this->assertFalse($access->canRead($stranger, $enrollment));
+        $this->assertSame([], $access->enrollmentsFor($stranger)->pluck('id')->all());
+    }
+
+    public function test_a_closed_portal_reads_nothing(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        features()->disable(Feature::Portal);
+
+        $this->assertFalse(app(PortalAccess::class)->canRead($enrollment->user, $enrollment));
+    }
+
+    public function test_a_portal_reader_cannot_read_a_child_at_a_closed_campus(): void
+    {
+        $openCampus = $this->workingSchool();
+        $closedCampus = School::factory()->create();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $closedCampus->id]);
+        $guardian = $this->guardianOf($enrollment);
+
+        features()->disable(Feature::Portal, $closedCampus->id);
+        school_context()->set($openCampus, remember: false);
+
+        $this->assertSame($closedCampus->id, $enrollment->school_id);
+        $this->assertFalse(app(PortalAccess::class)->canRead($guardian, $enrollment));
+    }
+
+    public function test_a_family_still_reads_the_school_a_child_transferred_from(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+        app(ChargeStudent::class)->charge($enrollment, 120, 'Unpaid term fees');
+        $newSchool = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+
+        $newEnrollment = app(TransferEnrollment::class)->transfer($enrollment->fresh(), $newSchool, reason: 'Family moved city');
+
+        $access = app(PortalAccess::class);
+        $left = $enrollment->fresh();
+        $this->assertSame(EnrollmentStatus::Transferred, $left->status);
+        $this->assertTrue($access->canRead($guardian, $left));
+        $this->assertContains($left->id, $access->enrollmentsFor($guardian)->pluck('id')->all());
+        $this->assertContains($newEnrollment->id, $access->enrollmentsFor($guardian)->pluck('id')->all());
+
+        $this->actingAs($guardian)
+            ->get(route('portal.invoices.index', $left))
+            ->assertOk()
+            ->assertSee(money_text(120.0));
+    }
+
+    public function test_an_archived_enrollment_stays_out_of_the_portal(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+        $enrollment->forceFill(['status' => EnrollmentStatus::Archived])->save();
+
+        $this->assertFalse(app(PortalAccess::class)->canRead($guardian, $enrollment->fresh()));
+    }
+
+    public function test_a_school_closes_one_area_and_keeps_the_rest(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal, config: [PortalArea::Invoices->value => false]);
+
+        $access = app(PortalAccess::class);
+
+        $this->assertFalse($access->areaIsOpen(PortalArea::Invoices));
+        $this->assertTrue($access->areaIsOpen(PortalArea::Results));
+    }
+
+    public function test_matching_school_features_control_their_portal_areas(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $access = app(PortalAccess::class);
+
+        foreach ([
+            [Feature::Attendance, PortalArea::Attendance],
+            [Feature::Events, PortalArea::Calendar],
+            [Feature::Library, PortalArea::Library],
+            [Feature::Boarding, PortalArea::Boarding],
+        ] as [$feature, $area]) {
+            features()->enable($feature, $enrollment->school_id);
+            $this->assertTrue($access->areaIsOpen($area, $enrollment->school_id));
+
+            features()->disable($feature, $enrollment->school_id);
+            $this->assertFalse($access->areaIsOpen($area, $enrollment->school_id));
+        }
+    }
+
+    public function test_only_published_results_reach_the_family(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $subject = Subject::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->publishedResult($enrollment, $subject, 55);
+        $this->publishedResult($enrollment, $subject, 71, revision: 2);
+
+        $results = app(PortalSummary::class)->results($enrollment);
+
+        $this->assertSame(1, $results->count());
+        $this->assertSame(71.0, $results->first()->percentage);
+    }
+
+    public function test_a_pending_result_does_not_replace_the_last_approved_result(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $subject = Subject::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $approved = $this->publishedResult($enrollment, $subject, 55);
+        ResultSnapshot::create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'course_offering_id' => $approved->course_offering_id,
+            'revision' => 2,
+            'percentage' => 71,
+            'payload' => ['percentage' => 71],
+            'approval_status' => ResultApprovalStatus::Pending,
+            'published_at' => now(),
+        ]);
+
+        $results = app(PortalSummary::class)->results($enrollment);
+
+        $this->assertSame(1, $results->count());
+        $this->assertSame(55.0, $results->first()->percentage);
+    }
+
+    public function test_only_current_published_notices_reach_the_family(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $this->assertNotNull($enrollment->user_id);
+        $published = Notice::create([
+            'school_id' => $enrollment->school_id,
+            'title' => 'Current notice',
+            'content' => 'Current message.',
+            'start_date' => now()->toDateString(),
+            'stop_date' => now()->addWeek()->toDateString(),
+            'status' => NoticeStatus::Published,
+        ]);
+        $superseded = Notice::create([
+            'school_id' => $enrollment->school_id,
+            'title' => 'Old notice',
+            'content' => 'Old message.',
+            'start_date' => now()->toDateString(),
+            'stop_date' => now()->addWeek()->toDateString(),
+            'status' => NoticeStatus::Superseded,
+        ]);
+        NoticeRecipient::create(['notice_id' => $published->id, 'user_id' => $enrollment->user_id, 'state' => NoticeRecipientState::Delivered]);
+        NoticeRecipient::create(['notice_id' => $superseded->id, 'user_id' => $enrollment->user_id, 'state' => NoticeRecipientState::Delivered]);
+
+        $notices = app(PortalSummary::class)->notices($enrollment);
+
+        $this->assertSame([$published->id], $notices->pluck('notice_id')->all());
+    }
+
+    public function test_a_closed_results_area_shows_no_results(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $subject = Subject::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->publishedResult($enrollment, $subject, 71);
+        features()->enable(Feature::Portal, config: [PortalArea::Results->value => false]);
+
+        $this->assertTrue(app(PortalSummary::class)->results($enrollment)->isEmpty());
+    }
+
+    public function test_the_family_sees_the_attendance_rate(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        AttendanceRecord::create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
+            'attended_on' => now()->subDay()->toDateString(),
+            'status' => AttendanceStatus::Present,
+        ]);
+
+        $attendance = app(PortalSummary::class)->attendance($enrollment);
+
+        $this->assertSame(1, $attendance['recorded']);
+        $this->assertSame(100.0, $attendance['rate']);
+    }
+
+    public function test_a_family_can_read_the_learner_library_list(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Library);
+        features()->enable(Feature::Portal, config: [PortalArea::Library->value => true]);
+        $enrollment = $this->enrollment();
+        $student = $this->memberOf($this->workingSchool(), $enrollment->user);
+        $title = LibraryTitle::factory()->create();
+        $copy = LibraryCopy::factory()->create([
+            'school_id' => $enrollment->school_id,
+            'library_title_id' => $title->id,
+        ]);
+        app(IssueLoan::class)->issue($copy, $student);
+
+        $queuedTitle = LibraryTitle::factory()->create();
+        LibraryCopy::factory()->create([
+            'school_id' => $enrollment->school_id,
+            'library_title_id' => $queuedTitle->id,
+        ]);
+        $reservation = app(ReserveTitle::class)->reserve($queuedTitle, $student);
+
+        $library = app(PortalSummary::class)->library($enrollment);
+
+        $this->assertNotNull($library);
+        $this->assertSame([$title->id], $library['loans']->pluck('copy.library_title_id')->all());
+        $this->assertSame([$reservation->id], $library['reservations']->pluck('id')->all());
+
+        $this->actingAs($student)
+            ->get(route('portal.library.index', $enrollment))
+            ->assertOk()
+            ->assertSee($title->title)
+            ->assertSee($queuedTitle->title);
+    }
+
+    public function test_a_family_still_sees_a_book_from_a_campus_they_left(): void
+    {
+        $this->unauthorized_user();
+        $source = $this->workingSchool();
+        $source->forceFill(['name' => 'North Campus'])->save();
+        $destination = School::factory()->create(['organization_id' => $source->organization_id]);
+        $elsewhere = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+        features()->enable(Feature::Library, $destination->id);
+        features()->enable(Feature::Portal, $destination->id, config: [PortalArea::Library->value => true]);
+        features()->enable(Feature::Library);
+        $enrollment = $this->enrollment();
+        $student = $this->memberOf($source, $enrollment->user);
+        $title = LibraryTitle::factory()->create();
+        app(IssueLoan::class)->issue(LibraryCopy::factory()->create(['school_id' => $source->id, 'library_title_id' => $title->id]), $student);
+        $unrelated = LibraryTitle::factory()->create();
+        LibraryLoan::factory()->create([
+            'school_id' => $elsewhere->id,
+            'user_id' => $student->id,
+            'library_copy_id' => LibraryCopy::factory()->create(['school_id' => $elsewhere->id, 'library_title_id' => $unrelated->id])->id,
+        ]);
+        $enrollment->forceFill(['school_id' => $destination->id])->save();
+
+        $this->actingAs($student)
+            ->get(route('portal.library.index', $enrollment))
+            ->assertOk()
+            ->assertSee($title->title)
+            ->assertSee('Return to North Campus')
+            ->assertDontSee($unrelated->title);
+    }
+
+    public function test_a_closed_library_portal_area_shows_nothing(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Library);
+        features()->enable(Feature::Portal, config: [PortalArea::Library->value => false]);
+        $enrollment = $this->enrollment();
+
+        $this->assertNull(app(PortalSummary::class)->library($enrollment));
+    }
+
+    public function test_a_closed_library_feature_closes_the_family_library_route(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal, config: [PortalArea::Library->value => true]);
+        features()->disable(Feature::Library);
+        $enrollment = $this->enrollment();
+
+        $this->actingAs($enrollment->user)
+            ->get(route('portal.library.index', $enrollment))
+            ->assertNotFound();
+    }
+
+    public function test_a_family_reads_and_downloads_latest_official_documents(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal, config: [PortalArea::Documents->value => true]);
+        $enrollment = $this->enrollment();
+        $year = AcademicYear::factory()->create(['school_id' => $enrollment->school_id]);
+        $period = AcademicPeriod::factory()->create(['school_id' => $enrollment->school_id, 'academic_year_id' => $year->id]);
+        $reportCard = ReportCardSnapshot::factory()->create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'academic_year_id' => $year->id,
+            'academic_period_id' => $period->id,
+            'payload' => ['results' => [['subject' => ['name' => 'Mathematics'], 'percentage' => 81.0]]],
+        ]);
+        $transcript = TranscriptSnapshot::create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'revision' => 1,
+            'payload' => ['results' => [['academic_year' => $year->name, 'academic_period' => $period->name, 'subject' => 'Mathematics', 'percentage' => 81.0]]],
+            'issued_at' => now(),
+        ]);
+
+        $this->actingAs($enrollment->user)
+            ->get(route('portal.documents.index', $enrollment))
+            ->assertOk()
+            ->assertSee('Report cards')
+            ->assertSee('Official documents');
+
+        $reportCardResponse = $this->actingAs($enrollment->user)
+            ->get(route('portal.documents.report-cards.download', [$enrollment, $reportCard]));
+
+        $reportCardResponse
+            ->assertOk()
+            ->assertHeader('content-disposition');
+        $this->assertStringContainsString($year->name, $reportCardResponse->streamedContent());
+
+        $this->actingAs($enrollment->user)
+            ->get(route('portal.documents.transcripts.download', [$enrollment, $transcript]))
+            ->assertOk()
+            ->assertHeader('content-disposition');
+    }
+
+    public function test_a_family_keeps_official_documents_after_an_internal_campus_move(): void
+    {
+        $source = $this->workingSchool();
+        $destination = School::query()->findOrFail(
+            School::factory()->create(['organization_id' => $source->organization_id])->getKey(),
+        );
+        $documentArea = [PortalArea::Documents->value => true];
+        features()->enable(Feature::Portal, $source->id, config: $documentArea);
+        features()->enable(Feature::Portal, $destination->id, config: $documentArea);
+
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $guardian = $this->guardianOf($enrollment);
+        $academicYear = AcademicYear::query()->findOrFail(
+            AcademicYear::factory()->create(['school_id' => $source->id])->getKey(),
+        );
+        $academicPeriod = AcademicPeriod::query()->findOrFail(
+            AcademicPeriod::factory()->create([
+                'school_id' => $source->id,
+                'academic_year_id' => $academicYear->id,
+                'name' => 'Term 1',
+            ])->getKey(),
+        );
+        $reportCard = ReportCardSnapshot::factory()->create([
+            'school_id' => $source->id,
+            'student_record_id' => $enrollment->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_period_id' => $academicPeriod->id,
+            'payload' => ['results' => [['subject' => ['name' => 'Mathematics'], 'percentage' => 81.0]]],
+        ]);
+        $transcript = TranscriptSnapshot::create([
+            'school_id' => $source->id,
+            'student_record_id' => $enrollment->id,
+            'revision' => 1,
+            'payload' => ['results' => [['academic_year' => $academicYear->name, 'academic_period' => $academicPeriod->name, 'subject' => 'Mathematics', 'percentage' => 81.0]]],
+            'issued_at' => now(),
+        ]);
+
+        $destinationYear = AcademicYear::query()->findOrFail(
+            AcademicYear::factory()->create(['school_id' => $destination->id])->getKey(),
+        );
+        $destinationLevel = AcademicLevel::query()->findOrFail(
+            AcademicLevel::factory()->create(['school_id' => $destination->id])->getKey(),
+        );
+        $destinationSection = AcademicCycleSection::query()->findOrFail(
+            AcademicCycleSection::factory()->create([
+                'school_id' => $destination->id,
+                'academic_year_id' => $destinationYear->id,
+                'academic_level_id' => $destinationLevel->id,
+                'status' => AcademicStructureStatus::Active,
+            ])->getKey(),
+        );
+        $movedEnrollment = app(MoveEnrollmentBetweenCampuses::class)->move(
+            $enrollment,
+            $destinationSection,
+            reason: 'Family moved across town',
+        );
+
+        $this->actingAs($guardian)
+            ->get(route('portal.documents.index', $movedEnrollment))
+            ->assertOk()
+            ->assertSee('Term 1')
+            ->assertSee('Revision 1')
+            ->assertSee(route('portal.documents.report-cards.download', [$movedEnrollment, $reportCard]))
+            ->assertSee(route('portal.documents.transcripts.download', [$movedEnrollment, $transcript]));
+
+        $reportCardResponse = $this->actingAs($guardian)
+            ->get(route('portal.documents.report-cards.download', [$movedEnrollment, $reportCard]));
+        $reportCardResponse->assertOk();
+        $this->assertStringContainsString('Mathematics', $reportCardResponse->streamedContent());
+
+        $transcriptResponse = $this->actingAs($guardian)
+            ->get(route('portal.documents.transcripts.download', [$movedEnrollment, $transcript]));
+        $transcriptResponse->assertOk();
+        $this->assertStringContainsString('Mathematics', $transcriptResponse->streamedContent());
+
+        $secondEnrollment = StudentRecord::factory()->create(['school_id' => $destination->id]);
+        $guardian->parentRecord->students()->syncWithoutDetaching($secondEnrollment->user);
+
+        $this->actingAs($guardian)
+            ->get(route('portal.documents.report-cards.download', [$secondEnrollment, $reportCard]))
+            ->assertNotFound();
+    }
+
+    public function test_a_family_sees_what_a_campus_they_left_is_still_owed(): void
+    {
+        $source = $this->workingSchool();
+        $source->forceFill(['name' => 'North Campus'])->save();
+        $destination = School::factory()->create(['organization_id' => $source->organization_id]);
+        features()->enable(Feature::Portal, $destination->id, config: [PortalArea::Invoices->value => true]);
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+        app(ChargeStudent::class)->charge($enrollment, 500, 'Term one fees');
+        $enrollment->forceFill(['school_id' => $destination->id])->save();
+
+        $this->actingAs($guardian)
+            ->get(route('portal.invoices.index', $enrollment))
+            ->assertOk()
+            ->assertSee('Owed at North Campus')
+            ->assertSee(money_text(500.0));
+    }
+
+    /**
+     * A report card can be published before any subject is marked, and a
+     * blank table tells the family nothing.
+     */
+    public function test_a_report_card_with_no_marks_says_so(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal, config: [PortalArea::Documents->value => true]);
+        $enrollment = $this->enrollment();
+        $year = AcademicYear::factory()->create(['school_id' => $enrollment->school_id]);
+        $period = AcademicPeriod::factory()->create(['school_id' => $enrollment->school_id, 'academic_year_id' => $year->id]);
+        $reportCard = ReportCardSnapshot::factory()->create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'academic_year_id' => $year->id,
+            'academic_period_id' => $period->id,
+            'payload' => ['results' => []],
+        ]);
+
+        $response = $this->actingAs($enrollment->user)
+            ->get(route('portal.documents.report-cards.download', [$enrollment, $reportCard]));
+
+        $response->assertOk();
+        $this->assertStringContainsString('No subject was marked in this period.', $response->streamedContent());
+    }
+
+    public function test_a_boarder_reads_their_current_house_place(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal, config: [PortalArea::Boarding->value => true]);
+        features()->enable(Feature::Boarding);
+        $enrollment = $this->enrollment();
+        $house = Dormitory::factory()->create(['school_id' => $enrollment->school_id, 'name' => 'Maple House']);
+        $room = DormitoryRoom::factory()->create(['school_id' => $enrollment->school_id, 'dormitory_id' => $house->id, 'name' => 'Room 4']);
+        $bed = DormitoryBed::factory()->create(['school_id' => $enrollment->school_id, 'dormitory_room_id' => $room->id, 'name' => 'Bed B']);
+        BoardingPlace::create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'dormitory_bed_id' => $bed->id,
+            'effective_on' => now()->toDateString(),
+        ]);
+
+        $this->actingAs($enrollment->user)
+            ->get(route('portal.boarding.index', $enrollment))
+            ->assertOk()
+            ->assertSee('Maple House · Room 4 · Bed B');
+    }
+
+    public function test_a_student_can_open_their_own_attendance_screen(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal);
+        $enrollment = $this->enrollment();
+        $this->assertNotNull($enrollment->user_id);
+        $student = User::query()->findOrFail($enrollment->user_id);
+        AttendanceRecord::create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
+            'attended_on' => now()->subDay()->toDateString(),
+            'status' => AttendanceStatus::Present,
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('portal.attendance.show', $enrollment))
+            ->assertOk()
+            ->assertSee('Attendance rate')
+            ->assertSee('100%')
+            ->assertSee('1 day recorded')
+            ->assertSee(route('portal.overview'), false);
+    }
+
+    public function test_the_attendance_screen_says_when_no_register_was_taken(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal);
+        $enrollment = $this->enrollment();
+        $student = User::query()->findOrFail($enrollment->user_id);
+
+        $this->actingAs($student)
+            ->get(route('portal.attendance.show', $enrollment))
+            ->assertOk()
+            ->assertSee('No attendance recorded yet')
+            ->assertDontSee('Attendance rate');
+    }
+
+    public function test_only_a_published_timetable_reaches_the_family(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $draft = Timetable::factory()->create([
+            'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
+        ]);
+
+        $summary = app(PortalSummary::class);
+
+        $this->assertNull($summary->timetable($enrollment));
+
+        $draft->forceFill(['status' => TimetableStatus::Published, 'published_at' => now()])->save();
+
+        $this->assertSame($draft->id, $summary->timetable($enrollment)?->id);
+    }
+
+    public function test_a_family_asks_the_school_for_something(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+
+        $request = app(SubmitPortalRequest::class)->submit(
+            $enrollment,
+            'A copy of the result slip',
+            PortalRequestType::Document,
+            'For a visa application.',
+            $guardian,
+        );
+
+        $this->assertSame(PortalRequestStatus::Submitted, $request->status);
+        $this->assertSame($enrollment->school_id, $request->school_id);
+        $this->assertSame($guardian->id, $request->requested_by);
+    }
+
+    public function test_a_stranger_cannot_ask_about_a_student(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $stranger = $this->memberOf($this->workingSchool());
+
+        $this->expectException(InvalidValueException::class);
+
+        app(SubmitPortalRequest::class)->submit($enrollment, 'A copy of the result slip', person: $stranger);
+    }
+
+    public function test_a_closed_requests_area_takes_no_requests(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        features()->enable(Feature::Portal, config: [PortalArea::Requests->value => false]);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(SubmitPortalRequest::class)->submit($enrollment, 'A copy of the result slip', person: $enrollment->user);
+    }
+
+    public function test_the_school_answers_a_request(): void
+    {
+        $this->authorized_user(['answer portal request']);
+        $staff = auth()->user();
+        $enrollment = $this->enrollment();
+        $action = app(SubmitPortalRequest::class);
+        $request = $action->submit($enrollment, 'A copy of the result slip', person: $enrollment->user);
+
+        $action->changeStatus($request, PortalRequestStatus::InReview, $staff);
+        $action->answer($request, 'The slip is ready at the office.', $staff);
+
+        $this->assertSame(PortalRequestStatus::Answered, $request->fresh()->status);
+        $this->assertSame($staff->id, $request->fresh()->answered_by);
+        $this->assertNotNull($request->fresh()->answered_at);
+    }
+
+    public function test_an_answered_request_is_finished(): void
+    {
+        $this->authorized_user(['answer portal request']);
+        $enrollment = $this->enrollment();
+        $action = app(SubmitPortalRequest::class);
+        $request = $action->submit($enrollment, 'A copy of the result slip', person: $enrollment->user);
+        $action->answer($request, 'The slip is ready at the office.');
+
+        $this->expectException(InvalidValueException::class);
+
+        $action->changeStatus($request, PortalRequestStatus::InReview);
+    }
+
+    public function test_an_answer_does_not_overwrite_a_request_taken_back_meanwhile(): void
+    {
+        $this->authorized_user(['answer portal request']);
+        $enrollment = $this->enrollment();
+        $action = app(SubmitPortalRequest::class);
+        $request = $action->submit($enrollment, 'A copy of the result slip', person: $enrollment->user);
+        $seenByStaff = $request->fresh();
+
+        $action->withdraw($request, $enrollment->user);
+
+        try {
+            $action->answer($seenByStaff, 'The slip is ready at the office.');
+            $this->fail('The answer overwrote a request the family took back.');
+        } catch (InvalidValueException) {
+            $this->assertSame(PortalRequestStatus::Cancelled, $request->fresh()->status);
+            $this->assertNull($request->fresh()->response);
+        }
+    }
+
+    public function test_a_family_never_answers_its_own_request(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $request = app(SubmitPortalRequest::class)->submit($enrollment, 'A copy of the result slip', person: $enrollment->user);
+
+        $this->assertTrue(Gate::forUser($enrollment->user)->allows('view', $request));
+        $this->assertFalse(Gate::forUser($enrollment->user)->allows('answer', $request));
+    }
+
+    public function test_another_school_never_reads_the_request(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $request = app(SubmitPortalRequest::class)->submit($enrollment, 'A copy of the result slip', person: $enrollment->user);
+
+        $this->authorized_user(['read portal request', 'answer portal request'], School::factory()->create());
+
+        $this->assertFalse(Gate::forUser(auth()->user())->allows('view', $request));
+        $this->assertFalse(Gate::forUser(auth()->user())->allows('answer', $request));
+    }
+
+    public function test_the_school_reads_a_request_with_the_permission(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $request = app(SubmitPortalRequest::class)->submit($enrollment, 'A copy of the result slip', person: $enrollment->user);
+
+        $this->authorized_user(['read portal request']);
+
+        $this->assertTrue(Gate::forUser(auth()->user())->allows('view', $request->fresh()));
+        $this->assertSame(1, PortalRequest::inSchool()->open()->count());
+    }
+
+    /**
+     * Make an enrollment in the working school.
+     */
+    private function enrollment(): StudentRecord
+    {
+        return StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+    }
+
+    private function graduatedEnrollment(): StudentRecord
+    {
+        $school = $this->workingSchool();
+        $enrollment = StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'status' => EnrollmentStatus::Graduated,
+        ]);
+        $user = $this->memberOf($school, $enrollment->user);
+        $this->actingAs($user)->withSession([SchoolContext::SESSION_KEY => $school->id]);
+        $this->assertTrue($user->hasRole(Role::Student));
+        $this->assertTrue($user->studentRecord->isGraduated());
+
+        return $enrollment;
+    }
+
+    /**
+     * Make a guardian recorded against the student.
+     */
+    private function guardianOf(StudentRecord $enrollment): User
+    {
+        $guardian = $this->memberOf($this->workingSchool());
+        $guardian->parentRecord()->create(['user_id' => $guardian->id]);
+        $guardian->refresh()->parentRecord->students()->syncWithoutDetaching($enrollment->user);
+
+        return $guardian->fresh();
+    }
+
+    /**
+     * Publish a result for one student in one exact offering.
+     */
+    private function publishedResult(StudentRecord $enrollment, Subject $subject, float $percentage, int $revision = 1): ResultSnapshot
+    {
+        $courseOffering = $this->courseOffering($subject, $enrollment->school_id);
+
+        return ResultSnapshot::create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'course_offering_id' => $courseOffering->id,
+            'revision' => $revision,
+            'percentage' => $percentage,
+            'payload' => ['percentage' => $percentage],
+            'published_at' => now(),
+        ]);
+    }
+
+    private function courseOffering(Subject $subject, int $schoolId): CourseOffering
+    {
+        return $this->courseOfferings[$subject->id] ??= CourseOffering::factory()->create([
+            'school_id' => $schoolId,
+            'subject_id' => $subject->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
+        ]);
+    }
+}

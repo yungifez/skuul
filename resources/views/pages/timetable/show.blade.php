@@ -1,6 +1,6 @@
 @extends('layouts.app', ['breadcrumbs' => [
      ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-    ['href'=> route('timetables.index'), 'text'=> 'timetables'],
+    ['href'=> route('timetables.index'), 'text'=> 'Timetables'],
     ['href'=> route('timetables.show', $timetable->id), 'text'=> "View $timetable->name", 'active'],
 ]])
 
@@ -9,6 +9,13 @@
 @section('page_heading', __("View $timetable->name") )
 
 @section('content')
-    <a href="{{route('timetables.print',$timetable->id)}}" class="bg-blue-600 py-2 px-4 text-white rounded">Print Timetable</a>
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+        <livewire:timetable-status-control :timetable="$timetable" />
+        <april:button variant="outline" type="button" onclick="window.location='{{ route('timetables.print', $timetable->id) }}'">
+            <x-lucide-printer class="mr-2 size-4" />
+            Open print view
+        </april:button>
+    </div>
+    @livewire('timetable-cover-panel', ['timetable' => $timetable])
     @livewire('show-timetable', ['timetable' => $timetable])
 @endsection

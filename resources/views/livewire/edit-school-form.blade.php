@@ -1,29 +1,15 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Edit {{$school->name}}</h4>
-    </div>
-    <div class="card-body">
-        <form action="{{route('schools.update', $school->id )}}" method="POST" class="md:w-6/12" enctype="multipart/form-data">
-            <x-display-validation-errors />
-            <p class="text-secondary">
-                {{__('All fields marked * are required')}}
-            </p>
-            <x-input id="name" name="name" placeholder="Enter name of school" label="School Name *" value="{{$school->name}}" />
-            <x-textarea id="address" name="address" placeholder="Enter school branch address" label="School Address *" >
-                {{$school->address}}
-            </x-textarea>
-            <x-input id="initials" name="initials" placeholder="Enter school initials" label="School Initials" value="{{$school->initials}}" />   
-            <x-input id="phone" name="phone" type="tel" placeholder="Enter school phone number" label="School Phone Number" value="{{ $school->phone}}"  />
-            <x-input id="email" name="email" type="email" placeholder="Enter school email" label="School Email" value="{{ $school->email}}"  />
-            <x-input name="logo" id="logo" type="file"  label="Logo" />
+<form wire:submit="save" class="flex max-w-3xl flex-col gap-6" aria-label="Edit {{ $school->name }}">
+    <x-school-detail-fields
+        :countries="$countries"
+        :upload="$logo"
+        :current-logo-url="$school->logo_path ? $school->logo_url : null"
+        :initials-fallback="str($school->name)->substr(0, 2)->upper()->toString()"
+    />
 
-            @csrf
-            @method('PUT')
-            <div class="w-full flex ">
-                <x-button theme="primary" icon="fas fa-paper-plane" type="submit" class="w-full md:w-6/12">
-                    Edit
-                </x-button>
-            </div>
-        </form>
+    <div class="flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-end">
+        @can('view', $school)
+            <april:button-link href="{{ route('schools.show', $school) }}" variant="ghost" class="h-11 select-none">Cancel</april:button-link>
+        @endcan
+        <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="save, logo">{{ $setup ? 'Save and continue' : 'Save changes' }}</april:button>
     </div>
-</div>
+</form>

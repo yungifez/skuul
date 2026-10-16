@@ -2,21 +2,17 @@
 
 namespace App\Services\School;
 
+use App\Enums\PlatformPermission;
 use App\Models\School;
 use App\Models\User;
+use App\Services\Authorization\SystemPermissionScope;
 use Illuminate\Http\Request;
 use RuntimeException;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * The school the current request works in.
- *
- * This is the one place that answers "which school am I in right now". It reads
- * from the session, never from the user record, so switching school never
- * writes to the person's profile.
- *
- * Setting the school also sets the Spatie team id, so every role and permission
- * check resolves against the same school.
+ * Store the working school in the session and align the Spatie team scope.
+ * Switching schools does not change the user profile.
  */
 class SchoolContext
 {
@@ -28,6 +24,11 @@ class SchoolContext
     private ?School $school = null;
 
     private bool $resolved = false;
+
+    public function __construct(
+        private SystemPermissionScope $systemPermissionScope,
+        private DomainContext $domainContext,
+    ) {}
 
     /**
      * Get the active school, or null when none is set.
@@ -77,7 +78,7 @@ class SchoolContext
 
         app(PermissionRegistrar::class)->setPermissionsTeamId($school?->id);
 
-        if ($remember && app()->bound('session') && app('session')->isStarted()) {
+        if ($remember && app()->bound('session')) {
             $school === null
                 ? session()->forget(self::SESSION_KEY)
                 : session()->put(self::SESSION_KEY, $school->id);
@@ -94,19 +95,20 @@ class SchoolContext
     }
 
     /**
-     * Work out which school this request belongs to and set it.
-     *
-     * The remembered school wins when the person may still use it. Otherwise
-     * the person falls back to their primary school, then to any school they
-     * can still use.
+     * Prefer the domain campus when membership permits it, then the saved or primary school.
+     * Fall back to another accessible school.
      */
     public function resolveFor(User $user, ?Request $request = null): ?School
     {
-        $remembered = $request?->session()?->get(self::SESSION_KEY);
+        $school = $this->domainSchoolFor($user);
 
-        $school = $remembered === null
-            ? null
-            : $this->schoolIfAllowed($user, (int) $remembered);
+        if ($school === null) {
+            $remembered = $request?->session()?->get(self::SESSION_KEY);
+
+            $school = $remembered === null
+                ? null
+                : $this->schoolIfAllowed($user, (int) $remembered);
+        }
 
         $school ??= $this->defaultSchoolFor($user);
 
@@ -114,6 +116,20 @@ class SchoolContext
         $this->resolved = true;
 
         return $school;
+    }
+
+    /**
+     * Get the campus the address names, when the person may work in it.
+     */
+    private function domainSchoolFor(User $user): ?School
+    {
+        $school = $this->domainContext->school();
+
+        if ($school === null) {
+            return null;
+        }
+
+        return $this->schoolIfAllowed($user, $school->id);
     }
 
     /**
@@ -139,8 +155,9 @@ class SchoolContext
             return $membership->school;
         }
 
-        // A platform administrator may have no membership anywhere.
-        return $user->is_platform_admin ? School::orderBy('id')->first() : null;
+        return $this->systemPermissionScope->allows($user, PlatformPermission::AccessAllSchools)
+            ? School::orderBy('id')->first()
+            : null;
     }
 
     /**
@@ -148,7 +165,7 @@ class SchoolContext
      */
     public function schoolIfAllowed(User $user, int $schoolId): ?School
     {
-        if (!$user->is_platform_admin && !$user->belongsToSchool($schoolId)) {
+        if (!$this->systemPermissionScope->allows($user, PlatformPermission::AccessAllSchools) && !$user->belongsToSchool($schoolId)) {
             return null;
         }
 

@@ -8,6 +8,7 @@
 @section('page_heading',  __('Profile'))
 
 @section('content')
+    <div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
         @if (Laravel\Fortify\Features::canUpdateProfileInformation())
             @livewire('profile.update-profile-information-form')
         @endif
@@ -23,4 +24,15 @@
         @endif
 
         @livewire('profile.logout-other-browser-sessions-form')
+
+        @if (current_school() !== null)
+            <x-partials.action-section>
+                <x-slot name="title">Notice email</x-slot>
+                <x-slot name="description">Choose whether this school emails you its notices.</x-slot>
+                <x-slot name="content">
+                    <april:button-link variant="outline" href="{{ route('notice-preferences.edit') }}">Open notice email settings</april:button-link>
+                </x-slot>
+            </x-partials.action-section>
+        @endif
+    </div>
 @endsection

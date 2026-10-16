@@ -1,0 +1,264 @@
+<?php
+
+namespace App\Services\Import;
+
+use App\Contracts\Importer;
+use App\Enums\ImportRowState;
+use App\Enums\ImportStatus;
+use App\Exceptions\ApplicationException;
+use App\Exceptions\InvalidValueException;
+use App\Models\ImportBatch;
+use App\Models\ImportedRecord;
+use App\Models\ImportRow;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Throwable;
+
+/**
+ * Validate and preview before applying imports; isolate row failures.
+ * Reuse source identifiers to make repeated imports update the same records.
+ */
+class ImportRunner
+{
+    public function __construct(private ImportRegistry $registry) {}
+
+    /**
+     * Start an import and check every row.
+     *
+     * @param  array<int, array<string, mixed>>  $rows
+     *
+     * @throws InvalidValueException when the file is missing a required column
+     */
+    public function stage(string $type, array $rows, ?string $sourceName = null, ?User $actor = null): ImportBatch
+    {
+        $importer = $this->registry->get($type);
+
+        $this->failIfColumnsAreMissing($importer, $rows);
+
+        return DB::transaction(function () use ($importer, $type, $rows, $sourceName, $actor): ImportBatch {
+            $batch = ImportBatch::create([
+                'school_id' => current_school_id(),
+                'type' => $type,
+                'source_name' => $sourceName,
+                'created_by' => $actor === null ? auth()->id() : $actor->id,
+            ]);
+
+            $valid = 0;
+            $invalid = 0;
+            $linesBySourceId = [];
+
+            foreach ($rows as $index => $row) {
+                $errors = $this->check($importer, $row);
+                $sourceId = $this->sourceIdOf($row);
+
+                // Two rows with one source id would write the same record twice,
+                // and the second would silently undo the first.
+                if ($sourceId !== null && isset($linesBySourceId[$sourceId])) {
+                    $errors[] = "Line {$linesBySourceId[$sourceId]} already names this source id.";
+                } elseif ($sourceId !== null) {
+                    $linesBySourceId[$sourceId] = $index + 2;
+                }
+
+                $isValid = $errors === [];
+                $isValid ? $valid++ : $invalid++;
+
+                ImportRow::create([
+                    'import_batch_id' => $batch->id,
+                    // Line one is the heading, so the first row of data is line two.
+                    'line_number' => $index + 2,
+                    'source_id' => $sourceId,
+                    'payload' => $row,
+                    'state' => $isValid ? ImportRowState::Valid : ImportRowState::Invalid,
+                    'errors' => $errors === [] ? null : $errors,
+                ]);
+            }
+
+            $batch->forceFill([
+                'status' => ImportStatus::Checked,
+                'row_count' => count($rows),
+                'valid_count' => $valid,
+                'invalid_count' => $invalid,
+            ])->save();
+
+            return $batch;
+        });
+    }
+
+    /**
+     * Write the rows that passed the check.
+     *
+     * @throws InvalidValueException when the import was already written or dropped
+     */
+    public function apply(ImportBatch $batch): ImportBatch
+    {
+        $this->claim($batch, ImportStatus::Applied, ['applied_at' => now()]);
+
+        $importer = $this->registry->get($batch->type);
+        $applied = 0;
+
+        foreach ($batch->rows()->ready()->get() as $row) {
+            try {
+                $subject = DB::transaction(fn (): Model => $this->write($importer, $batch, $row));
+            } catch (Throwable $exception) {
+                $row->forceFill([
+                    'state' => ImportRowState::Invalid,
+                    'errors' => [$this->reasonTheRowFailed($exception)],
+                ])->save();
+
+                continue;
+            }
+
+            $row->forceFill([
+                'state' => ImportRowState::Applied,
+                'subject_type' => $subject->getMorphClass(),
+                'subject_id' => $subject->getKey(),
+            ])->save();
+
+            $applied++;
+        }
+
+        $invalid = $batch->rows()->broken()->count();
+
+        $batch->forceFill([
+            'status' => ImportStatus::Applied,
+            'applied_count' => $applied,
+            'valid_count' => $batch->row_count - $invalid,
+            'invalid_count' => $invalid,
+            'applied_at' => now(),
+        ])->save();
+
+        return $batch;
+    }
+
+    /**
+     * Drop an import without writing it.
+     */
+    public function cancel(ImportBatch $batch): ImportBatch
+    {
+        $this->claim($batch, ImportStatus::Cancelled);
+
+        return $batch;
+    }
+
+    /**
+     * Move a checked import on in one statement, so only one request wins.
+     *
+     * Two people, or one double click, can both read a checked import. Only the
+     * first update finds it still checked, and the other is refused before it
+     * writes a row.
+     *
+     * @param  array<string, mixed>  $values
+     *
+     * @throws InvalidValueException when the import was already written or dropped
+     */
+    private function claim(ImportBatch $batch, ImportStatus $status, array $values = []): void
+    {
+        $claimed = ImportBatch::query()
+            ->whereKey($batch->getKey())
+            ->whereIn('status', array_map(
+                fn (ImportStatus $open): string => $open->value,
+                array_filter(ImportStatus::cases(), fn (ImportStatus $open): bool => $open->canBeApplied()),
+            ))
+            ->update(['status' => $status->value, ...$values]);
+
+        if ($claimed === 0) {
+            throw new InvalidValueException('This import was already finished.');
+        }
+
+        $batch->refresh();
+    }
+
+    /**
+     * Write one row and remember what it wrote.
+     */
+    private function write(Importer $importer, ImportBatch $batch, ImportRow $row): Model
+    {
+        $sourceId = $row->source_id;
+        $link = null;
+
+        if ($sourceId !== null) {
+            $link = ImportedRecord::query()
+                ->where('school_id', $batch->school_id)
+                ->where('type', $batch->type)
+                ->where('source_id', $sourceId)
+                ->first();
+        }
+
+        $subject = $importer->apply($row->payload, $link?->subject);
+
+        if ($sourceId !== null) {
+            ImportedRecord::updateOrCreate(
+                ['school_id' => $batch->school_id, 'type' => $batch->type, 'source_id' => $sourceId],
+                ['subject_type' => $subject->getMorphClass(), 'subject_id' => $subject->getKey()],
+            );
+        }
+
+        return $subject;
+    }
+
+    /**
+     * Get what one row got wrong.
+     *
+     * @param  array<string, mixed>  $row
+     * @return array<int, string>
+     */
+    private function check(Importer $importer, array $row): array
+    {
+        $validator = Validator::make($row, $importer->rules());
+
+        return $validator->fails() ? array_values($validator->errors()->all()) : [];
+    }
+
+    /**
+     * Get the outside identifier a row names, when it names one.
+     *
+     * @param  array<string, mixed>  $row
+     */
+    private function sourceIdOf(array $row): ?string
+    {
+        $sourceId = $row['source_id'] ?? null;
+
+        return $sourceId === null || $sourceId === '' ? null : (string) $sourceId;
+    }
+
+    /**
+     * Refuse a file that is missing a column the import needs.
+     *
+     * @param  array<int, array<string, mixed>>  $rows
+     *
+     * @throws InvalidValueException when a required column is missing
+     */
+    private function failIfColumnsAreMissing(Importer $importer, array $rows): void
+    {
+        if ($rows === []) {
+            throw new InvalidValueException('The file has no rows.');
+        }
+
+        $columns = array_keys($rows[0]);
+        $missing = array_diff($importer->requiredColumns(), $columns);
+
+        if ($missing !== []) {
+            throw new InvalidValueException('The file is missing these columns: '.implode(', ', $missing).'.');
+        }
+    }
+
+    /**
+     * Say why a row could not be written, in words meant for the reader.
+     *
+     * A refusal the application made explains itself. Anything else is a
+     * fault: it is reported, and the reader is not shown its inner details.
+     */
+    private function reasonTheRowFailed(Throwable $exception): string
+    {
+        if ($exception instanceof ApplicationException || $exception instanceof ValidationException) {
+            return $exception->getMessage();
+        }
+
+        report($exception);
+
+        return 'This row could not be written. Nothing from it was saved.';
+    }
+}

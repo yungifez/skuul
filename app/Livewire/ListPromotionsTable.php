@@ -2,25 +2,82 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\InteractsWithAprilTable;
+use App\Models\AcademicYear;
+use App\Models\Promotion;
 use App\Services\AcademicYear\AcademicYearService;
-use Livewire\Component;
+use App\Services\Student\StudentService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
+use Yungifez\AprilUI\Livewire\Columns\Column;
+use Yungifez\AprilUI\Livewire\DataTableComponent;
 
-class ListPromotionsTable extends Component
+class ListPromotionsTable extends DataTableComponent
 {
-    public $academicYear;
+    use InteractsWithAprilTable;
 
-    public function mount(AcademicYearService $academicYearService)
+    public AcademicYear|int|null $academicYear = null;
+
+    public function mount(?AcademicYearService $academicYearService = null): void
     {
+        parent::mount();
+
         if (!$this->academicYear) {
             $this->academicYear = current_school()->load('academicYear')->academicYear->first();
-        } else {
-            $this->academicYear = $academicYearService->getAcademicYearById($this->academicYear);
+        } elseif (is_int($this->academicYear)) {
+            $this->academicYear = ($academicYearService ?? app(AcademicYearService::class))->getAcademicYearById($this->academicYear);
         }
-        // $this->promotions = $studentService->getPromotionsByAcademicYearId($this->academicYear->id)->load('oldClass', 'oldSection', 'newClass', 'newSection');
     }
 
-    public function render()
+    protected function builder(): Builder
     {
-        return view('livewire.list-promotions-table');
+        return Promotion::query()->where('academic_year_id', $this->academicYear?->id)->with(['sourceAcademicCycleSection.academicLevel', 'destinationAcademicCycleSection.academicLevel']);
+    }
+
+    /** @return array<int, Column> */
+    protected function columns(): array
+    {
+        return [Column::make('From '.strtolower(school_term('class_level', 'class')), 'from_level'), Column::make('From '.strtolower(school_term('section', 'section')), 'from_section'), Column::make('To '.strtolower(school_term('class_level', 'class')), 'to_level'), Column::make('To '.strtolower(school_term('section', 'section')), 'to_section'), Column::make('Learners', 'learners_count')->sortable(
+            // A promotion holds its learners in a JSON column, so the count is
+            // worked out per row and no column of that name exists to sort on.
+            fn (Builder $query, string $direction): Builder => $query->orderByRaw('JSON_LENGTH(students) '.($direction === 'desc' ? 'desc' : 'asc'))
+        )];
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    protected function serializeRows(Collection $rows): array
+    {
+        return $rows->map(function (Promotion $promotion): array {
+            $row = $promotion->toArray();
+            $row['from_level'] = $promotion->sourceAcademicCycleSection->academicLevel->name;
+            $row['from_section'] = $promotion->sourceAcademicCycleSection->name;
+            $row['to_level'] = $promotion->destinationAcademicCycleSection->academicLevel->name;
+            $row['to_section'] = $promotion->destinationAcademicCycleSection->name;
+            $row['learners_count'] = count($promotion->students ?? []);
+            $row['view_url'] = route('students.promotions.show', $promotion);
+
+            return $row;
+        })->values()->all();
+    }
+
+    /**
+     * Undo one promotion, putting its learners back in their old section.
+     */
+    public function resetPromotion(int $promotionId, StudentService $students): void
+    {
+        Gate::authorize('reset', Promotion::class);
+        $promotion = Promotion::query()->inSchool()->findOrFail($promotionId);
+
+        $this->changeRow(fn () => $students->resetPromotion($promotion), 'The promotion was reset. Its learners are back in their old section.');
+    }
+
+    public function render(): View
+    {
+        return view('livewire.list-promotions-table', array_merge($this->aprilTablePayload(), [
+            'canViewPromotions' => auth()->user()->can('read promotion'),
+            'canResetPromotions' => auth()->user()->can('reset promotion'),
+        ]));
     }
 }

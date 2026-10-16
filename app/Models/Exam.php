@@ -2,71 +2,52 @@
 
 namespace App\Models;
 
+use App\Traits\InAcademicPeriod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string|null $description
+ * @property int $academic_period_id
+ * @property Carbon $start_date
+ * @property Carbon $stop_date
+ * @property bool $active
+ */
 class Exam extends Model
 {
     use HasFactory;
+    use InAcademicPeriod;
 
     protected $fillable = [
         'name',
         'description',
-        'semester_id',
+        'academic_period_id',
         'start_date',
         'stop_date',
         'active',
-        'publish_result',
     ];
 
     /**
-     * The attributes that should be cast.
-     *
      * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'start_date'        => 'date:Y-m-d',
-        'stop_date'         => 'date:Y-m-d',
-        'active'            => 'boolean',
-        'publish_result'    => 'boolean',
+        'start_date' => 'date:Y-m-d',
+        'stop_date' => 'date:Y-m-d',
+        'active' => 'boolean',
     ];
 
-    public function semester(): BelongsTo
-    {
-        return $this->belongsTo(Semester::class);
-    }
-
-    public function examSlots(): HasMany
-    {
-        return $this->hasMany(ExamSlot::class);
-    }
-
     /**
-     * Calculate total marks attainable in each subjects for an exam.
+     * Get the academic period that owns the exam.
      *
-     * @return int|string
+     * @return BelongsTo<AcademicPeriod, $this>
      */
-    public function getTotalAttainableMarksInASubjectAttribute()
+    public function academicPeriod(): BelongsTo
     {
-        $totalMarks = 0;
-        foreach ($this->examSlots as $examSlot) {
-            $totalMarks += $examSlot->total_marks;
-        }
-
-        return $totalMarks;
-    }
-
-    /**
-     * Calculate total marks gotten by student in semester across all exams in a subject.
-     *
-     *
-     * @return int
-     */
-    public function calculateStudentTotalMarkInSubjectForSemester(Semester $semester, User $user, Subject $subject)
-    {
-        return $this->examRecordService->getAllUserExamRecordInSemesterForSubject($semester, $user->id, $subject->id)->pluck('student_marks')->sum();
+        return $this->belongsTo(AcademicPeriod::class);
     }
 }

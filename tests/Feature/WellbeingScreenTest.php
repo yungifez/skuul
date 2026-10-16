@@ -1,0 +1,527 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Actions\Wellbeing\ManageSupportPlan;
+use App\Actions\Wellbeing\RecordHealthInformation;
+use App\Enums\Feature;
+use App\Enums\SupportCategory;
+use App\Enums\SupportPlanStatus;
+use App\Livewire\CreateSupportPlan;
+use App\Livewire\HealthRecordForm;
+use App\Livewire\ShowSupportPlan;
+use App\Livewire\StudentHealthRecordDirectory as StudentHealthRecordDirectoryComponent;
+use App\Livewire\SupportPlanDirectory as SupportPlanDirectoryComponent;
+use App\Models\School;
+use App\Models\StudentHealthRecord;
+use App\Models\StudentRecord;
+use App\Models\SupportPlan;
+use App\Models\User;
+use App\Services\Feature\FeatureManager;
+use App\Traits\FeatureTestTrait;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+/**
+ * The wellbeing screens open a plan of help, run it, and keep health facts
+ * away from people who may only read a student profile.
+ */
+class WellbeingScreenTest extends TestCase
+{
+    use FeatureTestTrait;
+    use RefreshDatabase;
+
+    public function test_the_plan_list_starts_empty(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan']);
+
+        $this->get(route('support-plans.index'))
+            ->assertOk()
+            ->assertSee('No support plans yet')
+            ->assertSee(route('support-plans.create'));
+    }
+
+    public function test_a_plan_is_opened_from_the_screen(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan']);
+        $enrollment = $this->enrollment();
+
+        $this->get(route('support-plans.create'))->assertOk()->assertSeeLivewire(CreateSupportPlan::class);
+
+        $component = Livewire::test(CreateSupportPlan::class)
+            ->set('studentRecordId', $enrollment->id)
+            ->set('title', 'Extra reading, four mornings a week')
+            ->set('category', SupportCategory::Intervention->value)
+            ->assertDontSee('Confidential')
+            ->set('summary', 'The child reads two years below the class.')
+            ->set('reviewOn', now()->addMonth()->toDateString())
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $plan = SupportPlan::inSchool()->sole();
+
+        $component->assertRedirect(route('support-plans.show', $plan));
+
+        $this->assertSame('Extra reading, four mornings a week', $plan->title);
+        $this->assertSame(SupportPlanStatus::Draft, $plan->status);
+        $this->assertFalse($plan->is_confidential);
+    }
+
+    public function test_a_counselling_plan_is_marked_confidential_before_it_is_saved(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan']);
+
+        Livewire::test(CreateSupportPlan::class)
+            ->set('category', SupportCategory::Counselling->value)
+            ->assertSeeHtml('id="confidential-mark"')
+            ->call('save')
+            ->assertHasErrors(['studentRecordId' => 'required', 'title' => 'required']);
+    }
+
+    public function test_a_plan_cannot_be_reviewed_before_it_starts(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan']);
+        $enrollment = $this->enrollment();
+
+        Livewire::test(CreateSupportPlan::class)
+            ->set('studentRecordId', $enrollment->id)
+            ->set('title', 'Extra reading')
+            ->set('reviewOn', now()->subWeek()->toDateString())
+            ->call('save')
+            ->assertHasErrors(['reviewOn' => 'after_or_equal']);
+
+        $this->assertSame(0, SupportPlan::inSchool()->count());
+    }
+
+    public function test_the_plan_page_carries_the_steps_and_the_notes(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan', 'update support plan']);
+        $plan = $this->plan();
+
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->set('actionDescription', 'Read with the learner every Tuesday.')
+            ->call('addAction')
+            ->assertHasNoErrors()
+            ->assertSet('actionDescription', '')
+            ->set('noteBody', 'The learner read a page alone.')
+            ->call('addNote')
+            ->assertHasNoErrors();
+
+        $this->get(route('support-plans.show', $plan))
+            ->assertOk()
+            ->assertSee('Read with the learner every Tuesday.')
+            ->assertSee('The learner read a page alone.');
+    }
+
+    public function test_a_step_is_marked_done_from_the_screen(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan', 'update support plan']);
+        $plan = $this->plan();
+        $action = app(ManageSupportPlan::class)->addAction($plan, 'Read with the learner every Tuesday.');
+
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->call('completeAction', $action->id)
+            ->assertSee('Done '.now()->format('j M Y'));
+
+        $this->assertNotNull($action->fresh()->completed_at);
+    }
+
+    public function test_the_plan_moves_from_the_screen(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan', 'update support plan']);
+        $plan = $this->plan();
+
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->set('nextStatus', SupportPlanStatus::Active->value)
+            ->set('statusReason', 'The guardian agreed.')
+            ->call('changeStatus')
+            ->assertHasNoErrors()
+            ->assertSee('The guardian agreed.');
+
+        $this->assertSame(SupportPlanStatus::Active, $plan->fresh()->status);
+        $this->assertSame(1, $plan->statusChanges()->count());
+    }
+
+    public function test_a_move_the_plan_cannot_make_is_refused(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan', 'update support plan']);
+        $plan = $this->plan();
+
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->set('nextStatus', SupportPlanStatus::OnHold->value)
+            ->call('changeStatus')
+            ->assertHasErrors('nextStatus');
+
+        $this->assertSame(SupportPlanStatus::Draft, $plan->fresh()->status);
+    }
+
+    public function test_a_person_who_may_only_read_a_plan_cannot_change_it(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan', 'update support plan']);
+        $plan = $this->plan();
+        $this->authorized_user(['read support plan']);
+
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->assertDontSee('Move the plan')
+            ->assertDontSee('Add step')
+            ->set('noteBody', 'Not allowed')
+            ->call('addNote')
+            ->assertForbidden();
+
+        $this->assertSame(0, $plan->notes()->count());
+    }
+
+    public function test_a_step_needs_words_and_a_finished_plan_takes_no_steps(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan', 'update support plan']);
+        $plan = $this->plan();
+
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->call('addAction')
+            ->assertHasErrors(['actionDescription' => 'Say what has to happen.'])
+            ->call('addNote')
+            ->assertHasErrors(['noteBody' => 'Write the note.']);
+
+        $manager = app(ManageSupportPlan::class);
+        $manager->changeStatus($plan, SupportPlanStatus::Active);
+        $manager->changeStatus($plan->fresh(), SupportPlanStatus::Completed);
+
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan->fresh()])
+            ->assertDontSee('Add step')
+            ->set('actionDescription', 'Too late')
+            ->call('addAction')
+            ->assertHasErrors('actionDescription');
+    }
+
+    public function test_the_list_hides_a_confidential_plan_from_a_person_who_may_not_read_it(): void
+    {
+        $this->authorized_user(['read confidential support plan', 'create support plan']);
+        $confidential = $this->plan(SupportCategory::Counselling);
+
+        $this->authorized_user(['read support plan', 'create support plan']);
+        $ordinary = $this->plan();
+
+        $this->get(route('support-plans.index'))
+            ->assertOk()
+            ->assertSee(route('support-plans.show', $ordinary))
+            ->assertDontSee(route('support-plans.show', $confidential));
+
+        $this->get(route('support-plans.show', $confidential))->assertForbidden();
+    }
+
+    public function test_the_list_can_be_narrowed_to_the_plans_due_for_review(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan']);
+        $manager = app(ManageSupportPlan::class);
+        $due = $manager->open($this->enrollment(), 'Overdue plan', reviewOn: now()->subWeek());
+        $later = $manager->open($this->enrollment(), 'Later plan', reviewOn: now()->addMonth());
+
+        $this->get(route('support-plans.index', ['due' => 1]))
+            ->assertOk()
+            ->assertSee(route('support-plans.show', $due))
+            ->assertDontSee(route('support-plans.show', $later));
+    }
+
+    public function test_livewire_plan_filters_keep_confidential_records_private_and_clear_cleanly(): void
+    {
+        $this->authorized_user(['read confidential support plan', 'create support plan']);
+        $confidential = app(ManageSupportPlan::class)->open(
+            $this->enrollment(),
+            'Private counselling plan',
+            SupportCategory::Counselling,
+        );
+
+        $this->authorized_user(['read support plan', 'create support plan']);
+        $manager = app(ManageSupportPlan::class);
+        $due = $manager->open(
+            $this->enrollment(),
+            'Overdue reading plan',
+            SupportCategory::Intervention,
+            reviewOn: now()->subWeek(),
+        );
+        $later = $manager->open(
+            $this->enrollment(),
+            'Later learning plan',
+            SupportCategory::Accommodation,
+            reviewOn: now()->addMonth(),
+        );
+
+        Livewire::test(SupportPlanDirectoryComponent::class)
+            ->assertSee(route('support-plans.show', $due))
+            ->assertSee(route('support-plans.show', $later))
+            ->assertDontSee(route('support-plans.show', $confidential))
+            ->set('status', SupportPlanStatus::Draft->value)
+            ->set('category', SupportCategory::Intervention->value)
+            ->assertSee(route('support-plans.show', $due))
+            ->assertDontSee(route('support-plans.show', $later))
+            ->set('dueOnly', true)
+            ->assertSee(route('support-plans.show', $due))
+            ->set('category', 'not-a-category')
+            ->assertSet('category', '')
+            ->call('clearFilters')
+            ->assertSet('status', '')
+            ->assertSet('category', '')
+            ->assertSet('dueOnly', false)
+            ->assertSee(route('support-plans.show', $due))
+            ->assertSee(route('support-plans.show', $later))
+            ->assertDontSee(route('support-plans.show', $confidential));
+    }
+
+    public function test_health_record_search_and_missing_filter_update_and_clear_without_a_reload(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $recordedLearner = $this->enrollment(User::factory()->create(['name' => 'Ada Bell']));
+        $missingLearner = $this->enrollment(User::factory()->create(['name' => 'Ben Cole']));
+        $otherLearner = $this->enrollment(User::factory()->create(['name' => 'Cora Dean']));
+        app(RecordHealthInformation::class)->record($recordedLearner, [
+            'emergency_contact_name' => 'Pat Bell',
+            'emergency_contact_phone' => '555-0100',
+        ], auth()->user());
+
+        Livewire::test(StudentHealthRecordDirectoryComponent::class)
+            ->assertSee(route('health-records.edit', $recordedLearner))
+            ->assertSee(route('health-records.edit', $missingLearner))
+            ->assertSee('Without one')
+            ->set('search', 'Ada Bell')
+            ->assertSee(route('health-records.edit', $recordedLearner))
+            ->assertDontSee(route('health-records.edit', $missingLearner))
+            ->set('missingOnly', true)
+            ->assertSee('Nothing matches this search')
+            ->call('clearFilters')
+            ->assertSet('search', '')
+            ->assertSet('missingOnly', false)
+            ->assertSee(route('health-records.edit', $recordedLearner))
+            ->assertSee(route('health-records.edit', $missingLearner))
+            ->set('search', $missingLearner->admission_number)
+            ->set('missingOnly', true)
+            ->assertSee(route('health-records.edit', $missingLearner))
+            ->assertDontSee(route('health-records.edit', $recordedLearner))
+            ->set('search', 'no learner has this name')
+            ->assertSee('Nothing matches this search')
+            ->call('clearFilters')
+            ->assertSee(route('health-records.edit', $otherLearner));
+    }
+
+    public function test_the_health_screen_counts_the_learners_without_a_record(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $this->enrollment();
+
+        $this->get(route('health-records.index'))
+            ->assertOk()
+            ->assertSee('Without one')
+            ->assertSee('Nothing held');
+    }
+
+    public function test_each_row_action_names_the_learner_it_opens(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $first = $this->enrollment(User::factory()->create(['name' => 'Ada Bell']));
+        $second = $this->enrollment(User::factory()->create(['name' => 'Ben Cole']));
+
+        // A screen reader can list every link on the page. Rows that all say
+        // "Open" tell the reader nothing about which record each one opens.
+        $this->get(route('health-records.index'))
+            ->assertOk()
+            ->assertSee('aria-label="Open the health record for Ada Bell"', false)
+            ->assertSee('aria-label="Open the health record for Ben Cole"', false);
+
+        $this->assertNotSame($first->id, $second->id);
+    }
+
+    public function test_a_health_record_is_written_from_the_screen(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $enrollment = $this->enrollment();
+
+        $this->get(route('health-records.edit', $enrollment))->assertOk()->assertSeeLivewire(HealthRecordForm::class);
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.blood_group', 'O+')
+            ->set('values.allergies', 'Peanuts. Carry the pen.')
+            ->set('values.emergency_contact_name', 'Ada Bell')
+            ->set('values.emergency_contact_phone', '08000000000')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success');
+
+        $record = StudentHealthRecord::inSchool()->sole();
+
+        $this->assertSame('O+', $record->blood_group);
+        $this->assertSame('Peanuts. Carry the pen.', $record->allergies);
+        $this->assertNull($record->medications);
+
+        $this->get(route('health-records.edit', $enrollment))
+            ->assertOk()
+            ->assertSee('Peanuts. Carry the pen.');
+    }
+
+    public function test_emptying_a_field_forgets_it(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $enrollment = $this->enrollment();
+        app(RecordHealthInformation::class)->record($enrollment, ['blood_group' => 'O+', 'allergies' => 'Peanuts']);
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.allergies', '   ')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $record = StudentHealthRecord::inSchool()->sole();
+        $this->assertNull($record->allergies);
+        $this->assertSame('O+', $record->blood_group);
+    }
+
+    public function test_a_second_nurse_never_silently_overwrites_an_allergy(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $enrollment = $this->enrollment();
+        app(RecordHealthInformation::class)->record($enrollment, ['allergies' => 'Peanuts']);
+
+        $late = Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment]);
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.allergies', 'Peanuts and bee stings. Carry the pen.')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        // The late nurse changed a different field too. That one is kept;
+        // the allergy they never saw change is not written over.
+        $late->set('values.allergies', 'Peanuts, mild')
+            ->set('values.blood_group', 'A-')
+            ->call('save')
+            ->assertHasErrors('values.allergies')
+            ->assertSee('Peanuts and bee stings. Carry the pen.');
+
+        $record = StudentHealthRecord::inSchool()->sole();
+        $this->assertSame('Peanuts and bee stings. Carry the pen.', $record->allergies);
+        $this->assertNull($record->blood_group);
+
+        // Having read the new wording, a second save is their choice to make.
+        $late->call('save')->assertHasNoErrors();
+
+        $record->refresh();
+        $this->assertSame('Peanuts, mild', $record->allergies);
+        $this->assertSame('A-', $record->blood_group);
+    }
+
+    public function test_two_nurses_who_change_different_fields_both_keep_their_work(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $enrollment = $this->enrollment();
+
+        $late = Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment]);
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.medications', 'Inhaler at lunch')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $late->set('values.dietary_needs', 'No pork')->call('save')->assertHasNoErrors();
+
+        $record = StudentHealthRecord::inSchool()->sole();
+        $this->assertSame('Inhaler at lunch', $record->medications);
+        $this->assertSame('No pork', $record->dietary_needs);
+    }
+
+    public function test_the_emergency_number_asks_for_the_dial_pad(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $enrollment = $this->enrollment();
+
+        // A nurse who reads this on a phone needs the number keyboard, not
+        // the letter one. The other fields on the card stay plain text.
+        $html = (string) $this->get(route('health-records.edit', $enrollment))
+            ->assertOk()->getContent();
+
+        $this->assertStringContainsString('<input type="tel" id="emergency_contact_phone"', $html);
+        $this->assertStringContainsString('<input type="text" id="emergency_contact_name"', $html);
+    }
+
+    public function test_a_health_record_validation_error_is_shown_on_the_screen(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $enrollment = $this->enrollment();
+        app(RecordHealthInformation::class)->record($enrollment, ['notes' => 'Keep the inhaler in the front office.']);
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.notes', str_repeat('x', 5001))
+            ->call('save')
+            ->assertHasErrors('values.notes')
+            ->assertSee('The health record was not saved')
+            ->assertSee('Anything else is too long. Use 5000 characters or fewer.');
+
+        $this->assertSame(
+            'Keep the inhaler in the front office.',
+            StudentHealthRecord::inSchool()->sole()->notes,
+        );
+    }
+
+    public function test_a_person_who_may_only_read_never_sees_the_save_button(): void
+    {
+        $this->authorized_user(['read health record']);
+        $enrollment = $this->enrollment();
+
+        $this->get(route('health-records.edit', $enrollment))
+            ->assertOk()
+            ->assertSee('You may read this record but not change it.')
+            ->assertDontSee('Save the record');
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.allergies', 'Peanuts')
+            ->call('save')
+            ->assertForbidden();
+
+        $this->assertSame(0, StudentHealthRecord::query()->count());
+    }
+
+    public function test_a_learner_from_another_school_has_no_health_form(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $outsider = StudentRecord::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $outsider])->assertNotFound();
+    }
+
+    public function test_reading_a_student_never_opens_the_health_record(): void
+    {
+        $this->authorized_user(['read student']);
+        $enrollment = $this->enrollment();
+
+        $this->get(route('health-records.index'))->assertForbidden();
+        $this->get(route('health-records.edit', $enrollment))->assertForbidden();
+    }
+
+    public function test_a_school_that_turned_wellbeing_off_has_no_screens(): void
+    {
+        $this->authorized_user(['read support plan', 'read health record']);
+        app(FeatureManager::class)->disable(Feature::Wellbeing);
+
+        $this->get(route('support-plans.index'))->assertNotFound();
+        $this->get(route('health-records.index'))->assertNotFound();
+    }
+
+    /**
+     * Make an enrollment in the working school.
+     */
+    private function enrollment(?User $user = null): StudentRecord
+    {
+        return StudentRecord::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            ...($user === null ? [] : ['user_id' => $user->id]),
+        ]);
+    }
+
+    /**
+     * Open a plan for a new learner.
+     */
+    private function plan(SupportCategory $category = SupportCategory::Intervention): SupportPlan
+    {
+        return app(ManageSupportPlan::class)->open(
+            enrollment: $this->enrollment(),
+            title: 'Extra reading, four mornings a week',
+            category: $category,
+        );
+    }
+}

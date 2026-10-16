@@ -1,102 +1,51 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Promote student</h4>
-    </div>
-    <div class="card-body">
-        <x-display-validation-errors/>
-        {{--Form for selecting class--}}
-        <form wire:submit="loadStudents" class="md:grid grid-cols-4 gap-2">
-            <p class="font-bold col-span-4">Please select class and section</p>
-            <x-select id="old-class" name="oldClass" label="Old class" wire:model.live="oldClass">
-                @foreach ($classes as $class)
-                    <option value="{{$class['id']}}">{{$class['name']}}</option>
+@php
+    $controlClasses = 'mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+    $sectionWord = strtolower(school_term('section', 'section'));
+@endphp
+<div class="space-y-6">
+    <form wire:submit="loadStudents" class="grid gap-4 md:grid-cols-3">
+        <div>
+            <label for="promotion-source" class="text-sm text-muted-foreground">Current {{ $sectionWord }}</label>
+            <select id="promotion-source" wire:model.live="sourceAcademicCycleSectionId" class="{{ $controlClasses }}" {{ field_error_bindings('sourceAcademicCycleSectionId') }}>
+                <option value="">Choose the current {{ $sectionWord }}</option>
+                @foreach ($cycleSections as $cycleSection)
+                    <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
                 @endforeach
-            </x-select>
-            <x-select id="old-section" name="oldSection" label="Old section" wire:model.live="oldSection" >
-                @isset($oldSections)
-                    @foreach ($oldSections as $section)
-                        <option value="{{$section['id']}}">{{$section['name']}}</option>
-                    @endforeach
-                @endisset
-            </x-select>
-            <x-select id="new-class" name="newClass" label="New class" wire:model.live="newClass" >
-                @foreach ($classes as $class)
-                    <option value="{{$class['id']}}">{{$class['name']}}</option>
-                @endforeach
-            </x-select>
-            <x-select id="new-section" name="newSection" label="New section" wire:model.live="newSection" >
-                @isset($newSections)
-                    @foreach ($newSections as $section)
-                        <option value="{{$section['id']}}">{{$section['name']}}</option>
-                    @endforeach
-                @endisset
-            </x-select>
-            <x-button label="Fetch students" class="w-full  " icon="fas fa-key" type="submit"/>
-        </form>
-        <x-loading-spinner />
-        <div wire:loading.remove.delay>
-            @if (isset($students))
-            @if ($students->count() > 0)
-            <form action="{{route('students.promote')}}" method="post" class=" my-3 p-3">
-                <div class="grid grid-cols-1 lg:grid-cols-2 p-4 gap-4">
-                    <x-button label="Set All To Promote" @click="setAllSelectsToPromote()" type="button"/>
-                    <x-button label="Set All To Don't Promote" @click="setAllSelectsToDontPromote()" type="button"/>
-                </div>
-                        <input type="hidden" name="old_class_id" value="{{$oldClass}}">
-                        <input type="hidden" name="old_section_id" value="{{$oldSection}}">
-                        <input type="hidden" name="new_class_id" value="{{$newClass}}">    
-                        <input type="hidden" name="new_section_id" value="{{$newSection}}">
-                        <div class="overflow-scroll beautify-scrollbar w-full">
-                            <table class="border w-full">
-                                <thead>
-                                    <th class="p-2 border">Student</th>
-                                    <th class="p-2 border">Choose Action</th>
-                                </thead>
-                                <tbody>
-                                    @foreach ($students as $student)
-                                        <tr>
-                                            <td class="border p-2 whitespace-nowrap">{{$student->name}} - {{$student->studentRecord->admission_number}}</td>
-                                            <td class="border p-2">
-                                                <x-select name="student_id[]" id="student-{{$student->id}}" class="promote">
-                                                    <option value="{{$student['id']}}">Promote</option>
-                                                    <option value="">Dont promote</option>
-                                                </x-select>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        @csrf
-                        <x-button label="Promote students" class="w-full md:w-3/12 " icon="fas fa-key" type="submit"/>
-                    </form> 
-                @else
-                    <x-alert title="Danger" id="{{Str::random('10')}}" class="my-2" wire:key="{{Str::random('10')}}">
-                        <p>No students found</p>
-                    </x-alert>
-                @endif
-            @endif
+            </select>
+            <x-field-error name="sourceAcademicCycleSectionId" class="mt-1" />
         </div>
-    </div>
+        <div>
+            <label for="promotion-destination" class="text-sm text-muted-foreground">Destination {{ $sectionWord }}</label>
+            <select id="promotion-destination" wire:model.live="destinationAcademicCycleSectionId" class="{{ $controlClasses }}" {{ field_error_bindings('destinationAcademicCycleSectionId') }}>
+                <option value="">Choose the destination {{ $sectionWord }}</option>
+                @foreach ($cycleSections as $cycleSection)
+                    <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
+                @endforeach
+            </select>
+            <x-field-error name="destinationAcademicCycleSectionId" class="mt-1" />
+        </div>
+        <div class="flex items-end">
+            <april:button type="submit" variant="outline" class="h-11 w-full select-none md:w-auto" wire:loading.attr="disabled" wire:target="loadStudents">Review learners</april:button>
+        </div>
+    </form>
+
+    @if ($students !== [])
+        <form wire:submit="promote" class="space-y-4">
+            <h2 class="text-base font-semibold">Learners to move</h2>
+            <ul class="divide-y border-y">
+                @foreach ($students as $student)
+                    <li wire:key="promotion-student-{{ $student['id'] }}">
+                        <label class="flex min-h-11 select-none items-center gap-3 py-2 text-sm">
+                            <input type="checkbox" wire:model="selectedStudentIds" value="{{ $student['id'] }}" class="size-4 rounded border-input">
+                            <span class="min-w-0 flex-1 truncate font-medium">{{ $student['name'] }}</span>
+                            <span class="shrink-0 text-muted-foreground">{{ $student['admission_number'] ?? '—' }}</span>
+                        </label>
+                    </li>
+                @endforeach
+            </ul>
+            <x-field-error name="selectedStudentIds" />
+            <p class="text-sm text-muted-foreground">Each move stays in the learner's placement history.</p>
+            <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="promote" wire:confirm="Move the selected learners now?">Move selected learners</april:button>
+        </form>
+    @endif
 </div>
-
-@push('scripts')
-
-<script>
-    function setAllSelectsToDontPromote() {
-        let selects = document.getElementsByClassName('promote');
-        for (let i = 0; i < selects.length; i++) {
-            selects[i].selectedIndex = 1;
-        }
-    }
-
-    function setAllSelectsToPromote() {
-        let selects = document.getElementsByClassName('promote');
-        for (let i = 0; i < selects.length; i++) {
-            selects[i].selectedIndex = 0;
-        }
-    }
-</script>
-
-@endpush
-

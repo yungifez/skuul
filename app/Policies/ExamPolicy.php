@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\AcademicPeriod;
 use App\Models\Exam;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -10,9 +11,6 @@ class ExamPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user)
     {
         if ($user->can('read exam')) {
@@ -20,19 +18,13 @@ class ExamPolicy
         }
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Exam $exam)
     {
-        if ($user->can('read exam') && $exam->semester->school_id == current_school_id()) {
+        if ($user->can('read exam') && $exam->academicPeriod->school_id == current_school_id()) {
             return true;
         }
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user)
     {
         if ($user->can('create exam')) {
@@ -41,48 +33,56 @@ class ExamPolicy
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determine whether the user can create an exam in a chosen period.
      */
+    public function createForAcademicPeriod(User $user, AcademicPeriod $academicPeriod): bool
+    {
+        return $user->can('create exam')
+            && $academicPeriod->school_id === current_school_id()
+            && $academicPeriod->status->acceptsExamPlanning()
+            && $academicPeriod->academicYear?->status->acceptsExamPlanning() === true;
+    }
+
+    /**
+     * Determine whether an existing exam may be assigned to a period.
+     */
+    public function updateForAcademicPeriod(User $user, AcademicPeriod $academicPeriod): bool
+    {
+        return $user->can('update exam')
+            && $academicPeriod->school_id === current_school_id()
+            && $academicPeriod->status->acceptsExamPlanning()
+            && $academicPeriod->academicYear?->status->acceptsExamPlanning() === true;
+    }
+
     public function update(User $user, Exam $exam)
     {
-        if ($user->can('update exam') && $exam->semester->school_id == current_school_id()) {
+        if ($user->can('update exam')
+            && $exam->academicPeriod->status->acceptsExamPlanning()
+            && $exam->academicPeriod->academicYear->status->acceptsExamPlanning()
+            && $exam->academicPeriod->school_id == current_school_id()
+        ) {
             return true;
         }
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Exam $exam)
     {
-        if ($user->can('delete exam') && $exam->semester->school_id == current_school_id()) {
+        if ($user->can('delete exam')
+            && $exam->academicPeriod->isOpen()
+            && $exam->academicPeriod->academicYear->isOpen()
+            && $exam->academicPeriod->school_id == current_school_id()
+        ) {
             return true;
         }
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Exam $exam)
     {
         //
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Exam $exam)
     {
         //
-    }
-
-    /**
-     * Determine whether the user can check result.
-     */
-    public function checkResult(User $user)
-    {
-        if ($user->can('check result')) {
-            return true;
-        }
     }
 }

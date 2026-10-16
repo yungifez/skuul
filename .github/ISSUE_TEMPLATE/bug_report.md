@@ -1,38 +1,33 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report a reproducible application problem
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**Problem**
+Describe the task and the observed problem.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+**Application and environment**
+- Release tag or commit:
+- PHP and Node.js versions:
+- Installation method:
+- Browser and operating system:
+- Account role and delegated permissions:
+- Enabled feature and selected campus, cycle, or period:
+
+**Steps to reproduce**
+1. Open the affected screen.
+2. Describe the input and action using fictional records.
+3. Describe the result after reloading.
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+Describe the expected result.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Observed behavior**
+Include the exact error or incorrect state.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
-
-**Additional context**
-Add any other context about the problem here.
+**Evidence**
+Add relevant logs or screenshots. Remove credentials and personal data.

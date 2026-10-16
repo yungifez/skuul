@@ -2,10 +2,38 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Facility\ManageFacility;
+use App\Enums\AcademicPeriodStatus;
+use App\Enums\AcademicStructureStatus;
+use App\Enums\FacilityKind;
+use App\Enums\RosterMode;
+use App\Enums\TimetableStatus;
+use App\Livewire\CreateTimetableForm;
+use App\Livewire\EditTimetableForm;
+use App\Livewire\ListTimetablesTable;
+use App\Livewire\ManageTimetable;
+use App\Livewire\ShowTimetable;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicPeriod;
+use App\Models\CourseOffering;
+use App\Models\CustomTimetableItem;
+use App\Models\Facility;
+use App\Models\School;
+use App\Models\Subject;
+use App\Models\TeachingAssignment;
 use App\Models\Timetable;
+use App\Models\TimetableRecord;
 use App\Models\TimetableTimeSlot;
+use App\Models\User;
+use App\Models\Weekday;
+use App\Services\Timetable\TimeSlotService;
+use App\Services\Timetable\TimetableConflictChecker;
+use App\Services\Timetable\TimetableGrid;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class TimetableTest extends TestCase
@@ -31,6 +59,134 @@ class TimetableTest extends TestCase
             ->assertOk();
     }
 
+    public function test_a_parent_cannot_open_the_staff_timetable_workspace(): void
+    {
+        $this->authorized_user(['read timetable']);
+        auth()->user()->assignRole('parent');
+
+        $this->get('/dashboard/timetables')->assertForbidden();
+    }
+
+    public function test_a_student_can_open_only_a_published_timetable_for_their_section(): void
+    {
+        $school = $this->workingSchool();
+        $student = User::factory()->create();
+        $student = $this->memberOf($school, $student);
+        $student->assignRole('student');
+        $student->givePermissionTo('read timetable');
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $enrollment = $student->studentRecords()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $section->id,
+            'admission_date' => now()->toDateString(),
+            'status' => 'active',
+            'is_primary' => true,
+        ]);
+
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $section->academic_year_id,
+        ]);
+        $ownTimetable = Timetable::factory()->create([
+            'academic_cycle_section_id' => $section->id,
+            'academic_period_id' => $academicPeriod->id,
+            'status' => TimetableStatus::Published,
+            'published_at' => now(),
+        ]);
+        $draftTimetable = Timetable::factory()->create([
+            'academic_cycle_section_id' => $section->id,
+            'academic_period_id' => $academicPeriod->id,
+        ]);
+
+        $response = $this->actingAsMemberOf($school, $student)
+            ->get(route('timetables.show', $ownTimetable));
+
+        $response->assertOk();
+
+        $this->get(route('timetables.show', $draftTimetable))->assertForbidden();
+        $this->get(route('timetables.print', $ownTimetable))->assertOk();
+        $this->get(route('timetables.print', $draftTimetable))->assertForbidden();
+    }
+
+    public function test_another_schools_timetable_cannot_be_printed(): void
+    {
+        $school = $this->workingSchool();
+        $otherSchool = School::factory()->create(['organization_id' => $school->organization_id]);
+        $otherSection = AcademicCycleSection::factory()->create(['school_id' => $otherSchool->id]);
+        $otherTimetable = Timetable::factory()->create([
+            'academic_cycle_section_id' => $otherSection->id,
+            'academic_period_id' => AcademicPeriod::factory()->create(['school_id' => $otherSchool->id, 'academic_year_id' => $otherSection->academic_year_id])->id,
+            'name' => 'Other campus lessons',
+        ]);
+
+        $this->authorized_user(['read timetable'], $school)
+            ->get(route('timetables.print', $otherTimetable))
+            ->assertForbidden()
+            ->assertDontSee('Other campus lessons');
+
+        Livewire::test(ShowTimetable::class, ['timetable' => $otherTimetable])->assertForbidden();
+
+        auth()->user()->givePermissionTo('update timetable');
+        Livewire::test(ManageTimetable::class, ['timetable' => $otherTimetable])->assertForbidden();
+    }
+
+    public function test_a_student_lists_only_published_timetables_for_their_section_and_the_school(): void
+    {
+        $school = $this->workingSchool();
+        $student = $this->memberOf($school);
+        $student->assignRole('student');
+        $student->givePermissionTo('read timetable');
+        [$ownSection, $otherSection] = AcademicCycleSection::factory()->count(2)->create([
+            'school_id' => $school->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $student->studentRecords()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $ownSection->id,
+            'admission_date' => now()->toDateString(),
+            'status' => 'active',
+            'is_primary' => true,
+        ]);
+        $periodId = current_academic_period_id();
+        $this->assertNotNull($periodId);
+        $published = ['academic_period_id' => $periodId, 'status' => TimetableStatus::Published, 'published_at' => now()];
+        Timetable::factory()->create($published + ['academic_cycle_section_id' => $ownSection->id, 'name' => 'Own lessons']);
+        Timetable::factory()->create($published + ['academic_cycle_section_id' => null, 'name' => 'Assembly rota']);
+        Timetable::factory()->create($published + ['academic_cycle_section_id' => $otherSection->id, 'name' => 'Other lessons']);
+        Timetable::factory()->create(['academic_period_id' => $periodId, 'academic_cycle_section_id' => $ownSection->id, 'name' => 'Draft lessons']);
+
+        $this->actingAsMemberOf($school, $student);
+
+        $component = Livewire::test(ListTimetablesTable::class)
+            ->assertSee('Own lessons')
+            ->assertSee('Assembly rota')
+            ->assertDontSee('Other lessons')
+            ->assertDontSee('Draft lessons')
+            ->set('scope', 'schoolwide')
+            ->set('academicCycleSectionId', $otherSection->id)
+            ->assertDontSee('Other lessons')
+            ->assertDontSee('Draft lessons');
+
+        foreach (['isStudent' => false, 'cycleSections' => [['id' => $otherSection->id, 'label' => 'Other']]] as $property => $value) {
+            try {
+                $component->set($property, $value);
+                $this->fail("{$property} took a value from the browser.");
+            } catch (CannotUpdateLockedPropertyException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function test_the_timetable_list_refuses_a_person_without_timetable_access(): void
+    {
+        $this->unauthorized_user();
+
+        Livewire::test(ListTimetablesTable::class)->assertForbidden();
+    }
+
     // test unauthorized user can't view create timetable
 
     public function test_unauthorized_user_cant_view_create_timetable()
@@ -47,6 +203,538 @@ class TimetableTest extends TestCase
         $this->authorized_user(['create timetable'])
             ->get('/dashboard/timetables/create')
             ->assertOk();
+    }
+
+    public function test_timetable_schedule_options_are_progressively_disclosed(): void
+    {
+        $this->authorized_user(['create timetable']);
+
+        Livewire::test(CreateTimetableForm::class)
+            ->assertSet('calendarView', 'month')
+            ->assertSet('eventStep', 1)
+            ->assertSet('showEventDialog', false)
+            ->assertSee('What are you adding?')
+            ->assertDontSee('On weekdays')
+            ->call('openEventDialog')
+            ->assertSet('showEventDialog', true)
+            ->call('chooseEventType', 'subject')
+            ->assertSet('eventStep', 2)
+            ->assertSee('When does it happen?')
+            ->assertSee('On these weekdays')
+            ->call('continueEventSchedule')
+            ->assertSet('eventStep', 3)
+            ->assertSee('Add the details')
+            ->call('closeEventDialog')
+            ->assertSet('showEventDialog', false)
+            ->call('openEventDialog', '2030-09-11')
+            ->assertSet('calendarView', 'month')
+            ->assertSet('newEvent.recurrence', 'one_time')
+            ->assertSet('newEvent.occurs_on', '2030-09-11');
+    }
+
+    public function test_the_create_form_shows_the_add_event_button_and_readable_term_dates(): void
+    {
+        $this->authorized_user(['create timetable']);
+        $period = AcademicPeriod::query()->findOrFail(current_academic_period_id());
+        $period->update(['starts_on' => '2030-09-02', 'ends_on' => '2030-12-20']);
+
+        Livewire::test(CreateTimetableForm::class)
+            ->assertSeeHtml('wire:click="openEventDialog"')
+            ->assertSee('Add event')
+            ->assertSee('2 Sep 2030 to 20 Dec 2030')
+            ->assertDontSee('2030-09-02 to');
+    }
+
+    public function test_user_can_create_a_schoolwide_recurring_timetable_with_a_role_event(): void
+    {
+        $this->authorized_user(['create timetable', 'create schoolwide timetable']);
+        $weekday = Weekday::query()->firstOrFail();
+
+        Livewire::test(CreateTimetableForm::class)
+            ->set('name', 'Staff duty timetable')
+            ->set('scope', 'schoolwide')
+            ->set('newEvent.weekday_id', $weekday->id)
+            ->set('newEvent.type', 'role')
+            ->set('newEvent.title', 'Morning duty')
+            ->set('newEvent.audience_role', 'teacher')
+            ->call('addEvent')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $timetable = Timetable::query()->where('name', 'Staff duty timetable')->firstOrFail();
+
+        $this->assertNull($timetable->academic_cycle_section_id);
+        $this->assertDatabaseHas('timetable_time_slot_weekday', [
+            'timetable_time_slot_weekdayable_type' => (new CustomTimetableItem)->getMorphClass(),
+            'audience_role' => 'teacher',
+            'weekday_id' => $weekday->id,
+        ]);
+    }
+
+    public function test_a_timetable_creator_without_schoolwide_permission_is_kept_to_section_scope(): void
+    {
+        $this->authorized_user(['create timetable']);
+
+        Livewire::test(CreateTimetableForm::class)
+            ->set('scope', 'schoolwide')
+            ->assertSet('scope', 'section');
+    }
+
+    public function test_schoolwide_creation_is_rejected_even_if_the_client_state_is_tampered_with(): void
+    {
+        $this->authorized_user(['create timetable']);
+
+        $component = Livewire::test(CreateTimetableForm::class)
+            ->set('canCreateSchoolwide', true)
+            ->set('scope', 'schoolwide');
+
+        $component->assertSet('scope', 'section')->assertHasErrors('scope');
+        $this->assertDatabaseMissing('timetables', ['name' => 'Tampered schoolwide timetable']);
+    }
+
+    public function test_a_timetable_can_contain_a_one_date_event(): void
+    {
+        $this->authorized_user(['create timetable']);
+        $period = AcademicPeriod::factory()->create([
+            'academic_year_id' => current_academic_year_id(),
+            'school_id' => current_school_id(),
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
+
+        Livewire::test(CreateTimetableForm::class)
+            ->set('name', 'Sports day schedule')
+            ->set('academicPeriodId', $period->id)
+            ->set('newEvent.recurrence', 'one_time')
+            ->set('newEvent.occurs_on', $period->starts_on?->toDateString())
+            ->set('newEvent.type', 'freehand')
+            ->set('newEvent.title', 'Sports day')
+            ->call('addEvent')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('timetables', [
+            'name' => 'Sports day schedule',
+        ]);
+        $this->assertDatabaseHas('timetable_time_slots', [
+            'recurrence' => 'one_time',
+            'occurs_on' => $period->starts_on?->toDateString(),
+        ]);
+    }
+
+    public function test_a_timetable_can_mix_weekly_and_one_date_events(): void
+    {
+        $this->authorized_user(['create timetable']);
+        $period = AcademicPeriod::factory()->create([
+            'academic_year_id' => current_academic_year_id(),
+            'school_id' => current_school_id(),
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
+        $weekday = Weekday::query()->firstOrFail();
+
+        Livewire::test(CreateTimetableForm::class)
+            ->set('name', 'Mixed calendar')
+            ->set('academicPeriodId', $period->id)
+            ->set('newEvent.weekday_id', $weekday->id)
+            ->set('newEvent.type', 'freehand')
+            ->set('newEvent.title', 'Weekly assembly')
+            ->call('addEvent')
+            ->set('newEvent.recurrence', 'one_time')
+            ->set('newEvent.occurs_on', $period->starts_on?->toDateString())
+            ->set('newEvent.type', 'freehand')
+            ->set('newEvent.title', 'Sports day')
+            ->call('addEvent')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $timetable = Timetable::query()->where('name', 'Mixed calendar')->firstOrFail();
+
+        $this->assertSame(2, $timetable->timeSlots()->count());
+        $this->assertSame(1, $timetable->timeSlots()->where('recurrence', 'weekly')->count());
+        $this->assertSame(1, $timetable->timeSlots()->where('recurrence', 'one_time')->count());
+    }
+
+    public function test_a_recurring_event_can_be_added_to_multiple_weekdays(): void
+    {
+        $this->authorized_user(['create timetable']);
+        $weekdays = Weekday::query()->whereIn('name', ['Monday', 'Wednesday'])->get();
+
+        Livewire::test(CreateTimetableForm::class)
+            ->set('name', 'Multi-day timetable')
+            ->set('newEvent.weekday_ids', $weekdays->pluck('id')->all())
+            ->set('newEvent.type', 'freehand')
+            ->set('newEvent.title', 'Morning registration')
+            ->call('addEvent')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $timetable = Timetable::query()->where('name', 'Multi-day timetable')->firstOrFail();
+
+        $this->assertSame(1, $timetable->timeSlots()->count());
+        $this->assertSame($weekdays->count(), $timetable->timeSlots()->firstOrFail()->weekdays()->count());
+    }
+
+    public function test_the_calendar_can_switch_between_week_and_month_views(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->assertSet('calendarView', 'month')
+            ->assertSee('wire:click="previousCalendarPeriod"', false)
+            ->assertSee('wire:click="nextCalendarPeriod"', false)
+            ->assertSee('x-effect="open = $wire.showTimeSlotDialog"', false)
+            ->assertDontSee('x-effect="show = $wire.showTimeSlotDialog"', false)
+            ->call('openTimeSlotDialog', '2030-09-08')
+            ->assertSet('showTimeSlotDialog', true)
+            ->assertSet('calendarView', 'month')
+            ->assertSet('slotRecurrence', 'one_time')
+            ->assertSet('slotOccursOn', '2030-09-08')
+            ->call('closeTimeSlotDialog')
+            ->assertSet('showTimeSlotDialog', false)
+            ->call('setCalendarView', 'month')
+            ->assertSet('calendarView', 'month')
+            ->call('setCalendarView', 'day')
+            ->assertSet('calendarView', 'day')
+            ->assertSee('Add slot for this date')
+            ->call('chooseCalendarDate', '2030-09-08')
+            ->assertSet('calendarDate', '2030-09-08')
+            ->assertSet('calendarView', 'day')
+            ->call('setCalendarView', 'week')
+            ->assertSee('Add recurring slot');
+    }
+
+    public function test_month_calendar_navigation_moves_across_month_boundaries(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->call('chooseCalendarDate', '2030-01-31')
+            ->call('nextCalendarPeriod')
+            ->assertSet('calendarDate', '2030-02-28')
+            ->call('nextCalendarPeriod')
+            ->assertSet('calendarDate', '2030-03-28')
+            ->call('previousCalendarPeriod')
+            ->assertSet('calendarDate', '2030-02-28');
+    }
+
+    public function test_read_only_timetable_can_switch_between_calendar_views(): void
+    {
+        $this->authorized_user(['read timetable']);
+        $timetable = Timetable::factory()->create();
+
+        Livewire::test(ShowTimetable::class, ['timetable' => $timetable])
+            ->assertSet('calendarView', 'month')
+            ->assertSee('Calendar view')
+            ->call('setCalendarView', 'week')
+            ->assertSet('calendarView', 'week')
+            ->assertSee('No events')
+            ->call('setCalendarView', 'day')
+            ->assertSet('calendarView', 'day')
+            ->assertSee('No events scheduled for this date.')
+            ->call('chooseCalendarDate', '2030-09-08')
+            ->assertSet('calendarDate', '2030-09-08')
+            ->call('nextCalendarPeriod')
+            ->assertSet('calendarDate', '2030-09-09')
+            ->call('previousCalendarPeriod')
+            ->assertSet('calendarDate', '2030-09-08');
+    }
+
+    public function test_read_only_calendar_plots_events_in_month_week_and_day_views(): void
+    {
+        $this->authorized_user(['read timetable']);
+        $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update([
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
+        $timetable->refresh();
+        $tuesday = Weekday::query()->where('name', 'Tuesday')->firstOrFail();
+        $slot = TimetableTimeSlot::create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '08:00',
+            'stop_time' => '09:00',
+            'recurrence' => 'weekly',
+            'starts_on' => '2030-09-01',
+            'recurrence_interval' => 1,
+            'recurrence_weekdays' => [$tuesday->id],
+        ]);
+        $item = CustomTimetableItem::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Assembly',
+        ]);
+        TimetableRecord::create([
+            'timetable_time_slot_id' => $slot->id,
+            'weekday_id' => $tuesday->id,
+            'timetable_time_slot_weekdayable_id' => $item->id,
+            'timetable_time_slot_weekdayable_type' => $item->getMorphClass(),
+        ]);
+
+        $component = Livewire::test(ShowTimetable::class, ['timetable' => $timetable])
+            ->assertSee('Assembly')
+            ->assertSee('08:00–09:00');
+
+        $component->call('chooseCalendarDate', '2030-09-03')
+            ->call('setCalendarView', 'week')
+            ->assertSee('Assembly');
+        $component->call('setCalendarView', 'day')
+            ->call('chooseCalendarDate', '2030-09-03')
+            ->assertSee('Assembly')
+            ->assertSee('08:00–09:00');
+    }
+
+    public function test_calendar_views_plot_active_empty_time_slots(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update([
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
+        $timetable->refresh();
+        $tuesday = Weekday::query()->where('name', 'Tuesday')->firstOrFail();
+
+        $slot = TimetableTimeSlot::factory()->create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '01:00',
+            'stop_time' => '02:00',
+            'recurrence' => 'weekly',
+            'starts_on' => '2030-09-01',
+            'recurrence_interval' => 1,
+            'recurrence_weekdays' => [$tuesday->id],
+        ]);
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->assertSee('Open time slot')
+            ->call('setCalendarView', 'day')
+            ->call('chooseCalendarDate', '2030-09-03')
+            ->assertSee('Open time slot')
+            ->call('moveCalendar', 1)
+            ->assertSet('calendarDate', '2030-09-04')
+            ->call('setCalendarView', 'week')
+            ->assertSee('01:00')
+            ->assertSee('Open time slot')
+            ->assertSet('showSlotEditorDialog', false)
+            ->call('selectCell', $slot->id, $tuesday->id)
+            ->assertSet('showSlotEditorDialog', true)
+            ->assertSee('x-effect="open = $wire.showSlotEditorDialog"', false)
+            ->assertSee('Find a subject or a break')
+            ->call('closeSlotEditorDialog')
+            ->assertSet('showSlotEditorDialog', false)
+            ->call('selectCell', $slot->id, $tuesday->id)
+            ->assertSet('showSlotEditorDialog', true);
+    }
+
+    public function test_a_teacher_only_sees_subjects_assigned_to_them_in_a_read_only_timetable(): void
+    {
+        $this->authorized_user(['read timetable']);
+        $school = $this->workingSchool();
+        $teacher = $this->memberOf($school);
+        school_context()->set($school, remember: false);
+        $teacher->assignRole('teacher');
+        $teacher->givePermissionTo('read timetable');
+
+        $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update([
+            'starts_on' => now()->subDay()->toDateString(),
+            'ends_on' => now()->addYear()->toDateString(),
+        ]);
+        $section = $timetable->academicCycleSection;
+        $assignedSlot = TimetableTimeSlot::create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '08:00',
+            'stop_time' => '09:00',
+        ]);
+        $otherSlot = TimetableTimeSlot::create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '09:00',
+            'stop_time' => '10:00',
+        ]);
+        $weekday = Weekday::firstOrFail();
+        $assignedSubject = Subject::factory()->create(['school_id' => $school->id, 'name' => 'Assigned subject']);
+        $otherSubject = Subject::factory()->create(['school_id' => $school->id, 'name' => 'Other subject']);
+
+        $offering = CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $section->academic_year_id,
+            'academic_period_id' => $timetable->academic_period_id,
+            'academic_level_id' => $section->academic_level_id,
+            'subject_id' => $assignedSubject->id,
+            'roster_mode' => RosterMode::HomeSection,
+        ]);
+        $offering->cycleSections()->attach($section);
+        TeachingAssignment::create([
+            'school_id' => $school->id,
+            'subject_id' => $assignedSubject->id,
+            'user_id' => $teacher->id,
+            'academic_year_id' => $section->academic_year_id,
+            'academic_period_id' => $timetable->academic_period_id,
+            'course_offering_id' => $offering->id,
+            'starts_on' => now()->toDateString(),
+        ]);
+
+        TimetableRecord::create([
+            'timetable_time_slot_id' => $assignedSlot->id,
+            'weekday_id' => $weekday->id,
+            'timetable_time_slot_weekdayable_id' => $assignedSubject->id,
+            'timetable_time_slot_weekdayable_type' => $assignedSubject->getMorphClass(),
+        ]);
+        TimetableRecord::create([
+            'timetable_time_slot_id' => $otherSlot->id,
+            'weekday_id' => $weekday->id,
+            'timetable_time_slot_weekdayable_id' => $otherSubject->id,
+            'timetable_time_slot_weekdayable_type' => $otherSubject->getMorphClass(),
+        ]);
+
+        $this->actingAsMemberOf($school, $teacher);
+
+        $grid = app(TimetableGrid::class)->of($timetable, viewer: $teacher);
+        $assignedCell = $grid['rows'][0]['cells'][$weekday->id];
+        $otherCell = $grid['rows'][1]['cells'][$weekday->id];
+
+        $this->assertSame('Assigned subject', $assignedCell['name']);
+        $this->assertNull($otherCell['name']);
+
+        $show = Livewire::test(ShowTimetable::class, ['timetable' => $timetable]);
+        $show
+            ->assertSee('Showing subjects assigned to you')
+            ->assertSee('Assigned subject')
+            ->assertDontSee('Other subject');
+    }
+
+    public function test_a_student_only_sees_subjects_allowed_by_their_roster(): void
+    {
+        $this->authorized_user(['read timetable']);
+        $school = $this->workingSchool();
+        $timetable = Timetable::factory()->create();
+        $section = $timetable->academicCycleSection;
+        $student = User::factory()->create();
+        $student = $this->memberOf($school, $student);
+        school_context()->set($school, remember: false);
+        $studentRecord = $student->studentRecords()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $section->id,
+            'admission_date' => now()->toDateString(),
+            'status' => 'active',
+            'is_primary' => true,
+        ]);
+        $student->assignRole('student');
+        $student->givePermissionTo('read timetable');
+        $takenSlot = TimetableTimeSlot::create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '08:00',
+            'stop_time' => '09:00',
+        ]);
+        $notTakenSlot = TimetableTimeSlot::create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '09:00',
+            'stop_time' => '10:00',
+        ]);
+        $weekday = Weekday::firstOrFail();
+        $taken = Subject::factory()->create(['school_id' => $school->id, 'name' => 'Taken subject']);
+        $notTaken = Subject::factory()->create(['school_id' => $school->id, 'name' => 'Not taken subject']);
+
+        $takenOffering = CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $section->academic_year_id,
+            'academic_period_id' => $timetable->academic_period_id,
+            'academic_level_id' => $section->academic_level_id,
+            'subject_id' => $taken->id,
+            'roster_mode' => RosterMode::IndividualRoster,
+        ]);
+        $takenOffering->studentRecords()->attach($studentRecord);
+        CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $section->academic_year_id,
+            'academic_period_id' => $timetable->academic_period_id,
+            'academic_level_id' => $section->academic_level_id,
+            'subject_id' => $notTaken->id,
+            'roster_mode' => RosterMode::IndividualRoster,
+        ]);
+
+        TimetableRecord::create([
+            'timetable_time_slot_id' => $takenSlot->id,
+            'weekday_id' => $weekday->id,
+            'timetable_time_slot_weekdayable_id' => $taken->id,
+            'timetable_time_slot_weekdayable_type' => $taken->getMorphClass(),
+        ]);
+        TimetableRecord::create([
+            'timetable_time_slot_id' => $notTakenSlot->id,
+            'weekday_id' => $weekday->id,
+            'timetable_time_slot_weekdayable_id' => $notTaken->id,
+            'timetable_time_slot_weekdayable_type' => $notTaken->getMorphClass(),
+        ]);
+
+        $this->actingAsMemberOf($school, $student);
+
+        $grid = app(TimetableGrid::class)->of($timetable, viewer: $student);
+        $takenCell = $grid['rows'][0]['cells'][$weekday->id];
+        $notTakenCell = $grid['rows'][1]['cells'][$weekday->id];
+
+        $this->assertSame('Taken subject', $takenCell['name']);
+        $this->assertNull($notTakenCell['name']);
+    }
+
+    public function test_a_time_slot_can_use_an_explicit_term_scoped_weekly_rule(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update([
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
+        $timetable->refresh();
+        $tuesday = Weekday::query()->where('name', 'Tuesday')->firstOrFail();
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->assertSee('Add a time slot')
+            ->assertSee('Change schedule')
+            ->assertDontSee('On these weekdays')
+            ->set('startTime', '01:00')
+            ->set('stopTime', '02:00')
+            ->set('slotRecurrence', 'weekly')
+            ->set('slotRecurrenceInterval', 2)
+            ->set('slotStartsOn', '2030-09-24')
+            ->set('slotWeekdayIds', [$tuesday->id])
+            ->call('addTimeSlot')
+            ->assertHasNoErrors()
+            ->assertSee('01:00')
+            ->assertSee('Every 2 weeks on Tuesday');
+
+        $slot = $timetable->timeSlots()->firstOrFail();
+
+        $this->assertSame('2030-09-24', $slot->starts_on?->toDateString());
+        $this->assertSame(2, $slot->recurrence_interval);
+        $this->assertSame([$tuesday->id], $slot->recurrence_weekdays);
+        $this->assertTrue($slot->occursOn('2030-09-24', $tuesday->id));
+        $this->assertFalse($slot->occursOn('2030-10-01', $tuesday->id));
+        $this->assertTrue($slot->occursOn('2030-10-08', $tuesday->id));
+    }
+
+    public function test_a_time_slot_can_repeat_monthly_from_a_specific_day(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update([
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
+        $timetable->refresh();
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->set('startTime', '01:00')
+            ->set('stopTime', '02:00')
+            ->set('slotRecurrence', 'monthly')
+            ->set('slotStartsOn', '2030-09-24')
+            ->call('addTimeSlot')
+            ->assertHasNoErrors();
+
+        $slot = $timetable->timeSlots()->firstOrFail();
+
+        $this->assertTrue($slot->occursOn('2030-10-24'));
+        $this->assertFalse($slot->occursOn('2030-10-23'));
     }
 
     // test unauthorized user can't view edit timetable
@@ -67,37 +755,49 @@ class TimetableTest extends TestCase
             ->assertOk();
     }
 
-    // test unauthorized user can't update timetable
-
-    public function test_unauthorized_user_cant_update_timetable()
-    {
-        $this->unauthorized_user()
-            ->patch('/dashboard/timetables/1', [
-                'name'        => 'Test timetable',
-                'my_class_id' => 1,
-                'description' => 'Test timetable description',
-            ])->assertForbidden();
-    }
-
-    // test authorized user can update timetable
-
-    public function test_user_can_update_timetable()
+    public function test_unauthorized_user_cant_update_timetable(): void
     {
         $timetable = Timetable::factory()->create();
+        $this->unauthorized_user();
 
-        $this->authorized_user(['update timetable'])
-            ->patch("/dashboard/timetables/$timetable->id", [
-                'name'        => 'Test timetable',
-                'my_class_id' => 1,
-                'description' => 'Test timetable description',
-            ]);
+        Livewire::test(EditTimetableForm::class, ['timetable' => $timetable])->assertForbidden();
+    }
+
+    public function test_user_can_update_timetable(): void
+    {
+        $timetable = Timetable::factory()->create();
+        $this->authorized_user(['update timetable', 'read timetable']);
+
+        Livewire::test(EditTimetableForm::class, ['timetable' => $timetable])
+            ->assertSet('name', $timetable->name)
+            ->set('name', '  Test timetable  ')
+            ->set('description', '')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('timetables.show', $timetable));
 
         $this->assertDatabaseHas('timetables', [
-            'id'          => $timetable->id,
-            'name'        => 'Test timetable',
-            'my_class_id' => 1,
-            'description' => 'Test timetable description',
+            'id' => $timetable->id,
+            'name' => 'Test timetable',
+            'academic_cycle_section_id' => $timetable->academic_cycle_section_id,
+            'description' => null,
         ]);
+    }
+
+    public function test_a_timetable_published_while_the_edit_page_was_open_is_not_changed(): void
+    {
+        $timetable = Timetable::factory()->create();
+        $this->authorized_user(['update timetable']);
+        $component = Livewire::test(EditTimetableForm::class, ['timetable' => $timetable]);
+
+        Timetable::query()->whereKey($timetable->id)->update(['status' => TimetableStatus::Published]);
+
+        $component->set('name', 'Renamed')
+            ->call('save')
+            ->assertHasErrors(['name' => 'This timetable was published, so it can no longer be edited.'])
+            ->assertNoRedirect();
+
+        $this->assertSame($timetable->name, $timetable->fresh()->name);
     }
 
     // test unauthorized user can't delete timetable
@@ -119,11 +819,22 @@ class TimetableTest extends TestCase
             ->delete("/dashboard/timetables/$timetable->id");
 
         $this->assertDatabaseMissing('timetables', [
-            'id'          => $timetable->id,
-            'name'        => $timetable->name,
-            'my_class_id' => $timetable->my_class_id,
+            'id' => $timetable->id,
+            'name' => $timetable->name,
+            'academic_cycle_section_id' => $timetable->academic_cycle_section_id,
             'description' => $timetable->description,
         ]);
+    }
+
+    public function test_an_archived_timetable_is_not_deleted(): void
+    {
+        $timetable = Timetable::factory()->create(['status' => TimetableStatus::Archived]);
+
+        $this->authorized_user(['delete timetable'])
+            ->delete("/dashboard/timetables/$timetable->id")
+            ->assertForbidden();
+
+        $this->assertModelExists($timetable);
     }
 
     // test unauthorized user can view manage timetable
@@ -144,92 +855,151 @@ class TimetableTest extends TestCase
             ->assertOk();
     }
 
-    // test unauthorized user cannot store timetable time slot
-
-    public function test_unauthorized_user_cant_store_timetable_time_slot()
-    {
-        $this->unauthorized_user()
-            ->post('/dashboard/timetables/manage/time-slots', [
-                'start_time' => '10:00',
-                'stop_time'  => '11:00',
-            ])->assertForbidden();
-    }
-
-    // test authorized user can store timetable time slot
-
-    public function test_authorized_user_can_store_timetable_time_slot()
+    public function test_authorized_user_can_manage_a_draft_for_a_scheduled_period(): void
     {
         $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update(['status' => AcademicPeriodStatus::Scheduled]);
 
         $this->authorized_user(['update timetable'])
-            ->post('/dashboard/timetables/manage/time-slots', [
-                'start_time'   => '10:00',
-                'stop_time'    => '11:00',
-                'timetable_id' => $timetable->id,
-            ]);
-
-        $this->assertDatabaseHas('timetable_time_slots', [
-            'timetable_id' => $timetable->id,
-            'start_time'   => '10:00:00',
-            'stop_time'    => '11:00:00',
-        ]);
+            ->get(route('timetables.manage', $timetable))
+            ->assertOk();
     }
 
-    // test unatuorized user cannot delete timetable time slot
-
-    public function test_unauthorized_user_cant_delete_timetable_time_slot()
+    public function test_the_builder_removes_a_time_slot_of_its_own_timetable(): void
     {
-        $timeslot = TimetableTimeSlot::factory()->create();
-        $this->unauthorized_user()
-            ->delete("/dashboard/timetables/manage/time-slots/$timeslot->id")
-            ->assertForbidden();
+        [$timetable, $slot] = $this->timetableWithOneSlot();
+        $otherSlot = TimetableTimeSlot::factory()->create();
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->call('removeTimeSlot', $otherSlot->id)
+            ->call('removeTimeSlot', $slot->id)
+            ->assertHasNoErrors();
+
+        $this->assertModelMissing($slot);
+        $this->assertModelExists($otherSlot);
     }
 
-    // test authorized user can delete timetable time slot
-
-    public function test_authorized_user_can_delete_timetable_time_slot()
+    public function test_the_builder_shows_the_add_time_slot_button(): void
     {
-        $timeslot = TimetableTimeSlot::factory()->create();
-        $this->authorized_user(['update timetable'])
-            ->delete("/dashboard/timetables/manage/time-slots/$timeslot->id");
+        [$timetable] = $this->timetableWithOneSlot();
 
-        $this->assertDatabaseMissing('timetable_time_slots', [
-            'id'           => $timeslot->id,
-            'timetable_id' => $timeslot->timetable_id,
-            'start_time'   => "$timeslot->start_time:00",
-            'stop_time'    => "$timeslot->stop_time:00",
-        ]);
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->assertSeeHtml('wire:click="openTimeSlotDialog"')
+            ->call('openTimeSlotDialog')
+            ->assertSet('showTimeSlotDialog', true);
     }
 
-    // test unauthorized user cannot create timetable record
-
-    public function test_unauthorized_user_cannot_create_timetable_record()
+    public function test_the_classic_timetable_write_routes_are_gone(): void
     {
-        $timeslot = TimetableTimeSlot::factory()->create();
-        $this->unauthorized_user()
-            ->post("/dashboard/timetables/manage/time-slots/$timeslot->id/record/create", [
-                'type'       => 'subject',
-                'weekday_id' => '1',
-                'id'         => 1,
-            ])->assertForbidden();
+        $slot = TimetableTimeSlot::factory()->create();
+        $this->authorized_user(['create timetable', 'update timetable']);
+
+        $this->post('/dashboard/timetables', ['name' => 'Posted'])->assertStatus(405);
+        $this->post('/dashboard/timetables/manage/time-slots', ['start_time' => '10:00', 'stop_time' => '11:00', 'timetable_id' => $slot->timetable_id])->assertNotFound();
+        $this->delete("/dashboard/timetables/manage/time-slots/$slot->id")->assertNotFound();
+
+        $this->assertModelExists($slot);
+        $this->assertFalse(Route::has('timetables.store'));
+        $this->assertFalse(Route::has('time-slots.store'));
+        $this->assertFalse(Route::has('time-slots.destroy'));
     }
 
-    // test authorized user can create timetable record
-
-    public function test_authorized_user_can_create_timetable_record()
+    public function test_the_builder_puts_this_schools_subject_and_room_in_a_cell(): void
     {
-        $timeslot = TimetableTimeSlot::factory()->create();
-        $this->authorized_user(['update timetable'])
-            ->post("/dashboard/timetables/manage/time-slots/$timeslot->id/record/create", [
-                'type'       => 'subject',
-                'weekday_id' => '1',
-                'id'         => '1',
-            ])->assertRedirect();
+        [$timetable, $slot, $weekday] = $this->timetableWithOneSlot();
+        $schoolId = $timetable->academicPeriod->school_id;
+        $subject = Subject::factory()->create(['school_id' => $schoolId]);
+        $room = Facility::factory()->create(['school_id' => $schoolId, 'kind' => FacilityKind::Classroom]);
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->call('selectCell', $slot->id, $weekday->id)
+            ->set('facilityId', $room->id)
+            ->call('assign', 'subject', $subject->id)
+            ->assertHasNoErrors();
 
         $this->assertDatabaseHas('timetable_time_slot_weekday', [
-            'timetable_time_slot_id'             => $timeslot->id,
-            'weekday_id'                         => 1,
-            'timetable_time_slot_weekdayable_id' => 1,
+            'timetable_time_slot_id' => $slot->id,
+            'weekday_id' => $weekday->id,
+            'timetable_time_slot_weekdayable_id' => $subject->id,
+            'facility_id' => $room->id,
         ]);
+    }
+
+    public function test_the_builder_refuses_another_schools_subject_or_item(): void
+    {
+        [$timetable, $slot, $weekday] = $this->timetableWithOneSlot();
+        $elsewhere = School::factory()->create();
+        $subject = Subject::factory()->create(['school_id' => $elsewhere->id]);
+        $item = CustomTimetableItem::factory()->create(['school_id' => $elsewhere->id]);
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->call('selectCell', $slot->id, $weekday->id)
+            ->call('assign', 'subject', $subject->id)
+            ->assertHasErrors('timetable')
+            ->call('assign', 'customTimetableItem', $item->id)
+            ->assertHasErrors('timetable');
+
+        $this->assertDatabaseMissing('timetable_time_slot_weekday', ['timetable_time_slot_id' => $slot->id]);
+    }
+
+    public function test_the_builder_refuses_another_schools_room_or_a_closed_room(): void
+    {
+        [$timetable, $slot, $weekday] = $this->timetableWithOneSlot();
+        $schoolId = $timetable->academicPeriod->school_id;
+        $subject = Subject::factory()->create(['school_id' => $schoolId]);
+        $theirRoom = Facility::factory()->create(['school_id' => School::factory()->create()->id, 'kind' => FacilityKind::Classroom]);
+        $closedRoom = Facility::factory()->create(['school_id' => $schoolId, 'kind' => FacilityKind::Classroom, 'is_active' => false]);
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->call('selectCell', $slot->id, $weekday->id)
+            ->set('facilityId', $theirRoom->id)
+            ->call('assign', 'subject', $subject->id)
+            ->assertHasErrors('timetable')
+            ->set('facilityId', $closedRoom->id)
+            ->call('assign', 'subject', $subject->id)
+            ->assertHasErrors('timetable');
+
+        $this->assertDatabaseMissing('timetable_time_slot_weekday', ['timetable_time_slot_id' => $slot->id]);
+    }
+
+    public function test_a_lesson_in_a_room_taken_out_of_use_is_a_conflict(): void
+    {
+        [$timetable, $slot, $weekday] = $this->timetableWithOneSlot();
+        $schoolId = $timetable->academicPeriod->school_id;
+        $subject = Subject::factory()->create(['school_id' => $schoolId]);
+        $room = Facility::factory()->create(['school_id' => $schoolId, 'kind' => FacilityKind::Classroom, 'name' => 'Lab 2']);
+        app(TimeSlotService::class)->placeRecord($slot, $weekday->id, 'subject', $subject->id, $room->id);
+
+        $this->assertNotContains('Lab 2 is out of use. Move its lessons to another room.', app(TimetableConflictChecker::class)->conflicts($timetable));
+
+        app(ManageFacility::class)->retire($room);
+
+        $this->assertContains('Lab 2 is out of use. Move its lessons to another room.', app(TimetableConflictChecker::class)->conflicts($timetable));
+    }
+
+    public function test_the_old_record_route_is_gone(): void
+    {
+        $slot = TimetableTimeSlot::factory()->create();
+
+        $this->authorized_user(['update timetable'])
+            ->post("/dashboard/timetables/manage/time-slots/$slot->id/record/create", [
+                'type' => 'subject',
+                'weekday_id' => 1,
+                'id' => 1,
+            ])->assertNotFound();
+
+        $this->assertFalse(Route::has('timetables.records.create'));
+    }
+
+    /**
+     * @return array{0: Timetable, 1: TimetableTimeSlot, 2: Weekday}
+     */
+    private function timetableWithOneSlot(): array
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+        $slot = TimetableTimeSlot::factory()->create(['timetable_id' => $timetable->id]);
+
+        return [$timetable, $slot, Weekday::query()->firstOrFail()];
     }
 }

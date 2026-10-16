@@ -1,0 +1,82 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Livewire\ListStudentsTable;
+use App\Models\StudentRecord;
+use App\Traits\FeatureTestTrait;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class ResourceIndexActionTest extends TestCase
+{
+    use FeatureTestTrait;
+    use RefreshDatabase;
+
+    public function test_a_resource_index_shows_its_authorized_create_action(): void
+    {
+        $this->authorized_user(['read student', 'create student'])
+            ->get(route('students.index'))
+            ->assertOk()
+            ->assertSee('Add student')
+            ->assertSee('No students yet')
+            ->assertSee('data-slot="data-table"', false)
+            ->assertSee('Search rows...')
+            ->assertSee('Admission #')
+            ->assertSee('data-resource-create-action="'.route('students.create').'"', false);
+    }
+
+    public function test_a_resource_index_hides_its_create_action_without_the_create_ability(): void
+    {
+        $this->authorized_user(['read student'])
+            ->get(route('students.index'))
+            ->assertOk()
+            ->assertDontSee('data-resource-create-action="'.route('students.create').'"', false);
+    }
+
+    public function test_resource_table_delete_actions_name_the_record_they_remove(): void
+    {
+        $this->authorized_user(['read student', 'delete student'])
+            ->get(route('students.index'))
+            ->assertOk()
+            ->assertSee('window.confirm(', false)
+            ->assertSee('(row.name)', false)
+            ->assertDontSee('Delete this student?');
+    }
+
+    public function test_the_shared_status_display_renders_a_session_message(): void
+    {
+        $this->authorized_user(['read student']);
+
+        $this->withSession(['success' => 'The student was saved.'])
+            ->get(route('students.index'))
+            ->assertOk()
+            ->assertSee('The student was saved.', false)
+            ->assertSee('id="status-display"', false)
+            ->assertSee('top-4 z-[60]', false)
+            ->assertSee('border-slate-700 bg-slate-950', false)
+            ->assertSee('text-white shadow-lg', false)
+            ->assertSee('border-red-400/70', false);
+    }
+
+    public function test_the_student_table_searches_rows_on_the_server(): void
+    {
+        $matchingStudent = StudentRecord::factory()->create();
+        $matchingStudent->user->update(['name' => 'Ada Lovelace']);
+
+        $otherStudent = StudentRecord::factory()->create();
+        $otherStudent->user->update(['name' => 'Grace Hopper']);
+
+        $this->authorized_user(['read student']);
+
+        Livewire::test(ListStudentsTable::class)
+            ->call('updateTable', [
+                'search' => 'Ada',
+                'perPage' => 10,
+                'page' => 1,
+            ])
+            ->assertSee('Ada Lovelace')
+            ->assertDontSee('Grace Hopper');
+    }
+}

@@ -3,15 +3,21 @@
 namespace App\Enums;
 
 /**
- * The access profiles every school starts with.
- *
- * A role is a permission template that a school can rename, edit, or archive.
- * Business rules must read permissions, not these names. Use this enum only
- * where the application still needs to name a built-in profile, so the names
- * stay in one place while that code moves to permissions.
+ * Built-in role names for seeding and compatibility checks.
+ * Enforce operational access through permissions.
  */
 enum Role: string
 {
+    /**
+     * Administers the platform through globally-scoped permissions.
+     */
+    case PlatformAdmin = 'platform-admin';
+
+    /**
+     * Manages an organization, subject to an active organization membership.
+     */
+    case OrganizationAdmin = 'organization-admin';
+
     /**
      * Runs one school.
      */
@@ -33,15 +39,25 @@ enum Role: string
     case Parent = 'parent';
 
     /**
-     * Get the label to show in the interface.
+     * Check whether this role is assigned in the system scope rather than a school.
      */
+    public function isSystemScoped(): bool
+    {
+        return match ($this) {
+            self::PlatformAdmin, self::OrganizationAdmin => true,
+            default => false,
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {
-            self::Admin   => 'Administrator',
+            self::PlatformAdmin => 'Platform Administrator',
+            self::OrganizationAdmin => 'Organization Administrator',
+            self::Admin => 'Administrator',
             self::Teacher => 'Teacher',
             self::Student => 'Student',
-            self::Parent  => 'Parent',
+            self::Parent => 'Parent',
         };
     }
 }

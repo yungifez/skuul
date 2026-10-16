@@ -2,18 +2,124 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\InteractsWithAprilTable;
+use App\Models\User;
+use App\Services\Student\StudentService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\MessageBag;
-use Livewire\Component;
+use Illuminate\View\View;
+use Yungifez\AprilUI\Livewire\Columns\Column;
+use Yungifez\AprilUI\Livewire\DataTableComponent;
 
-class ListStudentsTable extends Component
+class ListStudentsTable extends DataTableComponent
 {
-    public function mount()
+    use InteractsWithAprilTable;
+
+    public function mount(): void
     {
-        $this->setErrorBag(session()->get('errors', new MessageBag())->getMessages());
+        parent::mount();
+
+        $this->setErrorBag(session()->get('errors', new MessageBag)->getMessages());
     }
 
-    public function render()
+    /**
+     * @return Builder<User>
+     */
+    protected function builder(): Builder
     {
-        return view('livewire.list-students-table');
+        $query = User::query()
+            ->students()
+            ->ofSchool()
+            ->enrolledStudents()
+            ->with('studentRecord.academicCycleSection.academicLevel');
+
+        if (auth()->user()->readsLearnersOnlyAsGuardian()) {
+            $query->whereRelation('parents', 'parent_records.user_id', auth()->id());
+        }
+
+        return $query;
+    }
+
+    /**
+     * @return array<int, Column>
+     */
+    protected function columns(): array
+    {
+        return [
+            Column::make('Name', 'name')->searchable()->sortable(),
+            Column::make('Email', 'email')->searchable()->sortable(),
+            Column::make('Admission #', 'student_record.admission_number')->searchable(function (Builder $query, string $term): void {
+                $query->orWhereHas('studentRecord', function (Builder $studentRecord) use ($term): void {
+                    $studentRecord->where('admission_number', 'like', "%{$term}%");
+                });
+            }),
+            Column::make(school_term('class_level', 'Class'), 'student_record.academic_cycle_section.academic_level.name'),
+            Column::make(school_term('section', 'Section'), 'student_record.academic_cycle_section.name'),
+            Column::make('Enrollment', 'student_record.status'),
+            Column::make('Account', 'account_status'),
+        ];
+    }
+
+    /**
+     * @return array{field: string, direction: string}
+     */
+    protected function defaultSort(): ?array
+    {
+        return ['field' => 'name', 'direction' => 'asc'];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    protected function serializeRows(Collection $rows): array
+    {
+        return $rows->map(function (User $student): array {
+            $row = $student->toArray();
+            $row['view_url'] = route('students.show', $student);
+            $row['manage_url'] = route('students.edit', $student);
+
+            return $row;
+        })->values()->all();
+    }
+
+    /**
+     * Delete one active student of this school.
+     *
+     * Their invoices and results stay.
+     */
+    public function deleteStudent(int $userId, StudentService $students): void
+    {
+        $student = $this->builder()->findOrFail($userId);
+        Gate::authorize('delete', [$student, 'student']);
+
+        $this->changeRow(fn () => $students->deleteStudent($student), $student->keepsAccountWhenRemovedHere() ? "{$student->name} was removed from this school." : "{$student->name} was deleted.");
+    }
+
+    public function render(): View
+    {
+        $rows = $this->rows();
+        $columns = $this->columns();
+
+        return view('livewire.list-students-table', [
+            'columns' => $this->columnDefinitions(),
+            'data' => $this->serializeRows(collect($rows->items())),
+            'pagination' => [
+                'mode' => 'controlled',
+                'page' => $rows->currentPage(),
+                'perPage' => $rows->perPage(),
+                'total' => $rows->total(),
+                'search' => $this->search,
+                'sort' => $this->sort ? ['key' => $this->sort, 'direction' => $this->direction] : null,
+            ],
+            'id' => $this->tableId(),
+            'perPageOptions' => $this->perPageOptions,
+            'rowKey' => $this->primaryKey(),
+            'searchable' => collect($columns)->contains(fn (Column $column): bool => $column->isSearchable()),
+            'canManageStudents' => auth()->user()->can('update student'),
+            'canDeleteStudents' => auth()->user()->can('delete student'),
+            'readsAsGuardian' => auth()->user()->readsLearnersOnlyAsGuardian(),
+        ]);
     }
 }

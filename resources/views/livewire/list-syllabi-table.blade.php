@@ -1,35 +1,6 @@
-<div class="card">
-    <div class="card-header">
-        <div class="card-title">Syllabi List</div>
-    </div>
-    <div class="card-body">
-        @if (!auth()->user()->hasRole(\App\Enums\Role::Student))
-            <x-select id="my_class" label="Select a class to see syllabus"  group-class="my-6 md:w-1/2" name="" wire:model.live="class">
-                @foreach ($classes as $item)
-                    <option value="{{$item['id']}}">{{$item['name']}}</option>
-                @endforeach
-            </x-select>
-    
-        @endif
-
-        @isset($class)
-        <div  wire:loading.remove.delay>
-            <livewire:datatable unique_id="list-sylabii-table" :wire:key="Str::Random(10)" :model="App\Models\MyClass::class"
-            :filters="[
-                ['name' => 'find' ,'arguments' => [ $class]],
-                ['name' => 'syllabi'],
-                ['name' => 'where' , 'arguments' =>[ 'semester_id' , current_school()->semester_id]]
-            ]"
-            :columns="[
-                ['property' => 'name'],
-                ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'syllabi.show', 'text' => 'View', 'icon' => 'fas fa-eye', 'can' => 'read syllabus'],
-                ]],
-                ['type' => 'delete', 'name' => 'Delete', 'action' => 'syllabi.destroy', 'can' => 'delete syllabus']
-            ]"
-            />
-        </div>
-    @endisset
-        <x-loading-spinner/>
-    </div>
-</div>
+<april:card><slot:title>Syllabi</slot:title><slot:description>Weekly teaching plans for each course offering. Only the published revision reaches students.</slot:description><slot:content><div wire:key="{{ $id }}-{{ $this->tableRevision }}"><april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)"><slot:empty><div class="space-y-1"><p class="font-medium text-foreground">No syllabi yet</p><p>Upload a syllabus for a specific offering.</p></div></slot:empty><slot:actions>
+    <x-table-actions :items="array_filter([
+        $canReadSyllabi ? ['label' => 'View syllabus', 'icon' => 'eye', 'url' => 'view_url'] : null,
+        $canDeleteSyllabi ? ['label' => 'Delete syllabus', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete the draft :name?', 'names' => 'row.name', 'when' => 'row.can_delete'] : null,
+    ])" />
+</slot:actions></april:data-table></div></slot:content></april:card>

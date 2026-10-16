@@ -16,9 +16,9 @@ class ParentRecord extends Model
     /**
      * Get the user that owns the StudentRecord.
      *
-     * @return BelongsTo
+     * @return BelongsTo<User, $this>
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
@@ -26,10 +26,22 @@ class ParentRecord extends Model
     /**
      * The students that belong to the ParentRecord.
      *
-     * @return BelongsToMany
+     * @return BelongsToMany<User, $this>
      */
-    public function students()
+    public function students(): BelongsToMany
     {
         return $this->belongsToMany(User::class);
+    }
+
+    /**
+     * The linked students who are enrolled at the school being worked in.
+     *
+     * A guardian can have children at other schools. Those stay out of view.
+     *
+     * @return BelongsToMany<User, $this>
+     */
+    public function studentsInSchool(): BelongsToMany
+    {
+        return $this->students()->whereIn('users.id', StudentRecord::query()->inSchool()->select('user_id'));
     }
 }

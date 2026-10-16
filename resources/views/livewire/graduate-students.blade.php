@@ -1,84 +1,45 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Graduate student </h4>
-    </div>
-    <div class="card-body">
-        <x-display-validation-errors/>
-        <form wire:submit="loadStudents" class="md:grid grid-cols-2 gap-4">
-            <x-select id="class" name="class" label="Class" wire:model.live="class" >
-                @foreach ($classes as $class)
-                    <option value="{{$class['id']}}">{{$class['name']}}</option>
+@php
+    $controlClasses = 'mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+    $sectionWord = strtolower(school_term('section', 'section'));
+@endphp
+<div class="space-y-6">
+    <form wire:submit="loadStudents" class="grid gap-4 md:grid-cols-3">
+        <div class="md:col-span-2">
+            <label for="graduation-section" class="text-sm text-muted-foreground">{{ school_term('section', 'Section') }}</label>
+            <select id="graduation-section" wire:model.live="academicCycleSectionId" class="{{ $controlClasses }}" {{ field_error_bindings('academicCycleSectionId') }}>
+                <option value="">Choose {{ with_indefinite_article($sectionWord) }}</option>
+                @foreach ($cycleSections as $cycleSection)
+                    <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
                 @endforeach
-            </x-select>
-            <x-select id="section" name="section" label="Section" wire:init="loadInitialSections" wire:model.live="section" >
-                @isset($sections)
-                    @foreach ($sections as $item)
-                        <option value="{{$item['id']}}">{{$item['name']}}</option>
-                    @endforeach
-                @endisset
-            </x-select>
-           
-            <x-button label="Fetch students" icon="fas fa-paper-plane" type="submit" class="w-full md:w-6/12"/>
-        </form>
-        <div wire:loading.remove.delay>
-            @if (isset($students))
-                @if ($students->count() > 0)
-                    <form ction="{{route('students.graduate')}}" method="post" class=" my-3 p-3">
-                        <div class="overflow-scroll beautify-scrollbar w-full">
-                            <div class="grid grid-cols-1 lg:grid-cols-2 p-4 gap-4">
-                                <x-button label="Set All To Graduate" @click="setAllSelectsToGraduate()" type="button"/>
-                                <x-button label="Set All To Don't Graduate" @click="setAllSelectsToDontGraduate()" type="button"/>
-                            </div>
-                            <table class="border w-full">
-                                <thead>
-                                    <th class="p-2 border">Student</th>
-                                    <th class="p-2 border">Choose Action</th>
-                                </thead>
-                                <tbody>
-                                    @foreach ($students as $student)
-                                        <tr>
-                                            <td class="border p-2 whitespace-nowrap">{{$student->name}}</td>
-                                            <td class="border p-2">
-                                                <x-select name="student_id[]" id="student-{{$student->id}}" class="graduate">
-                                                    <option value="{{$student['id']}}">Graduate</option>
-                                                    <option value="">Dont graduate</option>
-                                                </x-select>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        @csrf
-                        <x-button label="Graduate students" class="w-full md:w-3/12 " icon="fas fa-key" type="submit"/>
-                    </form> 
-                @else
-                    <x-alert title="Danger" id="{{Str::random('10')}}" class="my-2" wire:key="{{Str::random('10')}}">
-                        <p>No students found</p>
-                    </x-alert>
-                @endif
-            @endif
+            </select>
+            <x-field-error name="academicCycleSectionId" class="mt-1" />
         </div>
-    </div>
+        <div class="flex items-end">
+            <april:button type="submit" variant="outline" class="h-11 w-full select-none md:w-auto" wire:loading.attr="disabled" wire:target="loadStudents">Review learners</april:button>
+        </div>
+    </form>
+
+    @if ($students !== [])
+        <form wire:submit="graduate" class="space-y-4">
+            <h2 class="text-base font-semibold">Learners to graduate</h2>
+            <ul class="divide-y border-y">
+                @foreach ($students as $student)
+                    <li wire:key="graduation-student-{{ $student['id'] }}">
+                        <label class="flex min-h-11 select-none items-center gap-3 py-2 text-sm">
+                            <input type="checkbox" wire:model="selectedStudentIds" value="{{ $student['id'] }}" class="size-4 rounded border-input">
+                            <span class="min-w-0 flex-1 truncate font-medium">{{ $student['name'] }}</span>
+                            <span class="shrink-0 text-muted-foreground">{{ $student['admission_number'] ?? '—' }}</span>
+                        </label>
+                    </li>
+                @endforeach
+            </ul>
+            <x-field-error name="selectedStudentIds" />
+            <div>
+                <label for="graduation-reason" class="text-sm text-muted-foreground">Note for the record (optional)</label>
+                <input id="graduation-reason" type="text" maxlength="255" wire:model="reason" placeholder="Completed the final year" class="{{ $controlClasses }}" {{ field_error_bindings('reason') }}>
+                <x-field-error name="reason" class="mt-1" />
+            </div>
+            <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="graduate" wire:confirm="Graduate the selected learners now? They leave the student lists.">Graduate selected learners</april:button>
+        </form>
+    @endif
 </div>
-
-@push('scripts')
-
-<script>
-    function setAllSelectsToDontGraduate() {
-        let selects = document.getElementsByClassName('graduate');
-        for (let i = 0; i < selects.length; i++) {
-            selects[i].selectedIndex = 1;
-        }
-    }
-
-    function setAllSelectsToGraduate() {
-        let selects = document.getElementsByClassName('graduate');
-        for (let i = 0; i < selects.length; i++) {
-            selects[i].selectedIndex = 0;
-        }
-    }
-</script>
-
-@endpush
-

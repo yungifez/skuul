@@ -18,14 +18,18 @@ class SchoolSetRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array
      */
     public function rules()
     {
+        return self::schoolRules();
+    }
+
+    /** @return array<string, string> */
+    public static function schoolRules(): array
+    {
         return [
-            'school_id' => 'required:int',
+            'school_id' => 'required|integer|exists:schools,id',
         ];
     }
 }

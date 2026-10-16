@@ -3,23 +3,40 @@
 namespace Tests\Feature;
 
 use App\Actions\School\GrantSchoolMembership;
+use App\Enums\AdmissionWaitlistStatus;
+use App\Enums\Feature;
+use App\Livewire\AcademicCycleSectionForm;
+use App\Livewire\AcademicLevelForm;
+use App\Livewire\BoardingRollSheet;
+use App\Livewire\EditCustomTimetableItemForm;
+use App\Livewire\EditExamForm;
+use App\Livewire\EditTimetableForm;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
-use App\Models\ClassGroup;
+use App\Models\AdmissionWaitlistEntry;
+use App\Models\BoardingResidence;
+use App\Models\BoardingRoll;
+use App\Models\Cohort;
+use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
+use App\Models\Dormitory;
 use App\Models\Exam;
-use App\Models\ExamSlot;
 use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
-use App\Models\GradeSystem;
-use App\Models\MyClass;
+use App\Models\ImportBatch;
+use App\Models\Incident;
 use App\Models\Notice;
+use App\Models\Program;
 use App\Models\Promotion;
 use App\Models\School;
-use App\Models\Section;
-use App\Models\Semester;
+use App\Models\StaffProfile;
+use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
 use App\Models\Subject;
+use App\Models\SupportPlan;
 use App\Models\Syllabus;
 use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
@@ -27,6 +44,7 @@ use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -65,28 +83,87 @@ class CrossSchoolAccessTest extends TestCase
     public static function schoolOwnedResources(): array
     {
         return [
-            'academic year'         => ['academicYear', 'dashboard/academic-years/%d', ['academic year']],
-            'class group'           => ['classGroup', 'dashboard/class-groups/%d', ['class group']],
-            'class'                 => ['myClass', 'dashboard/classes/%d', ['class']],
-            'section'               => ['section', 'dashboard/sections/%d', ['section']],
-            'semester'              => ['semester', 'dashboard/semesters/%d', ['semester']],
-            'subject'               => ['subject', 'dashboard/subjects/%d', ['subject']],
-            'syllabus'              => ['syllabus', 'dashboard/syllabi/%d', ['syllabus']],
-            'exam'                  => ['exam', 'dashboard/exams/%d', ['exam']],
-            'grade system'          => ['gradeSystem', 'dashboard/grade-systems/%d', ['grade system']],
-            'notice'                => ['notice', 'dashboard/notices/%d', ['notice']],
+            'academic year' => ['academicYear', 'dashboard/academic-years/%d', ['academic year']],
+            'subject' => ['subject', 'dashboard/subjects/%d', ['subject']],
+            'syllabus' => ['syllabus', 'dashboard/syllabi/%d', ['syllabus']],
+            'exam' => ['exam', 'dashboard/exams/%d', ['exam']],
+            'notice' => ['notice', 'dashboard/notices/%d', ['notice']],
             'custom timetable item' => ['customTimetableItem', 'dashboard/custom-timetable-items/%d', ['custom timetable item']],
-            'fee category'          => ['feeCategory', 'dashboard/fees/fee-categories/%d', ['fee category']],
-            'fee'                   => ['fee', 'dashboard/fees/%d', ['fee']],
-            'fee invoice'           => ['feeInvoice', 'dashboard/fees/fee-invoices/%d', ['fee invoice']],
-            'timetable'             => ['timetable', 'dashboard/timetables/%d', ['timetable']],
+            'fee category' => ['feeCategory', 'dashboard/fees/fee-categories/%d', ['fee category']],
+            'fee' => ['fee', 'dashboard/fees/%d', ['fee']],
+            'fee invoice' => ['feeInvoice', 'dashboard/fees/fee-invoices/%d', ['fee invoice']],
+            'timetable' => ['timetable', 'dashboard/timetables/%d', ['timetable']],
         ];
     }
 
     /**
-     * @param array<int, string> $subjects
+     * The academic year, custom timetable item, exam, fee invoice and timetable screens save through Livewire, so they
+     * no longer expose a generic update endpoint.
+     *
+     * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
      */
-    #[DataProvider('schoolOwnedResources')]
+    public static function schoolOwnedUpdatableResources(): array
+    {
+        return array_filter(
+            self::schoolOwnedResources(),
+            static fn (array $resource, string $key): bool => !in_array($key, ['academic year', 'custom timetable item', 'exam', 'fee invoice', 'timetable', 'subject', 'notice', 'fee category', 'fee'], true),
+            ARRAY_FILTER_USE_BOTH,
+        );
+    }
+
+    /**
+     * The records that still open a page of their own. An exam is read in its
+     * table and opened only through its edit page.
+     *
+     * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
+     */
+    public static function schoolOwnedReadableResources(): array
+    {
+        return array_diff_key(self::schoolOwnedResources(), array_flip(['exam']));
+    }
+
+    /**
+     * The records that still open a classic edit page.
+     *
+     * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
+     */
+    public static function schoolOwnedEditableResources(): array
+    {
+        return array_diff_key(self::schoolOwnedResources(), array_flip(['notice']));
+    }
+
+    /**
+     * The records a table deletes through Livewire, which has no delete route.
+     *
+     * @return array<int, string>
+     */
+    private static function livewireDeletedResources(): array
+    {
+        return ['subject', 'notice', 'custom timetable item', 'fee category', 'fee', 'fee invoice'];
+    }
+
+    /**
+     * The records that still take a classic delete request.
+     *
+     * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
+     */
+    public static function schoolOwnedDeletableResources(): array
+    {
+        return array_diff_key(self::schoolOwnedResources(), array_flip([...self::livewireDeletedResources(), 'exam']));
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
+     */
+    public static function livewireDeletedSchoolOwnedResources(): array
+    {
+        return array_intersect_key(self::schoolOwnedResources(), array_flip(self::livewireDeletedResources()));
+    }
+
+    /**
+     * @param  array<int, string>  $subjects
+     */
+    #[DataProvider('schoolOwnedReadableResources')]
     public function test_a_record_of_another_school_cannot_be_read(string $key, string $uri, array $subjects): void
     {
         $this->actAsFullyPermittedUser($subjects)
@@ -95,9 +172,9 @@ class CrossSchoolAccessTest extends TestCase
     }
 
     /**
-     * @param array<int, string> $subjects
+     * @param  array<int, string>  $subjects
      */
-    #[DataProvider('schoolOwnedResources')]
+    #[DataProvider('schoolOwnedEditableResources')]
     public function test_a_record_of_another_school_cannot_be_edited(string $key, string $uri, array $subjects): void
     {
         $this->actAsFullyPermittedUser($subjects)
@@ -106,9 +183,9 @@ class CrossSchoolAccessTest extends TestCase
     }
 
     /**
-     * @param array<int, string> $subjects
+     * @param  array<int, string>  $subjects
      */
-    #[DataProvider('schoolOwnedResources')]
+    #[DataProvider('schoolOwnedUpdatableResources')]
     public function test_a_record_of_another_school_cannot_be_updated(string $key, string $uri, array $subjects): void
     {
         $this->actAsFullyPermittedUser($subjects)
@@ -117,9 +194,9 @@ class CrossSchoolAccessTest extends TestCase
     }
 
     /**
-     * @param array<int, string> $subjects
+     * @param  array<int, string>  $subjects
      */
-    #[DataProvider('schoolOwnedResources')]
+    #[DataProvider('schoolOwnedDeletableResources')]
     public function test_a_record_of_another_school_cannot_be_deleted(string $key, string $uri, array $subjects): void
     {
         $this->actAsFullyPermittedUser($subjects)
@@ -132,23 +209,112 @@ class CrossSchoolAccessTest extends TestCase
         );
     }
 
-    public function test_an_exam_slot_of_another_school_cannot_be_read(): void
+    /**
+     * The table deletes these through Livewire, which scopes the lookup to
+     * the working school. No delete route is left to reach them.
+     *
+     * @param  array<int, string>  $subjects
+     */
+    #[DataProvider('livewireDeletedSchoolOwnedResources')]
+    public function test_a_record_deleted_through_its_table_has_no_delete_route(string $key, string $uri, array $subjects): void
     {
-        $exam = $this->records['exam'];
-        $slot = $this->records['examSlot'];
+        $this->actAsFullyPermittedUser($subjects)
+            ->delete($this->uriFor($uri, $key))
+            ->assertStatus(405);
 
-        $this->actAsFullyPermittedUser(['exam', 'exam slot'])
-            ->get("dashboard/exams/$exam->id/manage/exam-slots/$slot->id")
-            ->assertForbidden();
+        $this->assertDatabaseHas(
+            $this->records[$key]->getTable(),
+            ['id' => $this->records[$key]->id]
+        );
     }
 
-    public function test_a_timetable_time_slot_of_another_school_cannot_be_read(): void
+    /**
+     * The academic structure replaces classes and sections, so it stays covered.
+     *
+     * Neither resource offers a delete route, so only read, edit, and update
+     * are checked here instead of through the shared data provider.
+     *
+     * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
+     */
+    public static function academicStructureResources(): array
+    {
+        return [
+            'academic level' => ['academicLevel', 'dashboard/academic-levels/%d', ['class']],
+            'academic cycle section' => ['cycleSection', 'dashboard/academic-cycle-sections/%d', ['section']],
+        ];
+    }
+
+    /**
+     * @param  array<int, string>  $subjects
+     */
+    #[DataProvider('academicStructureResources')]
+    public function test_an_academic_structure_record_of_another_school_is_out_of_reach(string $key, string $uri, array $subjects): void
+    {
+        $actor = $this->actAsFullyPermittedUser($subjects);
+
+        $actor->get($this->uriFor($uri, $key))->assertForbidden();
+        $actor->get($this->uriFor($uri, $key).'/edit')->assertForbidden();
+
+        if (!in_array($key, ['academicLevel', 'cycleSection'], true)) {
+            $actor->put($this->uriFor($uri, $key), [])->assertForbidden();
+        }
+    }
+
+    public function test_an_academic_level_of_another_school_cannot_be_changed_through_its_form(): void
+    {
+        $this->actAsFullyPermittedUser(['class']);
+
+        Livewire::test(AcademicLevelForm::class, ['academicLevel' => $this->records['academicLevel']])->assertForbidden();
+    }
+
+    public function test_a_section_of_another_school_cannot_be_changed_through_its_form(): void
+    {
+        $this->actAsFullyPermittedUser(['section']);
+
+        Livewire::test(AcademicCycleSectionForm::class, ['academicCycleSection' => $this->records['cycleSection']])->assertForbidden();
+    }
+
+    public function test_an_academic_period_of_another_school_is_out_of_reach(): void
+    {
+        $actor = $this->actAsFullyPermittedUser(['academic period']);
+        $period = $this->records['academicPeriod'];
+
+        $actor->get("dashboard/academic-periods/$period->id/edit")->assertForbidden();
+        $actor->put("dashboard/academic-periods/$period->id", [])->assertForbidden();
+    }
+
+    public function test_an_exam_of_another_school_cannot_be_changed_through_its_form(): void
+    {
+        $this->actAsFullyPermittedUser(['exam']);
+
+        Livewire::test(EditExamForm::class, ['exam' => $this->records['exam']])->assertForbidden();
+    }
+
+    public function test_a_timetable_item_of_another_school_cannot_be_renamed_through_its_form(): void
+    {
+        $this->actAsFullyPermittedUser(['custom timetable item']);
+
+        Livewire::test(EditCustomTimetableItemForm::class, ['customTimetableItem' => $this->records['customTimetableItem']])->assertForbidden();
+    }
+
+    public function test_a_timetable_of_another_school_cannot_be_edited(): void
+    {
+        $this->actAsFullyPermittedUser(['timetable']);
+
+        Livewire::test(EditTimetableForm::class, ['timetable' => $this->records['timetable']])->assertForbidden();
+    }
+
+    /**
+     * Time slots are read and changed only inside the timetable builder, which
+     * is opened through its timetable. No route names a slot on its own.
+     */
+    public function test_a_timetable_time_slot_of_another_school_has_no_route(): void
     {
         $slot = $this->records['timetableTimeSlot'];
 
         $this->actAsFullyPermittedUser(['timetable'])
             ->get("dashboard/timetables/manage/time-slots/$slot->id")
-            ->assertForbidden();
+            ->assertNotFound();
     }
 
     public function test_a_promotion_of_another_school_cannot_be_read(): void
@@ -179,12 +345,92 @@ class CrossSchoolAccessTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_a_record_of_the_newer_domains_is_out_of_reach(): void
+    {
+        $enrollment = StudentRecord::where('school_id', $this->otherSchool->id)->firstOrFail();
+
+        $incident = Incident::create([
+            'school_id' => $this->otherSchool->id,
+            'reference' => 'CASE-99-AAAAAA',
+            'summary' => 'A case of the other school',
+            'occurred_at' => now()->subDay(),
+        ]);
+        $plan = SupportPlan::create([
+            'school_id' => $this->otherSchool->id,
+            'student_record_id' => $enrollment->id,
+            'title' => 'A plan of the other school',
+        ]);
+        StudentHealthRecord::create([
+            'school_id' => $this->otherSchool->id,
+            'student_record_id' => $enrollment->id,
+            'blood_group' => 'O+',
+        ]);
+        $staffProfile = StaffProfile::factory()->create(['school_id' => $this->otherSchool->id]);
+        $cohort = Cohort::create(['school_id' => $this->otherSchool->id, 'name' => 'A group of the other school']);
+        $program = Program::create(['school_id' => $this->otherSchool->id, 'name' => 'A programme of the other school']);
+        $batch = ImportBatch::create(['school_id' => $this->otherSchool->id, 'type' => 'staff']);
+
+        $actor = $this->authorized_user([
+            'read incident', 'update incident', 'read safeguarding case',
+            'read support plan', 'update support plan', 'read confidential support plan',
+            'read health record', 'update health record',
+            'read staff profile', 'update staff profile',
+            'read cohort', 'update cohort', 'read restricted cohort',
+            'read program', 'update program',
+            'read import', 'apply import',
+        ]);
+
+        $actor->get(route('incidents.show', $incident))->assertForbidden();
+        $actor->get(route('support-plans.show', $plan))->assertForbidden();
+        $actor->get(route('staff-profiles.show', $staffProfile))->assertForbidden();
+        $actor->get(route('cohorts.show', $cohort))->assertForbidden();
+        $actor->get(route('programs.show', $program))->assertForbidden();
+        $actor->get(route('imports.show', $batch))->assertForbidden();
+
+        // The health screens are keyed by the enrollment, which the working
+        // school does not hold, so the page is simply not there.
+        $actor->get(route('health-records.edit', $enrollment))->assertNotFound();
+    }
+
+    public function test_a_boarding_roll_of_another_school_is_out_of_reach(): void
+    {
+        features()->enable(Feature::Boarding);
+        $house = Dormitory::factory()->create(['school_id' => $this->otherSchool->id]);
+        $roll = BoardingRoll::factory()->create([
+            'school_id' => $this->otherSchool->id,
+            'dormitory_id' => $house->id,
+        ]);
+        $actor = $this->authorized_user(['read boarding', 'manage boarding']);
+
+        $actor->get(route('boarding-rolls.show', $roll))->assertNotFound();
+        Livewire::test(BoardingRollSheet::class, ['roll' => $roll])->assertNotFound();
+    }
+
+    public function test_a_shared_residence_of_another_organization_is_out_of_reach(): void
+    {
+        $residence = BoardingResidence::factory()->create([
+            'organization_id' => $this->otherSchool->organization_id,
+        ]);
+        $actor = $this->authorized_user(['read boarding']);
+
+        $actor->get(route('organizations.boarding-residences.index', $residence->organization_id))
+            ->assertForbidden();
+    }
+
     public function test_the_index_screens_only_count_the_working_school(): void
     {
         $this->assertSame(1, AcademicYear::inSchool($this->otherSchool)->count());
         $this->assertFalse(
             AcademicYear::inSchool(School::first())->get()->contains($this->records['academicYear'])
         );
+    }
+
+    public function test_the_admission_waitlist_screen_excludes_another_school(): void
+    {
+        $this->authorized_user(['read admission waitlist'])
+            ->get(route('admissions.waitlist.index'))
+            ->assertOk()
+            ->assertDontSee($this->records['waitlistEntry']->candidate->email);
     }
 
     /**
@@ -198,7 +444,7 @@ class CrossSchoolAccessTest extends TestCase
     /**
      * Sign in as a person who holds every permission for the given subjects.
      *
-     * @param array<int, string> $subjects
+     * @param  array<int, string>  $subjects
      */
     private function actAsFullyPermittedUser(array $subjects): object
     {
@@ -221,59 +467,72 @@ class CrossSchoolAccessTest extends TestCase
         $home = $this->workingSchool();
         $this->otherSchool = School::factory()->create();
 
-        $classGroup = ClassGroup::factory()->create(['school_id' => $this->otherSchool->id]);
-        $myClass = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
-        $section = Section::factory()->create(['my_class_id' => $myClass->id]);
         $academicYear = AcademicYear::factory()->create(['school_id' => $this->otherSchool->id]);
-        $semester = Semester::factory()->create([
-            'school_id'        => $this->otherSchool->id,
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $this->otherSchool->id,
             'academic_year_id' => $academicYear->id,
         ]);
-        $subject = Subject::factory()->create([
-            'school_id'   => $this->otherSchool->id,
-            'my_class_id' => $myClass->id,
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->otherSchool->id]);
+        $cycleSection = AcademicCycleSection::factory()->create([
+            'school_id' => $this->otherSchool->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
         ]);
-        $exam = Exam::factory()->create(['semester_id' => $semester->id]);
+        $subject = Subject::factory()->create([
+            'school_id' => $this->otherSchool->id,
+        ]);
+        $courseOffering = CourseOffering::factory()->create([
+            'school_id' => $this->otherSchool->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_period_id' => $academicPeriod->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => $subject->id,
+        ]);
+        $exam = Exam::factory()->create(['academic_period_id' => $academicPeriod->id]);
         $feeCategory = FeeCategory::factory()->create(['school_id' => $this->otherSchool->id]);
         $timetable = Timetable::factory()->create([
-            'my_class_id' => $myClass->id,
-            'semester_id' => $semester->id,
+            'academic_cycle_section_id' => $cycleSection->id,
+            'academic_period_id' => $academicPeriod->id,
         ]);
 
-        $student = $this->studentOfOtherSchool($myClass, $section);
+        $student = $this->studentOfOtherSchool($cycleSection);
+
+        $waitlistEntry = AdmissionWaitlistEntry::create([
+            'school_id' => $this->otherSchool->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_cycle_section_id' => $cycleSection->id,
+            'user_id' => $this->adminOfOtherSchool()->id,
+            'status' => AdmissionWaitlistStatus::Pending,
+            'position' => 1,
+        ]);
 
         $this->records = [
-            'classGroup'   => $classGroup,
-            'myClass'      => $myClass,
-            'section'      => $section,
             'academicYear' => $academicYear,
-            'semester'     => $semester,
-            'subject'      => $subject,
-            'exam'         => $exam,
-            'feeCategory'  => $feeCategory,
-            'timetable'    => $timetable,
-            'student'      => $student,
-            'otherAdmin'   => $this->adminOfOtherSchool(),
-            'syllabus'     => Syllabus::factory()->create([
-                'subject_id'  => $subject->id,
-                'semester_id' => $semester->id,
+            'academicPeriod' => $academicPeriod,
+            'academicLevel' => $academicLevel,
+            'cycleSection' => $cycleSection,
+            'subject' => $subject,
+            'exam' => $exam,
+            'feeCategory' => $feeCategory,
+            'timetable' => $timetable,
+            'student' => $student,
+            'otherAdmin' => $this->adminOfOtherSchool(),
+            'syllabus' => Syllabus::factory()->create([
+                'course_offering_id' => $courseOffering->id,
             ]),
-            'examSlot'            => ExamSlot::factory()->create(['exam_id' => $exam->id]),
-            'gradeSystem'         => GradeSystem::factory()->create(['class_group_id' => $classGroup->id]),
-            'notice'              => Notice::factory()->create(['school_id' => $this->otherSchool->id]),
+            'notice' => Notice::factory()->create(['school_id' => $this->otherSchool->id]),
             'customTimetableItem' => CustomTimetableItem::factory()->create(['school_id' => $this->otherSchool->id]),
-            'fee'                 => Fee::factory()->create(['fee_Category_id' => $feeCategory->id]),
-            'feeInvoice'          => FeeInvoice::factory()->create(['user_id' => $student->id]),
-            'timetableTimeSlot'   => TimetableTimeSlot::factory()->create(['timetable_id' => $timetable->id]),
-            'promotion'           => Promotion::factory()->create([
-                'school_id'        => $this->otherSchool->id,
+            'fee' => Fee::factory()->create(['fee_category_id' => $feeCategory->id]),
+            'feeInvoice' => FeeInvoice::factory()->create(['user_id' => $student->id]),
+            'timetableTimeSlot' => TimetableTimeSlot::factory()->create(['timetable_id' => $timetable->id]),
+            'promotion' => Promotion::factory()->create([
+                'school_id' => $this->otherSchool->id,
                 'academic_year_id' => $academicYear->id,
-                'old_class_id'     => $myClass->id,
-                'new_class_id'     => $myClass->id,
-                'old_section_id'   => $section->id,
-                'new_section_id'   => $section->id,
-                'students'         => [$student->id],
+                'source_academic_cycle_section_id' => $cycleSection->id,
+                'destination_academic_cycle_section_id' => $cycleSection->id,
+                'students' => [$student->id],
             ]),
+            'waitlistEntry' => $waitlistEntry,
         ];
 
         school_context()->set($home, remember: false);
@@ -282,14 +541,14 @@ class CrossSchoolAccessTest extends TestCase
     /**
      * Create a student who belongs only to the other school.
      */
-    private function studentOfOtherSchool(MyClass $myClass, Section $section): User
+    private function studentOfOtherSchool(AcademicCycleSection $cycleSection): User
     {
         $student = $this->personOfOtherSchool('student');
 
         StudentRecord::factory()->create([
-            'user_id'     => $student->id,
-            'my_class_id' => $myClass->id,
-            'section_id'  => $section->id,
+            'user_id' => $student->id,
+            'school_id' => $this->otherSchool->id,
+            'academic_cycle_section_id' => $cycleSection->id,
         ]);
 
         return $student;

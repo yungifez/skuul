@@ -1,0 +1,78 @@
+{{-- Keep the weekly grid as a table for consistent screen and print pagination.
+    $grid: TimetableGrid output; $editable: enable cell selection; $selected: "slotId:weekdayId" or null. --}}
+@php
+    $editable = $editable ?? false;
+    $selected = $selected ?? null;
+    // A weekend column appears only for a school that teaches then.
+    $weekdays = array_values(array_filter(
+        $grid['weekdays'],
+        fn (array $weekday): bool => $editable || !$weekday['is_weekend'] || $weekday['used'],
+    ));
+@endphp
+
+@if ($grid['rows'] === [])
+    <x-empty-state icon="lucide-clock" title="No time slots yet"
+        description="A timetable is a week of time slots. Add the first one to start placing lessons." />
+@else
+    <div class="overflow-x-auto beautify-scrollbar">
+        <table class="w-full min-w-[44rem] border-separate border-spacing-1 text-sm">
+            <thead>
+                <tr>
+                    <th scope="col" class="w-28 px-2 py-2 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Time
+                    </th>
+                    @foreach ($weekdays as $weekday)
+                        <th scope="col" class="rounded-md bg-muted/60 px-2 py-2 text-center text-xs font-semibold">
+                            <span class="block hidden sm:inline">{{ $weekday['name'] }}</span>
+                            <span class="block sm:hidden">{{ $weekday['short'] }}</span>
+                            @if ($weekday['date'])
+                                <span class="mt-1 block text-[0.7rem] font-normal text-muted-foreground">{{ \Illuminate\Support\Carbon::parse($weekday['date'])->format('j M') }}</span>
+                            @endif
+                        </th>
+                    @endforeach
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($grid['rows'] as $row)
+                    <tr wire:key="timetable-row-{{ $row['id'] }}">
+                        <th scope="row" class="whitespace-nowrap rounded-md bg-muted/60 px-2 py-2 text-left align-middle text-xs font-medium">
+                            {{ $row['start'] }}
+                            <span class="block font-normal text-muted-foreground">{{ $row['stop'] }}</span>
+                        </th>
+
+                        @foreach ($weekdays as $weekday)
+                            @php
+                                $cell = $row['cells'][$weekday['id']];
+                                $key = $row['id'].':'.$weekday['id'];
+                                $isActive = $cell['active'] ?? true;
+                                $isSelected = $editable && $isActive && $selected === $key;
+                                $tone = match ($cell['kind']) {
+                                    'subject' => 'bg-primary/10 border-primary/30',
+                                    'break' => 'bg-muted border-dashed',
+                                    default => 'border-dashed',
+                                };
+                            @endphp
+
+                            <td wire:key="timetable-cell-{{ $row['id'] }}-{{ $weekday['id'] }}" class="p-0 align-top">
+                                @if ($editable && $isActive)
+                                    <button type="button"
+                                        wire:click="selectCell({{ $row['id'] }}, {{ $weekday['id'] }})"
+                                        wire:loading.attr="disabled"
+                                        class="h-full min-h-16 w-full rounded-md border px-2 py-2 text-left transition hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring {{ $tone }} {{ $isSelected ? 'ring-2 ring-ring' : '' }}"
+                                        aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
+                                        aria-label="{{ $weekday['name'] }} at {{ $row['start'] }}: {{ $cell['name'] ?? 'empty' }}">
+                                        @include('livewire.partials.timetable-cell', ['cell' => $cell])
+                                    </button>
+                                @else
+                                    <div class="min-h-16 rounded-md border px-2 py-2 {{ $tone }} {{ !$isActive ? 'bg-muted/20 opacity-50' : '' }}">
+                                        @include('livewire.partials.timetable-cell', ['cell' => $cell])
+                                    </div>
+                                @endif
+                            </td>
+                        @endforeach
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+@endif

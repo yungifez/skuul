@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Actions\Library\CloseReservation;
+use App\Enums\LibraryReservationStatus;
+use App\Exceptions\InvalidValueException;
+use App\Models\LibraryReservation;
+use Illuminate\Console\Command;
+
+/**
+ * Give up on holds nobody came for.
+ *
+ * A copy kept behind the desk for somebody who never comes is a copy nobody
+ * can read. Once the hold has run out the reservation ends and the copy goes
+ * to the next person in the queue, or back on the shelf.
+ */
+class ProcessLibraryHolds extends Command
+{
+    /**
+     * @var string
+     */
+    protected $signature = 'skuul:process-library-holds';
+
+    /**
+     * @var string
+     */
+    protected $description = 'End library holds nobody collected and pass the copy on';
+
+    public function handle(CloseReservation $close): int
+    {
+        $ended = 0;
+
+        $reservations = LibraryReservation::query()
+            ->where('status', LibraryReservationStatus::Ready->value)
+            ->whereNotNull('holds_until')
+            ->whereDate('holds_until', '<', now()->addDay()->toDateString())
+            ->orderBy('id')
+            ->lazyById();
+
+        foreach ($reservations as $reservation) {
+            // Every school counts its own day.
+            if (!$reservation->holdHasRunOut()) {
+                continue;
+            }
+
+            // A hold collected while this ran is simply left alone.
+            try {
+                $close->expire($reservation);
+                $ended++;
+            } catch (InvalidValueException) {
+                continue;
+            }
+        }
+
+        $this->info("$ended holds ended.");
+
+        return self::SUCCESS;
+    }
+}

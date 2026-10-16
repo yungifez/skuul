@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Actions\Enrollment;
+
+use App\Actions\Audit\RecordAuditEvent;
+use App\Actions\School\GrantSchoolMembership;
+use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
+use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\School;
+use App\Models\StudentRecord;
+use App\Models\User;
+use App\Services\Student\StudentService;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Cross-organization transfers close the old enrollment and link a new one to it.
+ * Use MoveEnrollmentBetweenCampuses for moves within one organization.
+ */
+class TransferEnrollment
+{
+    public function __construct(
+        private ChangeEnrollmentStatus $changeStatus,
+        private ChangeEnrollmentPlacement $changePlacement,
+        private StudentService $studentService,
+        private GrantSchoolMembership $grantSchoolMembership,
+        private RecordAuditEvent $auditor,
+    ) {}
+
+    /**
+     * Transfer the enrollment to the destination school.
+     *
+     * @throws InvalidValueException when the destination is the same school or another campus of the same organization
+     */
+    public function transfer(
+        StudentRecord $enrollment,
+        School $destination,
+        ?AcademicCycleSection $academicCycleSection = null,
+        ?User $actor = null,
+        ?string $reason = null,
+    ): StudentRecord {
+        if ($enrollment->school_id === $destination->id) {
+            throw new InvalidValueException('The student is already enrolled in that school.');
+        }
+
+        if ($enrollment->school->organization_id === $destination->organization_id) {
+            throw new InvalidValueException('Both schools are campuses of one organization. Move the enrollment between campuses instead.');
+        }
+
+        if ($enrollment->status->isClosed() && $enrollment->status !== EnrollmentStatus::Transferred) {
+            throw new InvalidValueException('This enrollment is closed and cannot be transferred.');
+        }
+
+        return DB::transaction(function () use ($enrollment, $destination, $academicCycleSection, $actor, $reason): StudentRecord {
+            // A retry, or a second click at the same moment, waits here and
+            // then finds the enrollment the first one opened.
+            $enrollment = StudentRecord::query()->lockForUpdate()->findOrFail($enrollment->getKey());
+            $successor = StudentRecord::query()->where('transferred_from_id', $enrollment->id)->with('school:id,name')->first();
+
+            if ($successor !== null && $successor->school_id === $destination->id) {
+                return $successor;
+            }
+
+            if ($successor !== null) {
+                throw new InvalidValueException("This enrollment was already transferred to {$successor->school?->name}. Ask that school to transfer the learner on.");
+            }
+
+            $alreadyThere = StudentRecord::query()
+                ->where('user_id', $enrollment->user_id)
+                ->where('school_id', $destination->id)
+                ->enrolled()
+                ->exists();
+
+            if ($alreadyThere) {
+                throw new InvalidValueException("The learner is already enrolled at {$destination->name}.");
+            }
+
+            $this->changeStatus->change($enrollment, EnrollmentStatus::Transferred, $actor, $reason);
+
+            // Only one enrollment leads the screens, and it is the new one.
+            $enrollment->is_primary = false;
+            $enrollment->save();
+
+            $transferred = StudentRecord::create([
+                'user_id' => $enrollment->user_id,
+                'school_id' => $destination->id,
+                'status' => EnrollmentStatus::Active,
+                'is_primary' => true,
+                'transferred_from_id' => $enrollment->id,
+                'admission_number' => $this->studentService->generateAdmissionNumber($destination->id),
+                'admission_date' => school_today()->toDateString(),
+            ]);
+
+            // The person needs access to the school they now attend.
+            $this->grantSchoolMembership->grant($transferred->user, $destination);
+            $this->grantSchoolMembership->grantStudentRole($transferred->user, $destination);
+
+            if ($academicCycleSection !== null) {
+                // The action works on its own locked copy, so take the record
+                // it returns; the one created above still has no placement.
+                $transferred = $this->changePlacement->place(
+                    enrollment: $transferred,
+                    academicCycleSection: $academicCycleSection,
+                    actor: $actor,
+                    reason: $reason,
+                );
+            }
+
+            $this->auditor->record(
+                AuditAction::EnrollmentTransferred,
+                $transferred,
+                [
+                    'from_school_id' => $enrollment->school_id,
+                    'to_school_id' => $destination->id,
+                    'from_enrollment_id' => $enrollment->id,
+                    'reason' => $reason,
+                ],
+                $actor,
+                $destination,
+            );
+
+            return $transferred;
+        });
+    }
+}

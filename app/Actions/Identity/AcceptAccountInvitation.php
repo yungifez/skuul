@@ -37,7 +37,7 @@ class AcceptAccountInvitation
     /**
      * Accept the invitation and activate the account.
      *
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $input
      *
      * @throws ValidationException when the token or the password is not valid
      */
@@ -47,23 +47,40 @@ class AcceptAccountInvitation
             'password' => $this->passwordRules(),
         ])->validate();
 
-        $invitation = $this->findPendingInvitation($token);
+        $tokenHash = AccountInvitation::hashToken($token);
 
-        if ($invitation === null) {
-            throw ValidationException::withMessages([
-                'token' => 'This invitation link is not valid, or it expired. Ask your administrator to send a new one.',
-            ]);
-        }
+        return DB::transaction(function () use ($tokenHash, $input): User {
+            // Lock the invitation before checking it so two simultaneous
+            // requests cannot both consume the same one-time token.
+            $invitation = AccountInvitation::query()
+                ->pending()
+                ->where('token_hash', $tokenHash)
+                ->lockForUpdate()
+                ->first();
 
-        return DB::transaction(function () use ($invitation, $input): User {
-            $user = $invitation->user;
+            if ($invitation === null) {
+                throw ValidationException::withMessages([
+                    'token' => 'This invitation link is not valid, or it expired. Ask your administrator to send a new one.',
+                ]);
+            }
+
+            // A suspension sent at the same moment holds this row too, so an
+            // account that was just blocked is never opened again here.
+            $user = User::query()->lockForUpdate()->findOrFail($invitation->user_id);
             $previousStatus = $user->account_status;
 
+            if (!in_array($previousStatus, [AccountStatus::Invited, AccountStatus::Active], true)) {
+                throw ValidationException::withMessages([
+                    'token' => 'This invitation link is not valid, or it expired. Ask your administrator to send a new one.',
+                ]);
+            }
+
             $user->forceFill([
-                'password'          => Hash::make($input['password']),
-                'account_status'    => AccountStatus::Active,
+                'password' => Hash::make($input['password']),
+                'password_change_required_at' => null,
+                'account_status' => AccountStatus::Active,
                 'email_verified_at' => $user->email_verified_at ?? now(),
-                'remember_token'    => null,
+                'remember_token' => null,
             ])->save();
 
             $invitation->forceFill(['accepted_at' => now()])->save();

@@ -1,109 +1,176 @@
-<div>
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">{{$feeInvoice->name}}</h2>
-        </div>
-        <form action="{{route('fee-invoices.update', $feeInvoice->id)}}" method="POST" class="card-body">
-            <x-display-validation-errors />
-            <div class=" md:grid grid-cols-2 gap-4">
-                <x-input id="issue_date" name="issue_date" label="Issue Date" type="date" wire:ignore value="{{$feeInvoice->issue_date->format('Y-m-d')}}"/>
-                <x-input id="due_date" name="due_date" label="Due Date" type="date" wire:ignore value="{{$feeInvoice->due_date->format('Y-m-d')}}"/>
-                <x-textarea id="note" name="note" label="Note"  group-class="col-span-2" wire:ignore>
-                    {{$feeInvoice->note}}
-                </x-textarea>
-                @method('PUT')
-                @csrf
-                <x-button label="Edit" icon="fas fa-pen" class="w-full md:w-1/2 "/>
+<div class="mx-auto flex w-full max-w-4xl flex-col gap-10">
+    @php
+        $locale = app()->getLocale();
+        $dash = '—';
+        $section = $feeInvoice->studentRecord?->academicCycleSection;
+        $controlClasses = 'h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+        $moneyInput = $controlClasses.' text-right tabular-nums';
+    @endphp
+
+    <section aria-label="Invoice details" class="flex flex-col gap-6">
+        <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+            <span class="font-medium text-foreground">{{ $feeInvoice->user?->name ?? $dash }}</span>
+            @if ($feeInvoice->studentRecord?->admission_number)
+                <span>· {{ $feeInvoice->studentRecord->admission_number }}</span>
+            @endif
+            @if ($section !== null)
+                <span>· {{ $section->academicLevel?->name }} {{ $section->label ?? $section->name }}</span>
+            @endif
+            <span>· Issued {{ $feeInvoice->issue_date->format('j M Y') }}</span>
+        </p>
+
+        <form wire:submit="saveDetails" class="flex flex-col gap-3" aria-label="Due date and note">
+            <div class="grid gap-3 sm:grid-cols-[12rem_1fr]">
+                <div>
+                    <label for="due-date" class="text-sm text-muted-foreground">Due</label>
+                    <input type="date" id="due-date" wire:model="dueDate" min="{{ $feeInvoice->issue_date->format('Y-m-d') }}" class="{{ $controlClasses }} mt-1" {{ field_error_bindings('dueDate') }}>
+                </div>
+                <div>
+                    <label for="note" class="text-sm text-muted-foreground">Note</label>
+                    <input id="note" wire:model="note" maxlength="10000" placeholder="Note (optional)" class="{{ $controlClasses }} mt-1" {{ field_error_bindings('note') }}>
+                </div>
+            </div>
+            <x-field-error name="dueDate" />
+            <x-field-error name="note" />
+            <div class="flex sm:justify-end">
+                <april:button type="submit" :variant="$isAdding || $editingLineId !== null ? 'outline' : 'default'" class="h-11 w-full select-none sm:w-auto" wire:loading.attr="disabled" wire:target="saveDetails">Save</april:button>
             </div>
         </form>
-    </div>
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Student Information</h2>
+    </section>
+
+    <section aria-labelledby="fees-heading" class="flex flex-col gap-3">
+        <div class="flex items-center justify-between gap-4">
+            <h2 id="fees-heading" class="text-base font-semibold">
+                Fees
+                @if ($isPosted)
+                    <span class="inline-flex items-center gap-1 font-normal text-muted-foreground"><x-lucide-lock class="size-3.5" aria-hidden="true" /> Posted</span>
+                @endif
+            </h2>
+            @if (!$isPosted && $canAddLines && !$isAdding)
+                <april:button type="button" variant="outline" class="h-11 select-none" wire:click="$set('isAdding', true)">Add fee</april:button>
+            @endif
         </div>
-        <div class="card-body overflow-scroll beautify-scrollbar">
-            <table class="w-full">
-                <th class="border p-4">Student Name</th>
-                <th class="border p-4">Student Admission Number</th>
-                <th class="border p-4">Student Class</th>
-                <tbody>
-                    <tr>
-                        <td class="border p-4 text-center">{{$feeInvoice->user->name}}</td>
-                        <td class="border p-4 text-center">{{$feeInvoice->user->studentRecord->admission_number}}</td>
-                        <td class="border p-4 text-center">{{$feeInvoice->user->studentRecord->myClass->name}}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Fee Information</h2>
-    </div>
-    <div class="card-body">
-        @foreach ($feeInvoice->feeInvoiceRecords as $record)
-        <div class="overflow-scroll beautify-scrollbar md:grid grid-rows-1 md:grid-cols-6 gap-2 items-end border-b p-2 md:py-0">
-            <form action="{{route('fee-invoice-records.update', $record->id)}}" method="POST" class="col-span-5 overflow-scroll beautify-scrollbar grid grid-rows-1 md:grid-cols-6 gap-2 items-center " x-data="{'amount': {{$record->amount->getAmount()->toInt()}}, 'waiver': {{$record->waiver->getAmount()->toInt()}}, 'fine': {{$record->fine->getAmount()->toInt()}}}">
-                <p class="font-bold  md:font-bold">{{$record->fee->name }}</p>
-                <x-input id="amount-{{$record['id']}}" name="amount" label="Amount" type="number" x-model.number="amount" error-bag="some-random-thing"/>
-                <x-input id="name-{{$record['id']}}" name="waiver" label="Waiver" type="number"
-                x-model.number="waiver" error-bag="some-random-thing"/>
-                <x-input id="name-{{$record['id']}}" name="fine" label="fine" type="number"
-                x-model.number="fine" error-bag="some-random-thing"/>
-                <p x-text="'Total: ' + (amount - waiver + fine).toLocaleString()" class="md:place-self-center"></p>
-                <input type="hidden" value="{{$record->fee->id}}">
-                <x-button label="Edit" class="self-end" icon="fas fa-pen"/>
-                @csrf
-                @method('PUT')
-            </form>
-            <x-modal title="Confirm Delete" background-colour="bg-red-600" class="justify-center" modal-button-class="w-full my-5">
-                <div class="text-gray-700 dark:text-white text-center">
-                    <i class="fa fa-trash text-7xl" aria-hidden="true"></i>
-                    <p class="my-2">Are you sure you want to delete this resource</p>
-                </div>
-                <x-slot:footer>
-                    <form action="{{route('fee-invoice-records.destroy', $record->id)}}" method="POST">
-                        <x-button class="bg-red-600" icon="fa fa-trash" >
-                            Continue With Delete
-                        </x-button>
-                        @method('delete')
-                        @csrf
-                    </form>
-                </x-slot:footer>
-            </x-modal>
-        </div>
-        @endforeach
-    </div>
-</div>
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Add Fee To This Invoice</h2>
-    </div>
-    <form action="{{route('fee-invoice-records.store')}}" method="POST" class="card-body">
-        <x-display-validation-errors error-bag="store_fee_invoice"/>
-        <div class="md:grid md:grid-cols-2 gap-4">
-            <x-select name="feeCategory" id="feeCategories" wire:model.live="feeCategory" label="Fee Category">
-                @foreach ($feeCategories as $item)
-                    <option value="{{$item->id}}">{{$item->name}}</option>
+
+        <x-field-error name="lines" />
+
+        @if ($feeInvoice->feeInvoiceRecords->isEmpty())
+            <p class="text-sm text-muted-foreground">No fees</p>
+        @else
+            <ul class="divide-y border-y">
+                @foreach ($feeInvoice->feeInvoiceRecords as $record)
+                    @php
+                        $canEditLine = !$isPosted && auth()->user()->can('update', $record);
+                        $canRemoveLine = !$isPosted && !$record->paid->isPositive() && auth()->user()->can('delete', $record);
+                    @endphp
+                    <li wire:key="line-{{ $record->id }}" class="flex flex-col gap-3 py-2">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="min-w-0 text-sm">
+                                <p class="truncate font-medium">{{ $record->fee?->name ?? $dash }}</p>
+                                <p class="tabular-nums text-muted-foreground">
+                                    {{ $record->amount->formatToLocale($locale) }}
+                                    @if ($record->waiver->isPositive()) · {{ $record->waiver->formatToLocale($locale) }} waived @endif
+                                    @if ($record->fine->isPositive()) · {{ $record->fine->formatToLocale($locale) }} fine @endif
+                                    @if ($record->paid->isPositive()) · {{ $record->paid->formatToLocale($locale) }} paid @endif
+                                </p>
+                            </div>
+                            <div class="flex shrink-0 items-center gap-2">
+                                <span class="text-sm font-medium tabular-nums">{{ $record->payable->formatToLocale($locale) }}</span>
+                                @if ($canEditLine || $canRemoveLine)
+                                    <april:dropdown-menu>
+                                        <slot:trigger>
+                                            <april:button type="button" variant="ghost" size="icon" class="size-11 select-none" aria-label="Actions for {{ $record->fee?->name }}">
+                                                <x-lucide-ellipsis class="size-4" />
+                                            </april:button>
+                                        </slot:trigger>
+                                        <slot:content align="end">
+                                            @if ($canEditLine)
+                                                <april:dropdown-menu-item wire:click="startEditingLine({{ $record->id }})"><x-lucide-pencil class="mr-2 size-4" />Change</april:dropdown-menu-item>
+                                            @endif
+                                            @if ($canRemoveLine)
+                                                <april:dropdown-menu-item class="text-destructive" wire:click="removeLine({{ $record->id }})" wire:confirm="Remove {{ $record->fee?->name }}? The invoice will ask for {{ $record->payable->formatToLocale($locale) }} less.">
+                                                    <x-lucide-trash-2 class="mr-2 size-4" />Remove
+                                                </april:dropdown-menu-item>
+                                            @endif
+                                        </slot:content>
+                                    </april:dropdown-menu>
+                                @endif
+                            </div>
+                        </div>
+
+                        @if ($canEditLine && $editingLineId === $record->id)
+                            <form wire:submit="saveLine" class="flex flex-col gap-3" aria-label="Change {{ $record->fee?->name }}">
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <label for="line-amount" class="text-xs text-muted-foreground">Amount</label>
+                                        <input type="number" id="line-amount" min="1" step="1" wire:model="lineAmount" class="{{ $moneyInput }} mt-1" {{ field_error_bindings('lineAmount') }}>
+                                    </div>
+                                    <div>
+                                        <label for="line-waiver" class="text-xs text-muted-foreground">Waiver</label>
+                                        <input type="number" id="line-waiver" min="0" step="1" wire:model="lineWaiver" class="{{ $moneyInput }} mt-1" {{ field_error_bindings('lineWaiver') }}>
+                                    </div>
+                                    <div>
+                                        <label for="line-fine" class="text-xs text-muted-foreground">Fine</label>
+                                        <input type="number" id="line-fine" min="0" step="1" wire:model="lineFine" class="{{ $moneyInput }} mt-1" {{ field_error_bindings('lineFine') }}>
+                                    </div>
+                                </div>
+                                <x-field-error name="lineAmount" />
+                                <x-field-error name="lineWaiver" />
+                                <x-field-error name="lineFine" />
+                                <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                                    <april:button type="button" variant="ghost" class="h-11 select-none" wire:click="cancel">Cancel</april:button>
+                                    <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="saveLine">Save fee</april:button>
+                                </div>
+                            </form>
+                        @endif
+                    </li>
                 @endforeach
-            </x-select>
-            <x-select name="fee_id" id="feeCategories" wire:model.live="fee" label="Fee">
-                @isset($fees)
-                    @foreach ($fees as $item)
-                        <option value="{{$item->id}}">{{$item->name}}</option>
-                    @endforeach
-                @endisset
-            </x-select>
-        </div>
-        <div class="md:grid md:grid-cols-4 gap-4" x-data="{'amount': 0, 'waiver': 0, 'fine':0, 'paid':0}">
-            <input type="hidden" name="fee_invoice_id" value="{{$feeInvoice->id}}">
-            <x-input id="amount" name="amount" label="Amount" type="number" x-model.number="amount" error-bag="some-random-thing"/>
-            <x-input id="waiver" name="waiver" label="Waiver" type="number"  x-model.number="waiver" error-bag="some-random-thing"/>
-            <x-input id="fine" name="fine" label="Fine" type="number" x-model.number="fine" error-bag="some-random-thing"/>
-            <p x-text="'Total: '+((parseInt(amount) - parseInt(waiver) + parseInt(fine) - parseInt(paid)) || 0).toLocaleString()" class="self-end p-6"></p>
-            @csrf
-        </div>
-        <x-button label="Create" icon="fas fa-key" class="w-full md:w-1/4"/>
-    </form>
-</div>
+            </ul>
+        @endif
+
+        @if (!$isPosted && $canAddLines && $isAdding)
+            <form wire:submit="addLine" class="flex flex-col gap-3 pt-2" aria-label="Add a fee">
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                        <label for="fee-category" class="mb-1.5 block text-sm font-medium">Fee category</label>
+                        <select id="fee-category" wire:model.live="feeCategoryId" class="{{ $controlClasses }}">
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="fee" class="mb-1.5 block text-sm font-medium">Fee</label>
+                        <select id="fee" wire:model="feeId" class="{{ $controlClasses }}" {{ field_error_bindings('feeId') }}>
+                            <option value="">{{ $fees->isEmpty() ? 'No fees left in this category' : 'Choose a fee' }}</option>
+                            @foreach ($fees as $fee)
+                                <option value="{{ $fee->id }}">{{ $fee->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label for="new-amount" class="mb-1.5 block text-sm font-medium">Amount</label>
+                        <input type="number" id="new-amount" min="1" step="1" wire:model="newAmount" placeholder="0" class="{{ $moneyInput }}" {{ field_error_bindings('newAmount') }}>
+                    </div>
+                    <div>
+                        <label for="new-waiver" class="mb-1.5 block text-sm font-medium">Waiver</label>
+                        <input type="number" id="new-waiver" min="0" step="1" wire:model="newWaiver" placeholder="0" class="{{ $moneyInput }}" {{ field_error_bindings('newWaiver') }}>
+                    </div>
+                    <div>
+                        <label for="new-fine" class="mb-1.5 block text-sm font-medium">Fine</label>
+                        <input type="number" id="new-fine" min="0" step="1" wire:model="newFine" placeholder="0" class="{{ $moneyInput }}" {{ field_error_bindings('newFine') }}>
+                    </div>
+                </div>
+                <x-field-error name="feeId" />
+                <x-field-error name="newAmount" />
+                <x-field-error name="newWaiver" />
+                <x-field-error name="newFine" />
+                <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <april:button type="button" variant="ghost" class="h-11 select-none" wire:click="cancel">Cancel</april:button>
+                    <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="addLine">Add fee</april:button>
+                </div>
+            </form>
+        @endif
+    </section>
 </div>

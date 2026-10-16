@@ -1,9 +1,7 @@
 {
     "agents": [
         "claude_code",
-        "codex",
-        "grok_build",
-        "antigravity"
+        "codex"
     ],
     "cloud": true,
     "guidelines": true,

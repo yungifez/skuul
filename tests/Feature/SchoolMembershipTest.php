@@ -2,16 +2,31 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Boarding\AssignBoardingSupervisor;
+use App\Actions\Curriculum\AssignTeacher;
+use App\Actions\Discipline\ReportIncident;
 use App\Actions\Identity\ProvisionAccount;
 use App\Actions\School\EndSchoolMembership;
 use App\Actions\School\GrantSchoolMembership;
+use App\Actions\Wellbeing\ManageSupportPlan;
+use App\Enums\AcademicPeriodStatus;
+use App\Enums\EnrollmentStatus;
+use App\Enums\IncidentStatus;
 use App\Enums\SchoolMembershipStatus;
+use App\Enums\SupervisionRole;
+use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicYear;
+use App\Models\CourseOffering;
+use App\Models\Dormitory;
 use App\Models\School;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 /**
@@ -87,6 +102,96 @@ class SchoolMembershipTest extends TestCase
         $this->assertNotNull($user->schoolMemberships()->first()->ended_at);
     }
 
+    public function test_the_last_person_who_can_manage_roles_keeps_their_membership(): void
+    {
+        $campus = School::factory()->create();
+        school_context()->set($campus, remember: false);
+        $first = $this->memberOf($campus);
+        $first->givePermissionTo('manage role');
+        $second = $this->memberOf($campus);
+        $second->givePermissionTo('manage role');
+        $endSchoolMembership = app(EndSchoolMembership::class);
+
+        $endSchoolMembership->end($first, $campus);
+
+        try {
+            $endSchoolMembership->end($second, $campus);
+            $this->fail('The campus was left with nobody who can manage roles.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('Nobody at this campus could manage roles', $exception->getMessage());
+        }
+
+        $this->assertFalse($first->refresh()->belongsToSchool($campus));
+        $this->assertTrue($second->refresh()->belongsToSchool($campus));
+    }
+
+    public function test_ending_a_membership_ends_the_teaching_there(): void
+    {
+        $this->authorized_user([]);
+        $teacher = User::factory()->create();
+        $teacher->assignRole('teacher');
+        $courseOffering = CourseOffering::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $assignment = app(AssignTeacher::class)->assign($courseOffering, $teacher);
+
+        app(EndSchoolMembership::class)->end($teacher, $this->workingSchool());
+
+        $this->assertFalse($assignment->fresh()->isRunningOn(today()->addDay()));
+    }
+
+    public function test_ending_a_membership_frees_the_classes_they_lead_this_year(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->memberOf($this->workingSchool());
+        $teacher->assignRole('teacher');
+        $running = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id])->id,
+            'homeroom_teacher_id' => $teacher->id,
+        ]);
+        $finished = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id, 'status' => AcademicPeriodStatus::Closed])->id,
+            'homeroom_teacher_id' => $teacher->id,
+        ]);
+
+        app(EndSchoolMembership::class)->end($teacher, $this->workingSchool());
+
+        $this->assertNull($running->fresh()->homeroom_teacher_id);
+        $this->assertSame($teacher->id, $finished->fresh()->homeroom_teacher_id);
+    }
+
+    public function test_ending_a_membership_ends_the_boarding_duty_there(): void
+    {
+        $this->authorized_user([]);
+        $warden = $this->memberOf($this->workingSchool());
+        $dormitory = Dormitory::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $duty = app(AssignBoardingSupervisor::class)->assign($dormitory, $warden, SupervisionRole::Warden);
+
+        app(EndSchoolMembership::class)->end($warden, $this->workingSchool());
+
+        $this->assertNotNull($duty->fresh()->ends_on);
+    }
+
+    public function test_ending_a_membership_hands_back_the_open_cases_there(): void
+    {
+        $this->authorized_user([]);
+        $counsellor = $this->memberOf($this->workingSchool());
+        $openCase = app(ReportIncident::class)->report('Fight at break', assignee: $counsellor);
+        $closedCase = app(ReportIncident::class)->report('Lost phone', assignee: $counsellor);
+        app(ReportIncident::class)->changeStatus($closedCase, IncidentStatus::UnderReview);
+        app(ReportIncident::class)->changeStatus($closedCase->fresh(), IncidentStatus::Resolved);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id, 'status' => EnrollmentStatus::Active]);
+        $plan = app(ManageSupportPlan::class)->open($enrollment, 'Reading support', owner: $counsellor);
+        $step = app(ManageSupportPlan::class)->addAction($plan, 'Weekly reading check', assignee: $counsellor);
+
+        app(EndSchoolMembership::class)->end($counsellor, $this->workingSchool());
+
+        $this->assertNull($openCase->fresh()->assigned_to);
+        $this->assertSame($counsellor->id, $closedCase->fresh()->assigned_to);
+        $this->assertNull($plan->fresh()->assigned_to);
+        $this->assertNull($step->fresh()->assigned_to);
+    }
+
     public function test_ending_the_primary_membership_promotes_another_one(): void
     {
         $first = School::factory()->create();
@@ -102,26 +207,61 @@ class SchoolMembershipTest extends TestCase
 
     public function test_provisioning_a_person_into_a_second_school_reuses_one_login(): void
     {
-        $second = School::factory()->create();
+        $first = School::factory()->create();
+        $second = School::factory()->create(['organization_id' => $first->organization_id]);
 
         // Provisioning validates the address against DNS, so use a real domain.
-        $existing = User::factory()->create(['email' => $this->faker()->unique()->freeEmail()]);
+        $existing = $this->memberOf($first, User::factory()->create([
+            'email' => $this->faker()->unique()->freeEmail(),
+            'name' => 'Ada Bell',
+            'phone' => '08011112222',
+            'postal_code' => null,
+        ]));
 
         app(ProvisionAccount::class)->provision([
-            'name'        => $existing->name,
-            'email'       => $existing->email,
-            'school_id'   => $second->id,
-            'birthday'    => '2000-01-01',
-            'address'     => 'a road',
-            'blood_group' => 'a+',
+            'name' => 'Somebody Else',
+            'phone' => '09099990000',
+            'postal_code' => '100001',
+            'email' => $existing->email,
+            'school_id' => $second->id,
+            'birthday' => '2000-01-01',
+            'address' => 'a road',
             'nationality' => 'nigeria',
-            'state'       => 'lagos',
-            'city'        => 'lagos',
-            'gender'      => 'male',
+            'state' => 'lagos',
+            'city' => 'lagos',
+            'gender' => 'Male',
         ]);
 
         $this->assertSame(1, User::where('email', $existing->email)->count());
         $this->assertTrue($existing->fresh()->belongsToSchool($second));
+        // The second school fills blanks and never rewrites what is there.
+        $this->assertSame('Ada Bell', $existing->fresh()->name);
+        $this->assertSame('08011112222', $existing->fresh()->phone);
+        $this->assertSame('100001', $existing->fresh()->postal_code);
+    }
+
+    public function test_provisioning_never_attaches_another_organizations_person(): void
+    {
+        $theirs = School::factory()->create();
+        $ours = School::factory()->create();
+        $existing = $this->memberOf($theirs, User::factory()->create([
+            'email' => $this->faker()->unique()->freeEmail(),
+            'name' => 'Ada Bell',
+        ]));
+
+        try {
+            app(ProvisionAccount::class)->provision([
+                'name' => 'Somebody Else',
+                'email' => $existing->email,
+                'school_id' => $ours->id,
+            ]);
+            $this->fail('Another organization\'s person was attached.');
+        } catch (ValidationException $exception) {
+            $this->assertStringContainsString('outside your organization', $exception->errors()['email'][0]);
+        }
+
+        $this->assertFalse($existing->fresh()->belongsToSchool($ours));
+        $this->assertSame('Ada Bell', $existing->fresh()->name);
     }
 
     public function test_a_person_with_no_membership_cannot_reach_the_dashboard(): void

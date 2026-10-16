@@ -2,7 +2,11 @@
 
 namespace App\Services\AcademicYear;
 
+use App\Enums\AcademicPeriodStatus;
+use App\Exceptions\InvalidValueException;
 use App\Models\AcademicYear;
+use App\Models\User;
+use App\Models\UserAcademicPeriodPreference;
 use App\Services\School\SchoolService;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -29,7 +33,7 @@ class AcademicYearService
     /**
      * Get academic year by Id.
      *
-     * @param int $id
+     * @param  int  $id
      */
     public function getAcademicYearById($id): AcademicYear
     {
@@ -39,7 +43,7 @@ class AcademicYearService
     /**
      * Create academic year.
      *
-     * @param array|Collection $records
+     * @param  array|Collection  $records
      */
     public function createAcademicYear($records): AcademicYear
     {
@@ -52,12 +56,14 @@ class AcademicYearService
     /**
      * Update Academic Year.
      *
-     * @param array|Collection $records
+     * @param  array|Collection  $records
      */
     public function updateAcademicYear(AcademicYear $academicYear, $records): AcademicYear
     {
         $academicYear->start_year = $records['start_year'];
         $academicYear->stop_year = $records['stop_year'];
+        $academicYear->starts_on = $records['starts_on'] ?? null;
+        $academicYear->ends_on = $records['ends_on'] ?? null;
         $academicYear->save();
 
         return $academicYear;
@@ -72,24 +78,56 @@ class AcademicYearService
     }
 
     /**
-     * Set academic year as current.one in school.
+     * Set the academic year this person works in.
      *
-     * @param int $academicYearId
-     * @param int $schoolId
+     * The choice belongs to the staff member, not to the school record. The
+     * session still caches it for the current request, while the working
+     * period preference persists it across sessions.
+     *
+     *
+     * @throws InvalidValueException when the year belongs to another school
      */
-    public function setAcademicYear($academicYearId, $schoolId = null): bool
+    public function setAcademicYear(int $academicYearId, User $user): bool
     {
-        $academicYear = AcademicYear::find($academicYearId);
-        if (!isset($schoolId)) {
-            $schoolId = current_school_id();
+        $academicYear = academic_period_context()->allowedAcademicYear(school_context()->schoolOrFail(), $academicYearId);
+
+        if ($academicYear === null) {
+            throw new InvalidValueException('That academic year does not belong to this school');
         }
-        $school = $this->schoolService->getSchoolById($schoolId);
-        $school->academic_year_id = $academicYearId;
-        // set semester id to first semester or null
-        $school->semester_id = $academicYear->semesters?->first()->id ?? $school->academicYear->semesters()->create([
-            'name'      => 'First',
-            'school_id' => current_school_id(),
-        ])->id;
+
+        if ($academicYear->status === AcademicPeriodStatus::Draft) {
+            throw new InvalidValueException('Publish the school calendar before making it the working calendar.');
+        }
+
+        $academicPeriod = $academicYear->topLevelPeriods()->first();
+
+        if ($academicPeriod === null) {
+            throw new InvalidValueException('This school calendar has no reporting periods.');
+        }
+
+        $preference = UserAcademicPeriodPreference::firstOrCreate(
+            [
+                'user_id' => $user->id,
+                'school_id' => current_school_id(),
+                'academic_year_id' => $academicYear->id,
+            ],
+            ['academic_period_id' => $academicPeriod->id],
+        );
+
+        academic_period_context()->setAcademicYear($academicYear);
+        academic_period_context()->setAcademicPeriod($preference->academicPeriod);
+
+        return true;
+    }
+
+    /**
+     * Set the academic year a school opens in by default.
+     */
+    public function setSchoolDefaultAcademicYear(AcademicYear $academicYear): bool
+    {
+        $school = $this->schoolService->getSchoolById($academicYear->school_id);
+        $school->academic_year_id = $academicYear->id;
+        $school->academic_period_id = $academicYear->academicPeriods()->orderBy('id')->first()?->id;
 
         return $school->save();
     }

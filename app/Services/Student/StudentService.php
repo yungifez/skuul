@@ -2,30 +2,27 @@
 
 namespace App\Services\Student;
 
+use App\Actions\Enrollment\ChangeEnrollmentPlacement;
+use App\Actions\Enrollment\ChangeEnrollmentStatus;
+use App\Enums\AcademicStructureStatus;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\EmptyRecordsException;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
 use App\Models\Promotion;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
-use App\Services\MyClass\MyClassService;
 use App\Services\Print\PrintService;
-use App\Services\Section\SectionService;
 use App\Services\User\UserService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class StudentService
 {
-    /**
-     *Instance of class service.
-     *
-     * @var MyClassService
-     */
-    public $myClassService;
-
     /**
      * Instance of user service.
      *
@@ -34,21 +31,29 @@ class StudentService
     public $userService;
 
     /**
-     * Instance of section service.
+     * Instance of the enrollment state action.
      */
-    public SectionService $sectionService;
+    public ChangeEnrollmentStatus $changeEnrollmentStatusAction;
 
-    public function __construct(MyClassService $myClassService, UserService $userService, SectionService $sectionService)
-    {
-        $this->myClassService = $myClassService;
-        $this->sectionService = $sectionService;
+    /**
+     * Instance of the enrollment placement action.
+     */
+    public ChangeEnrollmentPlacement $changeEnrollmentPlacementAction;
+
+    public function __construct(
+        UserService $userService,
+        ChangeEnrollmentStatus $changeEnrollmentStatusAction,
+        ChangeEnrollmentPlacement $changeEnrollmentPlacementAction,
+    ) {
         $this->userService = $userService;
+        $this->changeEnrollmentStatusAction = $changeEnrollmentStatusAction;
+        $this->changeEnrollmentPlacementAction = $changeEnrollmentPlacementAction;
     }
 
     /**
      * Get all students in school.
      *
-     * @return Collection
+     * @return Collection<int, User>
      */
     public function getAllStudents()
     {
@@ -58,34 +63,31 @@ class StudentService
     /**
      * Get all active students in school.
      *
-     * @return Collection
+     * @return Collection<int, User>
      */
     public function getAllActiveStudents()
     {
-        return $this->userService->getUsersByRole('student')->load('studentRecord')->filter(function ($student) {
-            if ($student->studentRecord) {
-                return $student->studentRecord->is_graduated == false;
-            }
+        return $this->userService->getUsersByRole('student')->load('studentRecord')->filter(function (User $student) {
+            return $student->studentRecord?->status === EnrollmentStatus::Active;
         });
     }
 
     /**
      * Get all graduated students in school.
      *
-     * @return Collection
+     * @return Collection<int, User>
      */
     public function getAllGraduatedStudents()
     {
-        return $this->userService->getUsersByRole('student')->load('studentRecord')->filter(function ($student) {
-            return $student->studentRecord()->withoutGlobalScopes()->first()->is_graduated == true;
+        return $this->userService->getUsersByRole('student')->load('studentRecord')->filter(function (User $student) {
+            return $student->studentRecord?->isGraduated() === true;
         });
     }
 
     /**
      * Get a student by id.
      *
-     * @param array<int, int>|int $id student id
-     *
+     * @param  array<int, int>|int  $id  student id
      * @return User|Collection<int, User>|null
      */
     public function getStudentById($id)
@@ -95,58 +97,77 @@ class StudentService
 
     /**
      * Create student.
-     *
-     * @param array $record Array of student record
-     *
-     * @return void
      */
-    public function createStudent($record)
+    public function createStudent(array $record): User
     {
-        DB::transaction(function () use ($record) {
+        $this->userService->failIfAlreadyHolds($record['email'], Role::Student);
+
+        $person = User::query()->whereRaw('LOWER(email) = ?', [mb_strtolower($record['email'])])->first();
+
+        if ($person?->worksAsStaff() === true) {
+            throw ValidationException::withMessages([
+                'email' => "{$person->name} works as staff. A member of staff cannot be admitted as a learner.",
+            ]);
+        }
+
+        $enrolledElsewhere = StudentRecord::query()
+            ->whereRelation('user', 'email', $record['email'])
+            ->where('school_id', '!=', current_school_id())
+            ->enrolled()
+            ->exists();
+
+        if ($enrolledElsewhere) {
+            throw ValidationException::withMessages([
+                'email' => 'This learner is enrolled at another school. Ask that school to move or transfer them.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($record): User {
             $student = $this->userService->createUser($record);
             $student->assignRole(Role::Student);
 
             $this->createStudentRecord($student, $record);
+
+            return $student;
         });
     }
 
     /**
      * Create record for student.
      *
-     * @param User         $student $name
-     * @param array|object $record
+     * @param  array<string, mixed>  $record
      *
      * @throws InvalidValueException
-     *
-     * @return void
      */
-    public function createStudentRecord(User $student, $record)
+    public function createStudentRecord(User $student, array $record): void
     {
-        $record['admission_number'] || $record['admission_number'] = $this->generateAdmissionNumber();
-        $section = $this->sectionService->getSectionById($record['section_id']);
-        if (!$this->myClassService->getClassById($record['my_class_id'])->sections->contains($section)) {
-            throw new InvalidValueException('Section is not in class');
-        }
+        $record['admission_number'] ??= $this->generateAdmissionNumber();
 
-        if (current_school()->academic_year_id == null) {
+        if (current_academic_year_id() == null) {
             throw new EmptyRecordsException('Academic Year not set');
         }
 
-        $student->studentRecord()->firstOrCreate([
+        $academicCycleSection = AcademicCycleSection::inSchool()
+            ->whereKey($record['academic_cycle_section_id'])
+            ->where('academic_year_id', current_academic_year_id())
+            ->where('status', AcademicStructureStatus::Active)
+            ->firstOrFail();
+
+        $enrollment = StudentRecord::firstOrCreate([
             'user_id' => $student->id,
+            'school_id' => current_school_id(),
         ], [
-            'my_class_id'      => $record['my_class_id'],
-            'section_id'       => $record['section_id'],
             'admission_number' => $record['admission_number'],
-            'admission_date'   => $record['admission_date'],
+            'admission_date' => $record['admission_date'],
         ]);
 
-        // create record history
-        $currentAcademicYear = current_school()->academicYear;
-        $student->studentRecord->load('academicYears')->academicYears()->sync([$currentAcademicYear->id => [
-            'my_class_id' => $record['my_class_id'],
-            'section_id'  => $record['section_id'],
-        ]]);
+        // The first placement starts the student's placement history.
+        $this->changeEnrollmentPlacementAction->place(
+            enrollment: $enrollment,
+            academicCycleSection: $academicCycleSection,
+            actor: auth()->user(),
+            reason: 'Admission',
+        );
     }
 
     /**
@@ -163,12 +184,30 @@ class StudentService
     /**
      * Delete student.
      *
-     *
-     * @return void
+     * The learner leaves this school first. An enrollment left active would
+     * keep their seat, their place on registers, and the bills of a learner
+     * nobody can open any more.
      */
-    public function deleteStudent(User $student)
+    public function deleteStudent(User $student): void
     {
-        $student->delete();
+        DB::transaction(function () use ($student): void {
+            $enrollment = StudentRecord::query()
+                ->inSchool()
+                ->where('user_id', $student->id)
+                ->enrolled()
+                ->first();
+
+            if ($enrollment !== null) {
+                $this->changeEnrollmentStatusAction->change(
+                    enrollment: $enrollment,
+                    status: EnrollmentStatus::Withdrawn,
+                    actor: auth()->user(),
+                    reason: 'Removed from the school',
+                );
+            }
+
+            $this->userService->deleteUser($student);
+        });
     }
 
     /**
@@ -201,68 +240,55 @@ class StudentService
      */
     public function printProfile(string $name, string $view, array $data)
     {
-        return PrintService::createPdfFromView($view, $data)->download($name.'.pdf');
+        return PrintService::page($view, $data);
     }
 
     /**
-     * Promote students.
+     * Move the chosen learners from one section to another and keep a record of the move.
      *
-     * @param array<mixed> $records
+     * The source section is locked, so a second click on a page left open finds the
+     * learners already moved and writes nothing.
      *
-     * @return void
+     * @param  array{source_academic_cycle_section_id: int, destination_academic_cycle_section_id: int, student_id: array<int, int>}  $records
+     *
+     * @throws EmptyRecordsException
+     * @throws InvalidValueException
      */
-    public function promoteStudents($records)
+    public function promoteStudents(array $records): Promotion
     {
-        $oldClass = $this->myClassService->getClassById($records['old_class_id']);
-        $newClass = $this->myClassService->getClassById($records['new_class_id']);
-        $academicYear = current_school()->academic_year_id;
+        return DB::transaction(function () use ($records): Promotion {
+            $source = AcademicCycleSection::inSchool()->whereKey($records['source_academic_cycle_section_id'])->lockForUpdate()->firstOrFail();
+            $destination = AcademicCycleSection::inSchool()->findOrFail($records['destination_academic_cycle_section_id']);
 
-        if (!$oldClass->sections()->where('id', $records['old_section_id'])->exists()) {
-            throw new InvalidValueException('Old section is not in old class');
-        }
-
-        if (!$newClass->sections()->where('id', $records['new_section_id'])->exists()) {
-            throw new InvalidValueException('New section is not in new class');
-        }
-
-        // make sure academic year is present
-        if ($academicYear == null) {
-            throw new InvalidValueException('Academic year is not set');
-        }
-
-        // get all students for promotion
-        $students = $this->getAllActiveStudents()->whereIn('id', $records['student_id']);
-
-        // make sure there are students to promote
-        if (!$students->count()) {
-            throw new EmptyRecordsException('No students to promote', 1);
-        }
-
-        $currentAcademicYear = current_school()->academicYear;
-        // update each student's class
-        foreach ($students as $student) {
-            if (in_array($student->id, $records['student_id'])) {
-                $student->studentRecord()->update([
-                    'my_class_id' => $records['new_class_id'],
-                    'section_id'  => $records['new_section_id'],
-                ]);
-                $student->studentRecord->load('academicYears')->academicYears()->syncWithoutDetaching([$currentAcademicYear->id => [
-                    'my_class_id' => $records['new_class_id'],
-                    'section_id'  => $records['new_section_id'],
-                ]]);
+            if ($source->is($destination)) {
+                throw new InvalidValueException('Choose a destination other than the current section.');
             }
-        }
 
-        // create promotion record
-        Promotion::create([
-            'old_class_id'     => $records['old_class_id'],
-            'new_class_id'     => $records['new_class_id'],
-            'old_section_id'   => $records['old_section_id'],
-            'new_section_id'   => $records['new_section_id'],
-            'students'         => $students->pluck('id'),
-            'academic_year_id' => $academicYear,
-            'school_id'        => current_school_id(),
-        ]);
+            $students = $this->getAllActiveStudents()
+                ->whereIn('id', $records['student_id'])
+                ->filter(fn (User $student): bool => $student->studentRecord?->academic_cycle_section_id === $source->id);
+
+            if ($students->isEmpty()) {
+                throw new EmptyRecordsException('None of the chosen learners are still in this section. They may have been moved already.', 1);
+            }
+
+            foreach ($students as $student) {
+                $this->changeEnrollmentPlacementAction->place(
+                    enrollment: $student->studentRecord,
+                    academicCycleSection: $destination,
+                    actor: auth()->user(),
+                    reason: 'Promotion',
+                );
+            }
+
+            return Promotion::create([
+                'source_academic_cycle_section_id' => $source->id,
+                'destination_academic_cycle_section_id' => $destination->id,
+                'students' => $students->pluck('id')->values(),
+                'academic_year_id' => $destination->academic_year_id,
+                'school_id' => current_school_id(),
+            ]);
+        });
     }
 
     /**
@@ -278,8 +304,7 @@ class StudentService
     /**
      * Get promotions by academic year Id.
      *
-     * @param int $academicYearId The Primary key of the academic year
-     *
+     * @param  int  $academicYearId  The Primary key of the academic year
      * @return Collection
      */
     public function getPromotionsByAcademicYearId(int $academicYearId)
@@ -288,58 +313,71 @@ class StudentService
     }
 
     /**
-     * Reset promotion.
-     *
-     * @param Promotion $promotion instance of promotion to reset
-     *
-     * @return void
+     * Reverse promotions atomically for learners still in the destination section.
+     * Skip learners who moved, graduated, or left.
      */
-    public function resetPromotion(Promotion $promotion)
+    public function resetPromotion(Promotion $promotion): void
     {
-        $students = $this->getStudentById($promotion->students);
-        $currentAcademicYear = current_school()->academicYear;
+        DB::transaction(function () use ($promotion): void {
+            $students = $this->getStudentById($promotion->students);
+            $sourceAcademicCycleSection = AcademicCycleSection::inSchool()
+                ->findOrFail($promotion->source_academic_cycle_section_id);
 
-        foreach ($students as $student) {
-            $student->allStudentRecords->load('academicYears')->academicYears()->syncWithoutDetaching([$currentAcademicYear->id => [
-                'my_class_id' => $promotion->old_class_id,
-                'section_id'  => $promotion->old_section_id,
-            ]]);
-            $student->allStudentRecords()->update([
-                'my_class_id' => $promotion->old_class_id,
-                'section_id'  => $promotion->old_section_id,
-            ]);
-        }
+            foreach ($students as $student) {
+                $enrollment = $student->allStudentRecords;
 
-        $promotion->delete();
+                if ($enrollment === null
+                    || $enrollment->status->isClosed()
+                    || $enrollment->academic_cycle_section_id !== $promotion->destination_academic_cycle_section_id) {
+                    continue;
+                }
+
+                $this->changeEnrollmentPlacementAction->place(
+                    enrollment: $enrollment,
+                    academicCycleSection: $sourceAcademicCycleSection,
+                    actor: auth()->user(),
+                    reason: 'Promotion reset',
+                );
+            }
+
+            $promotion->delete();
+        });
     }
 
     /**
-     * Graduate students.
+     * Graduate the chosen learners of one section.
      *
-     * @param mixed $records
+     * The section is locked and every learner graduates or none does. Learners
+     * who left the section or already graduated are skipped.
+     *
+     * @param  array{academic_cycle_section_id: int, student_id: array<int, int>, reason?: string|null}  $records
+     * @return int The number of learners who graduated.
      *
      * @throws InvalidValueException
-     *
-     * @return void
      */
-    public function graduateStudents($records)
+    public function graduateStudents(array $records): int
     {
-        // get all students for graduation
-        $students = $this->getAllActiveStudents()->whereIn('id', $records['student_id']);
+        return DB::transaction(function () use ($records): int {
+            $section = AcademicCycleSection::inSchool()->whereKey($records['academic_cycle_section_id'])->lockForUpdate()->firstOrFail();
 
-        // make sure there are students to graduate
-        if (!$students->count()) {
-            throw new InvalidValueException('No students to graduate');
-        }
+            $students = $this->getAllActiveStudents()
+                ->whereIn('id', $records['student_id'])
+                ->filter(fn (User $student): bool => $student->studentRecord?->academic_cycle_section_id === $section->id);
 
-        // update each student's graduation status
-        foreach ($students as $student) {
-            if (in_array($student->id, $records['student_id'])) {
-                $student->studentRecord()->update([
-                    'is_graduated' => true,
-                ]);
+            if ($students->isEmpty()) {
+                throw new InvalidValueException('None of the chosen learners are still active in this section. They may have graduated already.');
             }
-        }
+
+            foreach ($students as $student) {
+                $this->changeEnrollmentStatusAction->graduate(
+                    $student->studentRecord,
+                    auth()->user(),
+                    $records['reason'] ?? null,
+                );
+            }
+
+            return $students->count();
+        });
     }
 
     /**
@@ -348,10 +386,14 @@ class StudentService
      *
      * @return void
      */
-    public function resetGraduation(User $student)
+    public function resetGraduation(User $student, ?string $reason = null)
     {
-        $student->graduatedStudentRecord()->update([
-            'is_graduated' => false,
-        ]);
+        $enrollment = $student->graduatedStudentRecord;
+
+        if ($enrollment === null) {
+            return;
+        }
+
+        $this->changeEnrollmentStatusAction->returnToAttendance($enrollment, auth()->user(), $reason);
     }
 }

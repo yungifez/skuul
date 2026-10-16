@@ -46,7 +46,9 @@ return [
     |
     */
 
-    'encrypt' => false,
+    // Sessions carry names and messages about people, so they are encrypted
+    // where they are stored.
+    'encrypt' => env('SESSION_ENCRYPT', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -168,7 +170,8 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // Production runs over HTTPS, so the cookie never travels in the clear there.
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production'),
 
     /*
     |--------------------------------------------------------------------------

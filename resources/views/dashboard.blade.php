@@ -8,27 +8,17 @@
 
 @section('content')
 
-@can('set school')
-    @livewire('set-school')
-@endcan
-
 @livewire('dashboard-data-cards')
 
-@livewire('set-academic-year')
 
 @if (auth()->user()->hasRole(\App\Enums\Role::Student))
-    <a href="{{route('students.print-profile',auth()->user()->id)}}" aria-label="Download Profile">
-        <div class="card bg-purple-500 dark:bg-purple-600 text-white md:text-2xl">
-            <div class="card-body flex gap-4 items-center justify-center">
-                <i class="fa fa-download" aria-hidden="true"></i>
-                <p class="font-bold">Download Profile</p>
-            </div>
-        </div>
-    </a>
+    <div class="flex flex-wrap items-center justify-between gap-3 border-y py-3">
+        <p class="font-medium">Your profile</p>
+        <april:button-link href="{{ route('students.print-profile', auth()->user()->id) }}" variant="outline">
+            <x-lucide-download class="mr-2 size-4" />
+            Download profile
+        </april:button-link>
+    </div>
 @endif
-
-@can('read notice')
-    @livewire('list-notices-table')
-@endcan
 
 @endsection

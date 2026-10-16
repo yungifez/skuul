@@ -12,15 +12,11 @@ class InitCommand extends Command
     use EnvEditorTrait;
 
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:init';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'Install Skuul';
@@ -173,7 +169,6 @@ class InitCommand extends Command
                 DB::connection()->getPdo();
 
                 $successfulConnection = true;
-                // exit if connection could be made
                 break;
             } catch (\Throwable $th) {
                 $this->error("Couldn't connect with credentials. You would be prompted to enter/re-enter database credentials and connection would be retried. Not sure what these are?, you can reach out to your host's support or ask for help on github");
@@ -197,12 +192,10 @@ class InitCommand extends Command
             }
 
             if ($maxAttemptsRemaining <= 0) {
-                // stop execution if max attempts reached
                 break;
             }
         } while (true);
 
-        // if connection could not be made, max attempts were reached but could not connect to db
         if ($successfulConnection == false) {
             $this->error('Max db attempts exceeded please retry installation'.PHP_EOL);
 
@@ -231,15 +224,15 @@ class InitCommand extends Command
         $mailReplyName = $this->ask('Mail Reply Name', getenv('MAIL_REPLY_NAME'));
 
         $mailCredentials = [
-            'MAIL_MAILER'        => $mailMailer,
-            'MAIL_HOST'          => $mailHost,
-            'MAIL_PORT'          => $mailPort,
-            'MAIL_USERNAME'      => $mailUsername,
-            'MAIL_PASSWORD'      => $mailPassword,
-            'MAIL_FROM_ADDRESS'  => $mailFromAddress,
-            'MAIL_FROM_NAME'     => $mailFromName,
+            'MAIL_MAILER' => $mailMailer,
+            'MAIL_HOST' => $mailHost,
+            'MAIL_PORT' => $mailPort,
+            'MAIL_USERNAME' => $mailUsername,
+            'MAIL_PASSWORD' => $mailPassword,
+            'MAIL_FROM_ADDRESS' => $mailFromAddress,
+            'MAIL_FROM_NAME' => $mailFromName,
             'MAIL_REPLY_ADDRESS' => $mailReplyAddress,
-            'MAIL_REPLY_NAME'    => $mailReplyName,
+            'MAIL_REPLY_NAME' => $mailReplyName,
         ];
 
         $this->setEnvironmentValue($mailCredentials);

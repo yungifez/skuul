@@ -1,38 +1,6 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Subject List</h4>
-    </div>
-    <div class="card-body">
-        @if ($classes->isNotEmpty())
-            <x-select name="" id="class-select" class="md:w-6/12 my-4" wire:model.live="class">
-                @foreach ($classes as $item)
-                    <option value="{{$item->id}}">{{$item->name}}</option>
-                @endforeach
-            </x-select>
-            <div>
-                <x-loading-spinner wire:target="class" />
-            </div>
-            @isset($class)
-                <div  wire:loading.remove.delay>
-                    <livewire:datatable unique_id="list-subject-table" :wire:key="Str::Random(10)" :model="App\Models\Subject::class"
-                    :filters="[
-                        ['name' => 'where' ,'arguments' => ['my_class_id', $class]],
-                        ['name' => 'with', 'arguments' => ['teachers']]
-                    ]"
-                    :columns="[
-                        ['property' => 'name'],
-                        ['property' => 'short_name'],
-                        ['name' => 'Number of teachers assigned', 'method' => 'count', 'relation' => 'teachers'],
-                        ['type' => 'dropdown', 'name' => 'actions','links' => [
-                            ['href' => 'subjects.edit', 'text' => 'Edit', 'icon' => 'fas fa-cog'],
-                        ]],
-                        ['type' => 'delete', 'name' => 'Delete', 'action' => 'subjects.destroy',]
-                    ]"
-                    />
-                </div>
-            @endisset
-        @else
-            <p>No classes and sections created in this school</p>
-        @endif
-    </div>
-</div>
+<april:card><slot:title>Subject catalog</slot:title><slot:description>Subjects available for course offerings.</slot:description><slot:content><div wire:key="{{ $id }}-{{ $this->tableRevision }}"><april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)"><slot:empty><div class="space-y-1"><p class="font-medium text-foreground">No subjects yet</p><p>Add a subject to the school catalog.</p></div></slot:empty><slot:actions>
+    <x-table-actions :items="array_filter([
+        $canEditSubjects ? ['label' => 'Edit subject', 'icon' => 'settings', 'url' => 'edit_url'] : null,
+        $canDeleteSubjects ? ['label' => 'Delete subject', 'icon' => 'trash-2', 'method' => 'deleteSubject', 'type' => 'action', 'confirm' => 'Delete :name? A subject that is taught cannot be deleted.', 'names' => 'row.name', 'when' => 'row.course_offerings_count === 0'] : null,
+    ])" />
+</slot:actions></april:data-table></div></slot:content></april:card>

@@ -13,23 +13,30 @@ class FeeInvoiceRecordService
     /**
      * Store a new fee invoice record.
      *
-     * @param array $records
+     * @param  array  $records
      */
     public function storeFeeInvoiceRecord($records): FeeInvoiceRecord
     {
         $fee = Fee::where('id', $records['fee_id'])->whereRelation('feeCategory', 'school_id', current_school_id())->get();
-        $feeInvoice = FeeInvoice::where('id', $records['fee_invoice_id'])->ofSchool()->get();
+        $feeInvoice = FeeInvoice::query()
+            ->where('id', $records['fee_invoice_id'])
+            ->ofSchool()
+            ->first();
 
-        if ($fee->isEmpty() || $feeInvoice->isEmpty()) {
+        if ($fee->isEmpty() || $feeInvoice === null) {
             throw new InvalidValueException("The fee you selected doesn't exist");
+        }
+
+        if ($feeInvoice->ledgerTransaction !== null) {
+            throw new InvalidValueException('A posted invoice cannot have lines added to it. Create a correcting invoice instead.');
         }
 
         $feeInvoiceRecord = FeeInvoiceRecord::create([
             'fee_invoice_id' => $records['fee_invoice_id'],
-            'fee_id'         => $records['fee_id'],
-            'amount'         => $records['amount'],
-            'waiver'         => $records['waiver'] ?? 0,
-            'fine'           => $records['fine'] ?? 0,
+            'fee_id' => $records['fee_id'],
+            'amount' => $records['amount'],
+            'waiver' => $records['waiver'] ?? 0,
+            'fine' => $records['fine'] ?? 0,
         ]);
 
         return $feeInvoiceRecord;
@@ -40,9 +47,15 @@ class FeeInvoiceRecordService
      */
     public function updateFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord, $records): FeeInvoiceRecord
     {
-        $amount = Money::ofMinor($records['amount'], config('app.currency'));
-        $waiver = Money::ofMinor($records['waiver'] ?? 0, config('app.currency'));
-        $fine = Money::ofMinor($records['fine'] ?? 0, config('app.currency'));
+        if ($feeInvoiceRecord->feeInvoice?->ledgerTransaction !== null) {
+            throw new InvalidValueException('A posted invoice cannot have its lines changed. Create a correcting invoice instead.');
+        }
+
+        // The form asks for whole units, and the column keeps minor units,
+        // which is what the Money cast does on the way in.
+        $amount = Money::of($records['amount'], config('app.currency'));
+        $waiver = Money::of($records['waiver'] ?? 0, config('app.currency'));
+        $fine = Money::of($records['fine'] ?? 0, config('app.currency'));
 
         if ($this->isPaymentHigherThanDue($amount, $feeInvoiceRecord->paid, $waiver, $fine)) {
             throw new InvalidValueException('Due Cannot be less than amount already paid');
@@ -51,42 +64,31 @@ class FeeInvoiceRecordService
         $feeInvoiceRecord->update([
             'amount' => $records['amount'],
             'waiver' => $records['waiver'] ?? 0,
-            'fine'   => $records['fine'] ?? 0,
+            'fine' => $records['fine'] ?? 0,
         ]);
 
         return $feeInvoiceRecord;
     }
 
     /**
-     * Delete a fee invoice.
+     * Refuse deletion of paid lines because cascading allocation deletion would erase payment attribution.
      */
     public function deleteFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord): void
     {
+        if ($feeInvoiceRecord->feeInvoice?->ledgerTransaction !== null) {
+            throw new InvalidValueException('A posted invoice cannot have its lines removed. Create a correcting invoice instead.');
+        }
+
+        if ($feeInvoiceRecord->paid->isPositive()) {
+            throw new InvalidValueException('This fee has money against it, so it cannot be removed. Set its waiver to cover what is left instead.');
+        }
+
         $feeInvoiceRecord->delete();
     }
 
     /**
-     * Add a new paymeny.
-     *
-     * @param array $records
+     * Check whether a line would be left owing less than it has been paid.
      */
-    public function addPayment(FeeInvoiceRecord $feeInvoiceRecord, $records): FeeInvoiceRecord
-    {
-        $pay = Money::of($records['pay'], config('app.currency'));
-        $paid = $feeInvoiceRecord->paid;
-        $newAmount = $paid->plus($pay);
-
-        if ($this->isPaymentHigherThanDue($feeInvoiceRecord->amount, $newAmount, $feeInvoiceRecord->waiver, $feeInvoiceRecord->fine)) {
-            throw new InvalidValueException('Payment cannot be higher than the total amount to pay');
-        }
-
-        $feeInvoiceRecord->update([
-            'paid' => $newAmount,
-        ]);
-
-        return $feeInvoiceRecord;
-    }
-
     public function isPaymentHigherThanDue(Money $amount, Money $paid, Money $waiver, Money $fine): bool
     {
         $due = $amount->plus($fine)->minus($waiver);

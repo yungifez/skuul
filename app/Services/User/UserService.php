@@ -6,8 +6,13 @@ use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Actions\Identity\ChangeAccountStatus;
 use App\Actions\Identity\ProvisionAccount;
 use App\Actions\Identity\SendAccountInvitation;
+use App\Actions\School\EndSchoolMembership;
+use App\Enums\Role;
 use App\Models\User;
+use App\Services\Authorization\RoleAuthority;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class UserService
 {
@@ -16,8 +21,9 @@ class UserService
         public SendAccountInvitation $sendAccountInvitationAction,
         public ChangeAccountStatus $changeAccountStatusAction,
         public UpdateUserProfileInformation $updateUserProfileInformationAction,
-    ) {
-    }
+        public EndSchoolMembership $endSchoolMembershipAction,
+        public RoleAuthority $roleAuthority,
+    ) {}
 
     /**
      * Get all users.
@@ -30,8 +36,7 @@ class UserService
     /**
      * Get a user by id.
      *
-     * @param int|array<int, int> $id
-     *
+     * @param  int|array<int, int>  $id
      * @return User|Collection<int, User>|null
      */
     public function getUserById($id)
@@ -42,9 +47,8 @@ class UserService
     /**
      * Get users by role.
      *
-     * @param string $role
-     *
-     * @return Collection|static[]
+     * @param  string  $role
+     * @return Collection<int, User>
      */
     public function getUsersByRole($role)
     {
@@ -58,27 +62,27 @@ class UserService
      * and sets their own password. Calling this again with the same email
      * updates the existing profile instead of creating a second login.
      *
-     * @param array|\Illuminate\Support\Collection $record
+     * @param  array|\Illuminate\Support\Collection  $record
      */
     public function createUser($record, bool $invite = true): User
     {
-        $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names'] ?? null);
         $record['school_id'] = $record['school_id'] ?? current_school_id();
 
         $user = $this->provisionAccountAction->provision([
-            'name'        => $record['name'],
-            'email'       => $record['email'],
-            'photo'       => $record['profile_photo'] ?? null,
-            'school_id'   => $record['school_id'],
-            'birthday'    => $record['birthday'],
-            'address'     => $record['address'],
-            'blood_group' => $record['blood_group'],
-            'religion'    => $record['religion'] ?? null,
-            'nationality' => $record['nationality'],
-            'state'       => $record['state'],
-            'city'        => $record['city'],
-            'gender'      => $record['gender'],
-            'phone'       => $record['phone'] ?? null,
+            'name' => $record['name'],
+            'email' => $record['email'],
+            'photo' => $record['profile_photo'] ?? null,
+            'school_id' => $record['school_id'],
+            'birthday' => $record['birthday'] ?? null,
+            'address' => $record['address'] ?? null,
+            'address_line_2' => $record['address_line_2'] ?? null,
+            'country' => $record['country'] ?? null,
+            'nationality' => $record['nationality'] ?? null,
+            'state' => $record['state'] ?? null,
+            'city' => $record['city'] ?? null,
+            'postal_code' => $record['postal_code'] ?? null,
+            'gender' => $record['gender'] ?? null,
+            'phone' => $record['phone'] ?? null,
         ]);
 
         if ($invite && $user->isAwaitingInvitationAcceptance()) {
@@ -89,23 +93,10 @@ class UserService
     }
 
     /**
-     * Create full name from first name, last name and other names.
-     *
-     * @param string|null $othernames
-     *
-     * @return string
-     */
-    public function createFullName($firstname, $lastname, $othernames = null)
-    {
-        return $firstname.' '.$lastname.' '.$othernames;
-    }
-
-    /**
      * Check if user has a role.
      *
-     * @param int    $id
-     * @param string $role
-     *
+     * @param  int  $id
+     * @param  string  $role
      * @return bool
      */
     public function verifyRole($id, $role)
@@ -118,9 +109,8 @@ class UserService
     /**
      * Update user profile information.
      *
-     * @param User   $user User instance
-     * @param string $role Verify role before updating
-     *
+     * @param  User  $user  User instance
+     * @param  string  $role  Verify role before updating
      * @return User
      */
     public function updateUser(User $user, $record, ?string $role = null)
@@ -130,32 +120,82 @@ class UserService
                 abort('403', "User isn't a/an $role");
             }
         }
-        if (!$record['other_names']) {
-            $record['other_names'] = null;
+        // A person who also belongs to another school, or holds authority
+        // beyond this one, signs in there with this email. A new email is a
+        // new way to reset their password, so only they may change it. The
+        // same holds for somebody who holds more here than the editor does.
+        if (isset($record['email']) && mb_strtolower((string) $record['email']) !== mb_strtolower((string) $user->email)) {
+            if ($user->belongsToAnotherSchool()) {
+                throw ValidationException::withMessages([
+                    'email' => 'This person also belongs to another school, so only they can change their email.',
+                ]);
+            }
+
+            if ($user->holdsPowerBeyond(current_school_id())) {
+                throw ValidationException::withMessages([
+                    'email' => 'This person has authority beyond this school, so only they can change their email.',
+                ]);
+            }
+
+            $actor = auth()->user();
+            $school = current_school();
+
+            if ($actor instanceof User && $actor->id !== $user->id && $school !== null && $this->roleAuthority->holdsMoreThan($user, $actor, $school)) {
+                throw ValidationException::withMessages([
+                    'email' => 'This person holds more at this school than you do, so only they can change their email.',
+                ]);
+            }
         }
 
-        $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
-
-        // update profile photo if present
-        if (isset($record['profile_photo'])) {
-            $user->updateProfilePhoto($record['profile_photo']);
-        }
-
-        $user = $this->updateUserProfileInformationAction->update($user, $record);
+        $user = $this->updateUserProfileInformationAction->update($user, [
+            'name' => $record['name'],
+            'email' => $record['email'],
+            'photo' => $record['profile_photo'] ?? null,
+            'birthday' => $record['birthday'] ?? null,
+            'address' => $record['address'] ?? null,
+            'address_line_2' => $record['address_line_2'] ?? null,
+            'country' => $record['country'] ?? null,
+            'nationality' => $record['nationality'] ?? null,
+            'state' => $record['state'] ?? null,
+            'city' => $record['city'] ?? null,
+            'postal_code' => $record['postal_code'] ?? null,
+            'gender' => $record['gender'] ?? null,
+            'phone' => $record['phone'] ?? null,
+        ]);
 
         return $user;
     }
 
     /**
-     * Delete a user.
+     * Refuse to add a person to this school in a role they already hold here.
      *
-     * @param string $role
-     *
-     * @return void
+     * @throws ValidationException
      */
-    public function deleteUser(User $user)
+    public function failIfAlreadyHolds(string $email, Role $role): void
     {
-        $user->delete();
+        $person = User::query()->whereRaw('LOWER(email) = ?', [mb_strtolower($email)])->first();
+
+        if ($person !== null && $person->belongsToSchool(current_school_id()) && $person->hasRole($role->value)) {
+            throw ValidationException::withMessages([
+                'email' => "{$person->name} already holds the ".strtolower($role->label()).' role at this school.',
+            ]);
+        }
+    }
+
+    /**
+     * End only working-school access when another school still holds the account.
+     */
+    public function deleteUser(User $user): void
+    {
+        DB::transaction(function () use ($user): void {
+            // Ending the membership first ends what the person still does
+            // here, so a deleted teacher leaves no lesson or cover behind.
+            $this->endSchoolMembershipAction->end($user, current_school());
+
+            if (!$user->keepsAccountWhenRemovedHere()) {
+                $user->delete();
+            }
+        });
     }
 
     /**

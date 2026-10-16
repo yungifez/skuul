@@ -1,21 +1,36 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Academic year list</h4>
-    </div>
-    <div class="card-body">
-        <livewire:datatable :model="App\Models\AcademicYear::class" 
-        :filters="[
-            ['name' => 'inSchool']
-        ]"
-        :columns="[
-            ['name' => 'Start Year', 'property' => 'start_year'],
-            ['name' => 'Start Year', 'property' => 'stop_year'],
-            ['name' => 'name'],
-            ['type' => 'dropdown', 'name' => 'actions','links' => [
-                ['href' => 'academic-years.edit', 'text' => 'Edit', 'icon' => 'fas fa-cog',],
-                ['href' => 'academic-years.show', 'text' => 'View', 'icon' => 'fas fa-eye',  ],
-            ]],
-            ['type' => 'delete', 'name' => 'Delete', 'action' => 'academic-years.destroy',]
-        ]"/>
-    </div>
-</div>
+<april:card>
+    <slot:title>{{ school_terms('academic_year', 'School years') }}</slot:title>
+    <slot:description>Each {{ strtolower(school_term('academic_year', 'school year')) }} carries its dates, reporting periods, and lifecycle state.</slot:description>
+    <slot:content>
+        <div wire:key="{{ $id }}-{{ $this->tableRevision }}">
+            <april:data-table
+                id="{{ $id }}"
+                :data="$data"
+                :columns="$columns"
+                :pagination="$pagination"
+                :per-page-options="$perPageOptions"
+                row-key="{{ $rowKey }}"
+                :searchable="$searchable"
+                @query-change="$wire.updateTable($event.detail)"
+            >
+                <slot:empty>
+                    <div class="space-y-1">
+                        <p class="font-medium text-foreground">No {{ strtolower(school_terms('academic_year', 'school years')) }} yet</p>
+                        <p>Set up {{ with_indefinite_article(strtolower(school_term('academic_year', 'school year'))) }} to define the reporting periods staff will use.</p>
+                    </div>
+                </slot:empty>
+
+                <slot:cell-status-label>
+                    <span class="rounded-md border px-2 py-1 text-xs font-medium capitalize" x-text="row.status_label"></span>
+                </slot:cell-status-label>
+
+                <slot:actions>
+    <x-table-actions :items="array_filter([
+        ['label' => 'View academic year', 'icon' => 'eye', 'url' => 'view_url'],
+        $canDeleteYears ? ['label' => 'Delete '.strtolower(school_term('academic_year', 'school year')), 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete the '.strtolower(school_term('academic_year', 'school year')).' :name?', 'names' => 'row.name'] : null,
+    ])" />
+</slot:actions>
+            </april:data-table>
+        </div>
+    </slot:content>
+</april:card>

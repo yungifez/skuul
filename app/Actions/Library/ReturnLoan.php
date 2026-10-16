@@ -1,0 +1,150 @@
+<?php
+
+namespace App\Actions\Library;
+
+use App\Actions\Audit\RecordAuditEvent;
+use App\Actions\Finance\ChargeStudent;
+use App\Enums\AuditAction;
+use App\Exceptions\InvalidValueException;
+use App\Models\LibraryLendingRules;
+use App\Models\LibraryLoan;
+use App\Models\School;
+use App\Models\StudentRecord;
+use App\Models\User;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Take a copy back, and charge for it if it is late.
+ *
+ * A fine is not a separate pot of library money. It goes through the same
+ * charge as every other thing a school bills for, so one balance answers what
+ * a family owes.
+ */
+class ReturnLoan
+{
+    public function __construct(
+        private ChargeStudent $charge,
+        private HoldCopyForNextInQueue $hold,
+        private RecordAuditEvent $auditor,
+    ) {}
+
+    /**
+     * Record the copy coming back.
+     *
+     * @throws InvalidValueException when the copy is already back
+     */
+    public function receive(LibraryLoan $loan, ?User $actor = null, ?Carbon $returnedOn = null): LibraryLoan
+    {
+        $returnedOn ??= now();
+
+        return DB::transaction(function () use ($loan, $actor, $returnedOn): LibraryLoan {
+            // A double tap at the desk sends two returns. Read the loan again
+            // under a lock, so the second meets the first and no fine is
+            // charged twice.
+            $loan = LibraryLoan::query()->lockForUpdate()->findOrFail($loan->id);
+
+            if (!$loan->isOpen()) {
+                throw new InvalidValueException('This copy is already back.');
+            }
+
+            $loan->returned_on = $returnedOn;
+            $loan->received_by = $actor === null ? auth()->id() : $actor->id;
+
+            $fine = $this->fineFor($loan, $returnedOn->toDateString());
+            $loan->fine_charged = $fine;
+
+            $loan->save();
+
+            if ($fine > 0) {
+                $this->chargeTheFine($loan, $fine, $actor);
+            }
+
+            // Somebody may have been waiting for exactly this book, so it
+            // goes behind the desk for them rather than back on the shelf.
+            $loan->loadMissing('copy.title');
+            $title = $loan->copy?->title;
+
+            if ($title !== null) {
+                $this->hold->holdWhateverIsFree($title, $actor, $loan->school_id);
+            }
+
+            $this->auditor->record(
+                AuditAction::LibraryLoanReturned,
+                $loan,
+                [
+                    'days_late' => $loan->daysLate(),
+                    'fine' => $fine,
+                ],
+                $actor,
+                $loan->school_id,
+            );
+
+            return $loan;
+        });
+    }
+
+    /**
+     * Work out what the late days cost, in minor units.
+     */
+    private function fineFor(LibraryLoan $loan, string $returnedOn): int
+    {
+        $policy = LibraryLendingRules::forSchool($loan->school_id);
+
+        if (!$policy->chargesFines()) {
+            return 0;
+        }
+
+        // Both sides are whole days. A copy due today and brought back today
+        // is not late by a few hours.
+        $due = $loan->due_on->copy()->startOfDay();
+        $back = now()->parse($returnedOn)->startOfDay();
+
+        $late = $due->greaterThanOrEqualTo($back) ? 0 : (int) $due->diffInDays($back);
+
+        return $policy->fineForDaysLate($late);
+    }
+
+    /**
+     * Bill fines only to learner accounts at the lending campus, including after a campus move.
+     */
+    private function chargeTheFine(LibraryLoan $loan, int $fine, ?User $actor): void
+    {
+        $enrollment = $this->enrollmentOwingTheLibrary($loan);
+
+        if ($enrollment === null) {
+            return;
+        }
+
+        $this->charge->charge(
+            enrollment: $enrollment,
+            amount: round($fine / 100, 2),
+            description: 'Library fine',
+            source: $loan,
+            actor: $actor,
+            incomePurpose: 'other_income',
+            schoolId: $loan->school_id,
+        );
+    }
+
+    /**
+     * Find the borrower's enrollment at the lending campus, or the one they
+     * took with them to another campus of the same organization.
+     */
+    private function enrollmentOwingTheLibrary(LibraryLoan $loan): ?StudentRecord
+    {
+        $organizationId = School::query()->whereKey($loan->school_id)->value('organization_id');
+
+        return StudentRecord::query()
+            ->where('user_id', $loan->user_id)
+            ->where(fn ($query) => $query
+                ->where('school_id', $loan->school_id)
+                ->when($organizationId !== null, fn ($query) => $query->orWhereIn(
+                    'school_id',
+                    School::query()->where('organization_id', $organizationId)->select('id'),
+                )))
+            ->orderByRaw('case when school_id = ? then 0 else 1 end', [$loan->school_id])
+            ->orderBy('id')
+            ->first();
+    }
+}

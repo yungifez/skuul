@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Http\Requests;
+
+use App\Models\AcademicPeriod;
+use App\Models\ReportCardSnapshot;
+use App\Models\ResultSnapshot;
+use App\Models\StudentRecord;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class StoreReportCardRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->can('create', ReportCardSnapshot::class) ?? false;
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    public function rules(): array
+    {
+        return self::reportCardRules();
+    }
+
+    /** @return array<string, array<int, mixed>> */
+    public static function reportCardRules(): array
+    {
+        return [
+            'student_record_id' => ['required', 'integer', Rule::exists((new StudentRecord)->getTable(), 'id')->where(fn ($studied) => $studied
+                ->where('school_id', current_school_id())
+                ->orWhereIn('id', ResultSnapshot::query()->inSchool()->select('student_record_id')))],
+            'academic_period_id' => ['required', 'integer', Rule::exists((new AcademicPeriod)->getTable(), 'id')->where('school_id', current_school_id())],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ];
+    }
+}

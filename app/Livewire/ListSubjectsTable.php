@@ -2,39 +2,71 @@
 
 namespace App\Livewire;
 
-use App\Services\MyClass\MyClassService;
-use Illuminate\Support\MessageBag;
-use Livewire\Component;
+use App\Livewire\Concerns\InteractsWithAprilTable;
+use App\Models\Subject;
+use App\Services\Subject\SubjectService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
+use Yungifez\AprilUI\Livewire\Columns\Column;
+use Yungifez\AprilUI\Livewire\DataTableComponent;
 
-class ListSubjectsTable extends Component
+class ListSubjectsTable extends DataTableComponent
 {
-    protected $queryString = ['class'];
+    use InteractsWithAprilTable;
 
-    public $classes;
-
-    public $class;
-
-    public function mount(MyClassService $myClassService)
+    protected function builder(): Builder
     {
-        $this->setErrorBag(session()->get('errors', new MessageBag())->getMessages());
-
-        $this->classes = $myClassService->getAllClasses();
-        if ($this->classes->isNotEmpty()) {
-            $this->updatedClass();
-        }
+        return Subject::query()->inSchool()->withCount('courseOfferings')->orderBy('name');
     }
 
-    public function updatedClass()
+    /** @return array<int, Column> */
+    protected function columns(): array
     {
-        if ($this->classes->find($this->class) == null) {
-            $this->class = $this->classes?->first()->id;
-        }
-
-        $this->dispatch('$refresh');
+        return [
+            Column::make('Name', 'name')->searchable()->sortable(),
+            Column::make('Short name', 'short_name'),
+            Column::make('Course offerings', 'course_offerings_count')->sortable(),
+        ];
     }
 
-    public function render()
+    /** @return array{field: string, direction: string} */
+    protected function defaultSort(): ?array
     {
-        return view('livewire.list-subjects-table');
+        return ['field' => 'name', 'direction' => 'asc'];
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    protected function serializeRows(Collection $rows): array
+    {
+        return $rows->map(function (Subject $subject): array {
+            $row = $subject->toArray();
+            $row['edit_url'] = route('subjects.edit', $subject);
+
+            return $row;
+        })->values()->all();
+    }
+
+    /**
+     * Delete one subject that nobody teaches.
+     */
+    public function deleteSubject(int $subjectId, SubjectService $subjects): void
+    {
+        $subject = Subject::query()->inSchool()->findOrFail($subjectId);
+        Gate::authorize('delete', $subject);
+
+        $this->changeRow(fn () => $subjects->deleteSubject($subject), "{$subject->name} was deleted.");
+    }
+
+    public function render(): View
+    {
+        return view('livewire.list-subjects-table', array_merge(
+            $this->aprilTablePayload(),
+            [
+                'canEditSubjects' => auth()->user()->can('update subject'),
+                'canDeleteSubjects' => auth()->user()->can('delete subject'),
+            ],
+        ));
     }
 }

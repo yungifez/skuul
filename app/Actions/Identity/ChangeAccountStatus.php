@@ -3,8 +3,15 @@
 namespace App\Actions\Identity;
 
 use App\Enums\AccountStatus;
+use App\Enums\OrganizationPermission;
+use App\Enums\PlatformPermission;
 use App\Events\AccountStatusChanged;
+use App\Exceptions\InvalidValueException;
+use App\Models\School;
 use App\Models\User;
+use App\Services\Authorization\RoleAuthority;
+use App\Services\Authorization\SystemPermissionScope;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 /**
@@ -14,9 +21,11 @@ use RuntimeException;
  */
 class ChangeAccountStatus
 {
-    public function __construct(private RevokeAccountInvitation $revokeAccountInvitation)
-    {
-    }
+    public function __construct(
+        private RevokeAccountInvitation $revokeAccountInvitation,
+        private SystemPermissionScope $systemPermissionScope,
+        private RoleAuthority $roleAuthority,
+    ) {}
 
     /**
      * Stop access without deleting anything.
@@ -53,25 +62,65 @@ class ChangeAccountStatus
      */
     public function changeTo(User $user, AccountStatus $status, ?User $actor = null, ?string $reason = null): User
     {
-        if ($user->isPlatformAdmin() && !$status->canAccessApplication()) {
+        if ($this->systemPermissionScope->allows($user, PlatformPermission::ManagePlatform) && !$status->canAccessApplication()) {
             throw new RuntimeException('A platform administrator account cannot be suspended or archived.');
         }
 
-        $from = $user->account_status;
+        return DB::transaction(function () use ($user, $status, $actor, $reason): User {
+            // Held with the invitation it may revoke, so an invitation being
+            // accepted at the same moment cannot open the account again.
+            $from = User::query()->lockForUpdate()->findOrFail($user->getKey())->account_status;
 
-        if ($from === $status) {
+            if ($from === $status) {
+                return $user;
+            }
+
+            $change = function () use ($user, $status): void {
+                $user->account_status = $status;
+                $user->save();
+            };
+
+            // A blocked account cannot manage roles, so no campus may be left
+            // with only blocked role managers.
+            if (!$status->canAccessApplication()) {
+                $this->failIfTheLastMemberManagerOfAnOrganization($user);
+
+                $schools = School::query()->whereIn('id', $user->schoolMemberships()->active()->select('school_id'))->get();
+
+                foreach ($schools as $school) {
+                    $inner = $change;
+                    $change = fn () => $this->roleAuthority->mustKeepARoleManager($school, $inner);
+                }
+            }
+
+            $change();
+
+            if (!$status->canAccessApplication()) {
+                $this->revokeAccountInvitation->revoke($user);
+            }
+
+            AccountStatusChanged::dispatch($user, $from, $status, $actor, $reason);
+
             return $user;
+        });
+    }
+
+    /**
+     * Refuse to block the last person who can manage an organization's members.
+     *
+     * @throws InvalidValueException
+     */
+    private function failIfTheLastMemberManagerOfAnOrganization(User $user): void
+    {
+        $memberships = $user->organizationMemberships()->active()->with('organization')->get();
+
+        foreach ($memberships as $membership) {
+            if ($membership->grants(OrganizationPermission::ManageMembers)
+                && $membership->organization?->hasAnotherMemberManager($user) === false) {
+                throw new InvalidValueException(
+                    "{$membership->organization->name} would be left with nobody who can manage its members. Grant a replacement first."
+                );
+            }
         }
-
-        $user->account_status = $status;
-        $user->save();
-
-        if (!$status->canAccessApplication()) {
-            $this->revokeAccountInvitation->revoke($user);
-        }
-
-        AccountStatusChanged::dispatch($user, $from, $status, $actor, $reason);
-
-        return $user;
     }
 }

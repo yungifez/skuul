@@ -1,0 +1,154 @@
+<?php
+
+namespace App\Actions\Enrollment;
+
+use App\Actions\Audit\RecordAuditEvent;
+use App\Actions\Boarding\AssignBoardingPlace;
+use App\Actions\Cohort\ChangeCohortMembership;
+use App\Actions\Cohort\ChangeProgramParticipation;
+use App\Actions\Finance\CarryBalanceToCampus;
+use App\Actions\Library\CloseReservation;
+use App\Actions\School\GrantSchoolMembership;
+use App\Actions\Wellbeing\ManageSupportPlan;
+use App\Enums\AuditAction;
+use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\School;
+use App\Models\StudentRecord;
+use App\Models\User;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Keep the enrollment, admission number, and placement history during an internal move.
+ * Use TransferEnrollment when crossing organizations.
+ */
+class MoveEnrollmentBetweenCampuses
+{
+    public function __construct(
+        private ChangeEnrollmentPlacement $changePlacement,
+        private GrantSchoolMembership $grantSchoolMembership,
+        private CarryBalanceToCampus $carryBalance,
+        private RecordAuditEvent $auditor,
+        private AssignBoardingPlace $boarding,
+        private ChangeProgramParticipation $programmes,
+        private ChangeCohortMembership $cohorts,
+        private CloseReservation $reservations,
+        private ManageSupportPlan $supportPlans,
+    ) {}
+
+    /**
+     * Move the enrollment to the campus that owns the given cycle section.
+     *
+     * @throws InvalidValueException when the two campuses do not share an organization
+     */
+    public function move(
+        StudentRecord $enrollment,
+        AcademicCycleSection $academicCycleSection,
+        ?User $actor = null,
+        ?string $reason = null,
+        ?CarbonInterface $effectiveOn = null,
+    ): StudentRecord {
+        $enrollmentId = $enrollment->getKey();
+        $academicCycleSectionId = $academicCycleSection->getKey();
+
+        return DB::transaction(function () use ($enrollmentId, $academicCycleSectionId, $actor, $reason, $effectiveOn): StudentRecord {
+            $enrollment = StudentRecord::query()
+                ->with(['school', 'user'])
+                ->lockForUpdate()
+                ->findOrFail($enrollmentId);
+            $academicCycleSection = AcademicCycleSection::query()
+                ->with('school')
+                ->lockForUpdate()
+                ->findOrFail($academicCycleSectionId);
+
+            $source = $enrollment->school;
+            $destination = $academicCycleSection->school;
+
+            $this->failIfTheMoveDoesNotFit($enrollment, $source, $destination);
+
+            // The person needs access to the campus they now attend. The
+            // membership at the old campus stays, so its staff keep reading
+            // the records the student made while they were there.
+            $this->grantSchoolMembership->grant($enrollment->user, $destination);
+            $this->grantSchoolMembership->grantStudentRole($enrollment->user, $destination);
+
+            // The bed belongs to the old campus's house. Leaving it taken
+            // strands it, because that campus no longer sees the learner.
+            $this->boarding->release($enrollment, "Moved to {$destination->name}", $actor, $effectiveOn);
+            $this->programmes->withdrawFromSchool($enrollment, $source->id, "Moved to {$destination->name}", $actor);
+            $this->cohorts->leaveSchool($enrollment, $source->id, $effectiveOn, $actor);
+            $this->reservations->cancelEveryReservation($enrollment->user, $source->id, $actor);
+            $this->supportPlans->closeAtSchool($enrollment, $source->id, "Moved to {$destination->name}", $actor);
+
+            $enrollment->school_id = $destination->id;
+            $enrollment->save();
+
+            // The placement action owns the history, and it now sees one
+            // enrollment and one cycle section inside the same campus.
+            $enrollment = $this->changePlacement->place(
+                enrollment: $enrollment,
+                academicCycleSection: $academicCycleSection,
+                actor: $actor,
+                reason: $reason,
+                effectiveOn: $effectiveOn,
+            );
+
+            // Campuses that keep one purse bill the family as one school, so
+            // the debt follows the learner instead of being left at a campus
+            // that will never see them again. Campuses with separate books
+            // carry nothing, and each keeps what it is owed.
+            $carried = $this->carryBalance->carryIfTheyBillTogether($enrollment, $source, $destination, $actor);
+
+            $this->auditor->record(
+                AuditAction::EnrollmentCampusChanged,
+                $enrollment,
+                [
+                    'from_school_id' => $source->id,
+                    'to_school_id' => $destination->id,
+                    'organization_id' => $destination->organization_id,
+                    'academic_cycle_section_id' => $academicCycleSection->id,
+                    'carried_balances' => $carried === [] ? null : $carried,
+                    'reason' => $reason,
+                ],
+                $actor,
+                $destination,
+            );
+
+            return $enrollment;
+        });
+    }
+
+    /**
+     * Check that this is an internal move between two campuses.
+     *
+     * @throws InvalidValueException
+     */
+    private function failIfTheMoveDoesNotFit(
+        StudentRecord $enrollment,
+        School $source,
+        School $destination,
+    ): void {
+        if ($enrollment->status->isClosed()) {
+            throw new InvalidValueException('This enrollment is closed. It cannot move to another campus.');
+        }
+
+        if ($source->id === $destination->id) {
+            throw new InvalidValueException('The student already attends that campus. Change the placement instead.');
+        }
+
+        if ($source->organization_id !== $destination->organization_id) {
+            throw new InvalidValueException('The two campuses belong to different organizations. Transfer the enrollment instead.');
+        }
+
+        $numberTaken = $enrollment->admission_number !== null && StudentRecord::query()
+            ->where('school_id', $destination->id)
+            ->where('admission_number', $enrollment->admission_number)
+            ->whereKeyNot($enrollment->getKey())
+            ->exists();
+
+        if ($numberTaken) {
+            throw new InvalidValueException("{$destination->name} already has a learner with admission number {$enrollment->admission_number}. Change one of the numbers first.");
+        }
+    }
+}

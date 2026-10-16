@@ -2,12 +2,100 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
+use App\Livewire\Concerns\InteractsWithAprilTable;
+use App\Models\Notice;
+use App\Services\Notice\NoticeService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
+use Yungifez\AprilUI\Livewire\Columns\Column;
+use Yungifez\AprilUI\Livewire\DataTableComponent;
 
-class ListNoticesTable extends Component
+class ListNoticesTable extends DataTableComponent
 {
-    public function render()
+    use InteractsWithAprilTable;
+
+    protected function builder(): Builder
     {
-        return view('livewire.list-notices-table');
+        $user = auth()->user();
+        $query = Notice::query()->inSchool();
+
+        if ($user->isPortalOnly()) {
+            return $query
+                ->published()
+                ->active()
+                ->whereHas('recipients', fn (Builder $recipients): Builder => $recipients->where('user_id', $user->id));
+        }
+
+        if (!$user->can('update notice') && !$user->can('delete notice')) {
+            $query->active();
+        }
+
+        return $query;
+    }
+
+    /** @return array<int, Column> */
+    protected function columns(): array
+    {
+        return [
+            Column::make('Title', 'title')->searchable()->sortable(),
+            Column::make('From', 'start_date_for_humans'),
+            Column::make('Until', 'stop_date_for_humans'),
+        ];
+    }
+
+    /** @return array{field: string, direction: string} */
+    protected function defaultSort(): ?array
+    {
+        return ['field' => 'title', 'direction' => 'asc'];
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    protected function serializeRows(Collection $rows): array
+    {
+        return $rows->map(function (Notice $notice): array {
+            $row = $notice->toArray();
+            $row['start_date_for_humans'] = $notice->start_date_for_humans;
+            $row['stop_date_for_humans'] = $notice->stop_date_for_humans;
+            $row['view_url'] = route('notices.show', $notice);
+
+            return $row;
+        })->values()->all();
+    }
+
+    /**
+     * Delete one notice.
+     */
+    public function deleteNotice(int $noticeId, NoticeService $notices): void
+    {
+        $notice = Notice::query()->inSchool()->findOrFail($noticeId);
+        Gate::authorize('delete', $notice);
+
+        $this->changeRow(fn () => $notices->deleteNotice($notice), "{$notice->title} was deleted.");
+    }
+
+    public function render(): View
+    {
+        $rows = $this->rows();
+        $columns = $this->columns();
+
+        return view('livewire.list-notices-table', [
+            'columns' => $this->columnDefinitions(),
+            'data' => $this->serializeRows(collect($rows->items())),
+            'pagination' => [
+                'mode' => 'controlled',
+                'page' => $rows->currentPage(),
+                'perPage' => $rows->perPage(),
+                'total' => $rows->total(),
+                'search' => $this->search,
+                'sort' => $this->sort ? ['key' => $this->sort, 'direction' => $this->direction] : null,
+            ],
+            'id' => $this->tableId(),
+            'perPageOptions' => $this->perPageOptions,
+            'rowKey' => $this->primaryKey(),
+            'searchable' => collect($columns)->contains(fn (Column $column): bool => $column->isSearchable()),
+            'canDeleteNotices' => auth()->user()->can('delete notice'),
+        ]);
     }
 }

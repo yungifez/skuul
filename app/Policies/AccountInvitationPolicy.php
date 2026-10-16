@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\AccountInvitation;
+use App\Models\User;
+use App\Services\Authorization\RoleAuthority;
+use App\Services\Identity\AccountInvitationVisibility;
+
+/**
+ * Scope invitation reads through AccountInvitationVisibility.
+ * Reject self-management and changes to accepted, revoked, or expired invitations.
+ */
+class AccountInvitationPolicy
+{
+    public function __construct(private AccountInvitationVisibility $visibility) {}
+
+    /**
+     * Determine whether the user can open the invitation screen.
+     */
+    public function viewAny(User $user): bool
+    {
+        return $this->visibility->allowsAny($user);
+    }
+
+    /**
+     * Determine whether the user can read one invitation.
+     */
+    public function view(User $user, AccountInvitation $invitation): bool
+    {
+        return $this->visibility->allows($user, $invitation);
+    }
+
+    /**
+     * Determine whether the user can email the link again.
+     */
+    public function resend(User $user, AccountInvitation $invitation): bool
+    {
+        return $invitation->isPending() && $this->canAct($user, $invitation);
+    }
+
+    /**
+     * Determine whether the user can stop the link.
+     */
+    public function revoke(User $user, AccountInvitation $invitation): bool
+    {
+        return $invitation->isPending() && $this->canAct($user, $invitation);
+    }
+
+    /**
+     * Check the rules both actions share.
+     *
+     * Account access is never changed by the person who holds the account,
+     * which matches App\Policies\UserPolicy::manageAccountAccess.
+     */
+    private function canAct(User $user, AccountInvitation $invitation): bool
+    {
+        $invitee = $invitation->user;
+
+        if ($invitee === null || $user->id === $invitee->id || !$this->visibility->allows($user, $invitation)) {
+            return false;
+        }
+
+        if ($this->visibility->reachesBeyondThisCampus($user, $invitee)) {
+            return true;
+        }
+
+        // A campus manager acts only on a person this campus fully holds,
+        // as App\Policies\UserPolicy::manageAccountAccess does.
+        $school = current_school();
+
+        return $school !== null
+            && !$invitee->holdsPowerBeyond($school)
+            && !$invitee->isEnrolledOnlyElsewhere($school)
+            && !app(RoleAuthority::class)->holdsMoreThan($invitee, $user, $school);
+    }
+}

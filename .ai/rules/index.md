@@ -4,6 +4,17 @@ Before planning or editing, find the row whose globs match the file's path and r
 
 | Applies to | Rule file |
 | --- | --- |
-| ** | .ai/rules/general.md |
+| resources/views/vendor/april/** | .ai/rules/april.md |
+| app/Actions/**, app/Listeners/**, app/Services/** | .ai/rules/audit.md |
+| app/Actions/Enrollment/**, app/Services/Authorization/CampusMoveAuthority.php | .ai/rules/enrollment.md |
+| app/Imports/**,tests/Feature/ImportTest.php | .ai/rules/feature.md |
+| **, phpunit.xml | .ai/rules/general.md |
+| app/Actions/Gradebook/** | .ai/rules/gradebook.md |
+| app/Http/Controllers/**, app/Http/Requests/** | .ai/rules/http.md |
+| database/migrations/**, database/seeders/PermissionSeeder.php | .ai/rules/migrations.md |
 | app/Models/*.php | .ai/rules/models.md |
+| app/Models/*.php, app/Services/**, app/Actions/**, app/Http/Controllers/** | .ai/rules/queries.md |
+| routes/*.php | .ai/rules/routes.md |
+| app/Services/Syllabus/**, app/Actions/Syllabus/** | .ai/rules/syllabus.md |
 | tests/** | .ai/rules/tests.md |
+| resources/views/**/*.blade.php | .ai/rules/views.md |

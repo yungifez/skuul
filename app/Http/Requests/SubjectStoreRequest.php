@@ -7,17 +7,18 @@ use Illuminate\Foundation\Http\FormRequest;
 class SubjectStoreRequest extends FormRequest
 {
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
+     * @return array<string, array<int, string>>
      */
-    public function rules()
+    public static function subjectRules(): array
     {
         return [
-            'name'        => 'required|max:255',
-            'short_name'  => 'required|max:255',
-            'my_class_id' => 'exists:my_classes,id',
-            'teachers.*'  => 'exists:users,id',
+            'name' => ['required', 'string', 'max:255'],
+            'short_name' => ['required', 'string', 'max:255'],
         ];
+    }
+
+    public function rules(): array
+    {
+        return self::subjectRules();
     }
 }

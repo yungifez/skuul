@@ -1,0 +1,76 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Actions\Notice\PublishNotice;
+use App\Enums\NoticeStatus;
+use App\Exceptions\InvalidValueException;
+use App\Models\Notice;
+use Illuminate\Console\Command;
+use Throwable;
+
+/**
+ * Publish notices whose day has come and retire the ones that ran out.
+ *
+ * A school office should not have to be at a screen at eight in the morning
+ * for a notice to appear.
+ */
+class ProcessNotices extends Command
+{
+    /**
+     * @var string
+     */
+    protected $signature = 'skuul:process-notices';
+
+    /**
+     * @var string
+     */
+    protected $description = 'Publish scheduled notices and expire finished ones';
+
+    public function handle(PublishNotice $publisher): int
+    {
+        $published = 0;
+
+        $due = Notice::query()
+            ->where('status', NoticeStatus::Scheduled)
+            ->whereNotNull('scheduled_for')
+            ->where('scheduled_for', '<=', now())
+            ->get();
+
+        foreach ($due as $notice) {
+            // One notice that cannot go out must not hold back the others,
+            // or the ones that ran out, on every run from now on.
+            try {
+                $publisher->publish($notice);
+                $published++;
+            } catch (InvalidValueException $exception) {
+                $notice->forceFill(['status' => NoticeStatus::Draft, 'scheduled_for' => null])->save();
+                $this->warn("Notice {$notice->id} went back to draft. {$exception->getMessage()}");
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+
+        $expired = 0;
+
+        $finished = Notice::query()
+            ->where('status', NoticeStatus::Published)
+            ->whereNotNull('stop_date')
+            ->whereDate('stop_date', '<', now()->addDay()->toDateString())
+            ->get();
+
+        foreach ($finished as $notice) {
+            // Every school counts its own day.
+            if (!$notice->hasRunOut()) {
+                continue;
+            }
+
+            $publisher->expire($notice);
+            $expired++;
+        }
+
+        $this->info("Published $published notices and expired $expired.");
+
+        return self::SUCCESS;
+    }
+}

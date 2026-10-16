@@ -1,37 +1,92 @@
-<div class="card">
-    <div class="card-header">
-        <div class="card-title">timetables List</div>
-    </div>
-    <div class="card-body">
-        @if (!auth()->user()->hasRole(\App\Enums\Role::Student))
-            <x-select id="my_class" label="Select a class to see timetable"  group-class="my-6 md:w-1/2" name="" wire:model.live="class">
-                @foreach ($classes as $item)
-                    <option value="{{$item['id']}}">{{$item['name']}}</option>
-                @endforeach
-            </x-select>
-    
-        @endif
+<div>
+    <april:card>
+        <slot:title>Timetables</slot:title>
+        <slot:description>
+            A timetable repeats weekly during one {{ strtolower(school_term('period', 'period')) }}. It can belong to {{ with_indefinite_article(strtolower(school_term('section', 'section'))) }} or be schoolwide.
+            The published one is what the school teaches; a change goes out as the next revision.
+        </slot:description>
+        <slot:content>
+            <div class="space-y-6">
+                @unless ($isStudent)
+                    <div class="grid max-w-xl gap-4 sm:grid-cols-2">
+                        <div class="flex flex-col gap-2">
+                            <april:label for="timetable-scope">Schedule for</april:label>
+                            <select id="timetable-scope" wire:model.live="scope" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                                <option value="section">A section</option>
+                                <option value="schoolwide">Schoolwide</option>
+                            </select>
+                        </div>
+                        @if ($scope === 'section')
+                        <div class="flex flex-col gap-2">
+                        <april:label for="academic-cycle-section">{{ school_term('section', 'Section') }}</april:label>
+                        <select id="academic-cycle-section" wire:model.live="academicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                            @forelse ($cycleSections as $cycleSection)
+                                <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
+                            @empty
+                                <option value="">No active {{ strtolower(school_terms('section', 'sections')) }} in this {{ strtolower(school_term('academic_year', 'school year')) }}</option>
+                            @endforelse
+                        </select>
+                        </div>
+                        @endif
+                    </div>
+                @endunless
 
-        @isset($class)
-        <div  wire:loading.remove.delay>
-            <livewire:datatable :wire:key="Str::Random(10)" :model="App\Models\MyClass::class"
-            :filters="[
-                ['name' => 'find' ,'arguments' => [ $class]],
-                ['name' => 'timetables'],
-                ['name' => 'where' , 'arguments' =>[ 'semester_id' , current_school()->semester_id]]
-            ]"
-            :columns="[
-                ['property' => 'name'],
-                ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'timetables.show', 'text' => 'View', 'icon' => 'fas fa-eye',  'can' => 'read timetable'],
-                    ['href' => 'timetables.edit', 'text' => 'Edit', 'icon' => 'fas fa-pen',  'can' => 'update timetable'],
-                    ['href' => 'timetables.manage', 'text' => 'Build', 'icon' => 'fas fa-hammer',  'can' => 'update timetable'],
-                ]],
-                ['type' => 'delete', 'name' => 'Delete', 'action' => 'timetables.destroy', 'can' => 'delete timetable']
-            ]"
-            />
-        </div>
-    @endisset
-        <x-loading-spinner/>
-    </div>
+                @if (!$isStudent && $scope === 'section' && $academicCycleSectionId === null)
+                    <x-empty-state icon="lucide-users" title="No {{ strtolower(school_term('section', 'section')) }} selected"
+                        description="Set up an active {{ strtolower(school_term('section', 'section')) }} for the current {{ strtolower(school_term('academic_year', 'school year')) }} before creating a timetable." />
+                @elseif ($timetables === [] && $isStudent)
+                    <x-empty-state icon="lucide-calendar-clock" title="No timetable yet"
+                        description="Your school has not published a timetable for this {{ strtolower(school_term('period', 'period')) }}." />
+                @elseif ($timetables === [])
+                    <x-empty-state icon="lucide-calendar-clock" title="No timetable yet"
+                        description="Create a draft for this {{ strtolower(school_term('section', 'section')) }}, place its lessons, then publish it when it is ready." />
+                @else
+                    <april:data-table>
+                        <slot:header>
+                            <april:data-table-row>
+                                <april:data-table-head>Timetable</april:data-table-head>
+                                <april:data-table-head>State</april:data-table-head>
+                                <april:data-table-head>Published</april:data-table-head>
+                                <april:data-table-head class="text-right">Actions</april:data-table-head>
+                            </april:data-table-row>
+                        </slot:header>
+                        <slot:body>
+                            @foreach ($timetables as $timetable)
+                                <april:data-table-row>
+                                    <april:data-table-cell>
+                                        <span class="font-medium">{{ $timetable['name'] }}</span>
+                                        <span class="block text-xs text-muted-foreground">
+                                            Revision {{ $timetable['revision'] }}@if ($timetable['description']) · {{ $timetable['description'] }}@endif
+                                        </span>
+                                    </april:data-table-cell>
+                                    <april:data-table-cell>
+                                        <span wire:key="state-{{ $timetable['id'] }}">
+                                            <april:badge variant="{{ $timetable['variant'] }}">{{ $timetable['status'] }}</april:badge>
+                                        </span>
+                                    </april:data-table-cell>
+                                    <april:data-table-cell class="whitespace-nowrap text-muted-foreground">
+                                        {{ $timetable['published_at'] ?? 'Not published' }}
+                                    </april:data-table-cell>
+                                    <april:data-table-cell class="text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            @if ($timetable['can_manage'])
+                                                <april:button-link href="{{ route('timetables.manage', $timetable['id']) }}" variant="outline" size="sm" aria-label="Build {{ $timetable['name'] }}">
+                                                    <x-lucide-pencil-ruler class="mr-1 size-4" />
+                                                    Build
+                                                </april:button-link>
+                                            @endif
+                                            <april:button-link href="{{ route('timetables.show', $timetable['id']) }}" variant="outline" size="sm" aria-label="Open {{ $timetable['name'] }}">
+                                                <x-lucide-eye class="mr-1 size-4" />
+                                                Open
+                                            </april:button-link>
+                                        </div>
+                                    </april:data-table-cell>
+                                </april:data-table-row>
+                            @endforeach
+                        </slot:body>
+                    </april:data-table>
+                @endif
+            </div>
+        </slot:content>
+    </april:card>
 </div>

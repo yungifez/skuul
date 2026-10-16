@@ -2,20 +2,29 @@
 
 namespace App\Services\Fee;
 
+use App\Exceptions\InvalidValueException;
 use App\Models\Fee;
+use App\Models\FeeCategory;
+use Illuminate\Database\Eloquent\Collection;
 
 class FeeService
 {
+    /** @return Collection<int, FeeCategory> */
+    public function feeCategoriesForWorkingSchool(): Collection
+    {
+        return FeeCategory::query()->inSchool()->orderBy('name')->get();
+    }
+
     /**
      * Store a new fee.
      *
-     * @param array $records
+     * @param  array  $records
      */
     public function storeFee($records): Fee
     {
         $fee = Fee::create([
-            'name'            => $records['name'],
-            'description'     => $records['description'] ?? null,
+            'name' => $records['name'],
+            'description' => $records['description'] ?? null,
             'fee_category_id' => $records['fee_category_id'],
         ]);
 
@@ -25,12 +34,12 @@ class FeeService
     /**
      * Update a fee.
      *
-     * @param array $record
+     * @param  array  $record
      */
     public function updateFee(Fee $fee, $record): Fee
     {
         $fee->update([
-            'name'        => $record['name'],
+            'name' => $record['name'],
             'description' => $record['description'] ?? null,
         ]);
 
@@ -39,9 +48,17 @@ class FeeService
 
     /**
      * Delete a fee.
+     *
+     * A fee that is on an invoice cannot go. The delete is a soft delete, so
+     * the row stays but the relation reads null, and both invoice screens
+     * read the fee name straight off it.
      */
     public function deleteFee(Fee $fee): ?bool
     {
+        if ($fee->feeInvoiceRecords()->exists()) {
+            throw new InvalidValueException('This fee is on an invoice, so it cannot be deleted. Take it off the invoices that carry it first.');
+        }
+
         return $fee->delete();
     }
 }

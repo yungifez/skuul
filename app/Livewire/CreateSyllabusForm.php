@@ -2,36 +2,33 @@
 
 namespace App\Livewire;
 
-use App\Services\MyClass\MyClassService;
-use Illuminate\Support\Facades\App;
+use App\Enums\CourseOfferingStatus;
+use App\Models\CourseOffering;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class CreateSyllabusForm extends Component
 {
-    public $class;
+    /** @var Collection<int, CourseOffering> */
+    public Collection $courseOfferings;
 
-    public $classes;
-
-    public $subject;
-
-    public $subjects;
-
-    public function mount(MyClassService $myClassService)
+    public function mount(): void
     {
-        $this->classes = $myClassService->getAllClasses();
+        $this->courseOfferings = CourseOffering::inSchool()
+            ->where('status', '!=', CourseOfferingStatus::Archived)
+            ->when(!auth()->user()?->can('approve syllabus'), fn (Builder $offerings): Builder => $offerings->whereHas(
+                'teachingAssignments',
+                fn (Builder $assignments): Builder => $assignments->where('user_id', auth()->id()),
+            ))
+            ->with(['subject:id,name,short_name', 'academicPeriod:id,name,label', 'academicLevel:id,name'])
+            ->orderByDesc('academic_year_id')
+            ->orderBy('academic_level_id')
+            ->get();
     }
 
-    public function updatedClass()
-    {
-        $this->subjects = collect(App::make(MyClassService::class)->getClassById($this->class)->subjects);
-    }
-
-    public function loadInitialSubjects()
-    {
-        $this->subjects = collect(App::make(MyClassService::class)->getClassById($this->classes[0]['id'])->subjects);
-    }
-
-    public function render()
+    public function render(): View
     {
         return view('livewire.create-syllabus-form');
     }

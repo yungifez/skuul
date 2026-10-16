@@ -1,7 +1,13 @@
 <?php
 
 use App\Exceptions\ApplicationException;
+use App\Http\Middleware\EnsureApplicationInstalled;
+use App\Http\Middleware\EnsureFeatureIsEnabled;
+use App\Http\Middleware\ResolveDomainContext;
+use App\Http\Middleware\SendSecurityHeaders;
+use App\Http\Middleware\SetActiveAcademicPeriod;
 use App\Http\Middleware\SetActiveSchool;
+use App\Http\Middleware\SetApplicationLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,7 +19,6 @@ use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -25,19 +30,42 @@ return Application::configure(basePath: dirname(__DIR__))
             ->redirectUsersTo(fn (): string => config('fortify.home'))
             ->throttleApi()
             ->authenticateSessions()
-            // Resolve the school being worked in for every signed-in web request.
+            // April UI writes the sidebar state from the browser, so it arrives
+            // as plain text and must skip cookie encryption to be readable.
+            ->encryptCookies(except: ['sidebar_state'])
+            ->append(SendSecurityHeaders::class)
+            // Read the address first, then resolve the school and academic
+            // period for every signed-in web request.
             ->appendToGroup('web', [
+                ResolveDomainContext::class,
                 SetActiveSchool::class,
+                SetActiveAcademicPeriod::class,
+                SetApplicationLocale::class,
+                EnsureApplicationInstalled::class,
             ])
             ->alias([
-                'role'               => RoleMiddleware::class,
-                'permission'         => PermissionMiddleware::class,
+                'feature' => EnsureFeatureIsEnabled::class,
+                'role' => RoleMiddleware::class,
+                'permission' => PermissionMiddleware::class,
                 'role_or_permission' => RoleOrPermissionMiddleware::class,
             ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions
             ->dontReport([ApplicationException::class])
-            ->dontFlash(['current_password', 'password', 'password_confirmation']);
+            ->dontFlash([
+                'current_password',
+                'password',
+                'password_confirmation',
+                'blood_group',
+                'conditions',
+                'allergies',
+                'medications',
+                'dietary_needs',
+                'emergency_contact_name',
+                'emergency_contact_phone',
+                'emergency_contact_relationship',
+                'notes',
+            ]);
     })
     ->create();

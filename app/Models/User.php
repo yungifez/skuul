@@ -3,11 +3,15 @@
 namespace App\Models;
 
 use App\Enums\AccountStatus;
+use App\Enums\EnrollmentStatus;
+use App\Enums\OrganizationMembershipStatus;
 use App\Enums\Role;
 use App\Enums\SchoolMembershipStatus;
+use App\Services\Authorization\SystemPermissionScope;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,14 +19,14 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
-use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens;
     use HasFactory;
     use HasProfilePhoto;
     use HasRoles;
@@ -31,8 +35,6 @@ class User extends Authenticatable implements MustVerifyEmail
     use TwoFactorAuthenticatable;
 
     /**
-     * The attributes that are mass assignable.
-     *
      * @var string[]
      */
     protected $fillable = [
@@ -41,18 +43,17 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'birthday',
         'address',
-        'blood_group',
-        'religion',
+        'address_line_2',
+        'country',
         'nationality',
         'phone',
+        'postal_code',
         'state',
         'city',
         'gender',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
      * @var array<int, string>
      */
     protected $hidden = [
@@ -63,15 +64,13 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * The attributes that should be cast.
-     *
      * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'birthday'          => 'datetime:Y-m-d',
-        'account_status'    => AccountStatus::class,
-        'is_platform_admin' => 'boolean',
+        'password_change_required_at' => 'datetime',
+        'birthday' => 'datetime:Y-m-d',
+        'account_status' => AccountStatus::class,
     ];
 
     /**
@@ -90,6 +89,24 @@ class User extends Authenticatable implements MustVerifyEmail
         });
     }
 
+    /**
+     * Get the uploaded profile photo URL when its backing file exists.
+     *
+     * A local upload can outlive the storage volume on a deployment. Use the
+     * generated profile image instead of returning a URL that will 404.
+     */
+    protected function profilePhotoUrl(): Attribute
+    {
+        return Attribute::get(function (): string {
+            if ($this->profile_photo_path !== null
+                && Storage::disk($this->profilePhotoDisk())->exists($this->profile_photo_path)) {
+                return Storage::disk($this->profilePhotoDisk())->url($this->profile_photo_path);
+            }
+
+            return $this->defaultProfilePhotoUrl();
+        });
+    }
+
     public function scopeStudents($query)
     {
         return $query->role(Role::Student);
@@ -98,22 +115,60 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Limit the query to accounts that can sign in and use the application.
      *
-     * @param Builder $query
+     * @param  Builder  $query
      */
     public function scopeActiveAccounts($query): Builder
     {
         return $query->where('account_status', AccountStatus::Active);
     }
 
+    /**
+     * Limit the query to learners still enrolled in the working school.
+     *
+     * A suspended learner stays on the list, so staff can find them and
+     * bring them back.
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeEnrolledStudents(Builder $query): Builder
+    {
+        return $query->whereHas('studentRecord', fn (Builder $enrollment) => $enrollment->whereIn('status', EnrollmentStatus::enrolled()));
+    }
+
     public function scopeActiveStudents($query)
     {
-        return $query->whereRelation('studentRecord', 'is_graduated', 0);
+        return $query->whereRelation('studentRecord', 'status', EnrollmentStatus::Active);
+    }
+
+    /**
+     * Limit the query to people with no staff role at a school they belong to.
+     *
+     * This is the query form of worksAsStaff().
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeNotStaff(Builder $query): Builder
+    {
+        $roles = config('permission.table_names.model_has_roles');
+
+        return $query->whereNotExists(fn ($staffRole) => $staffRole
+            ->from($roles)
+            ->join('roles', 'roles.id', '=', "$roles.role_id")
+            ->where("$roles.model_type", $this->getMorphClass())
+            ->whereColumn("$roles.model_id", 'users.id')
+            ->whereNotIn('roles.name', [Role::Student->value, Role::Parent->value])
+            ->whereIn("$roles.school_id", SchoolMembership::query()
+                ->whereColumn('school_memberships.user_id', 'users.id')
+                ->where('status', SchoolMembershipStatus::Active)
+                ->select('school_id')));
     }
 
     /**
      * Limit the query to people who can work in the given school.
      *
-     * @param Builder $query
+     * @param  Builder  $query
      */
     public function scopeOfSchool($query, School|int|null $school = null): Builder
     {
@@ -133,6 +188,68 @@ class User extends Authenticatable implements MustVerifyEmail
     public function schoolMemberships(): HasMany
     {
         return $this->hasMany(SchoolMembership::class);
+    }
+
+    /**
+     * Get the working-period choices this person has saved for schools.
+     *
+     * @return HasMany<UserAcademicPeriodPreference, $this>
+     */
+    public function academicPeriodPreferences(): HasMany
+    {
+        return $this->hasMany(UserAcademicPeriodPreference::class);
+    }
+
+    /**
+     * Get organization administration records for this person.
+     *
+     * This is intentionally separate from school membership. Organization
+     * administration does not open school records or grant school roles.
+     *
+     * @return HasMany<OrganizationMembership, $this>
+     */
+    public function organizationMemberships(): HasMany
+    {
+        return $this->hasMany(OrganizationMembership::class);
+    }
+
+    /**
+     * Get organizations this person has active scope in.
+     *
+     * @return BelongsToMany<Organization, $this>
+     */
+    public function organizations(): BelongsToMany
+    {
+        return $this->belongsToMany(Organization::class, 'organization_memberships')
+            ->withPivot(['status', 'joined_at', 'ended_at'])
+            ->wherePivot('status', OrganizationMembershipStatus::Active->value)
+            ->withTimestamps();
+    }
+
+    /**
+     * Check whether this person has active scope in the given organization.
+     */
+    public function administersOrganization(Organization|int $organization): bool
+    {
+        $organizationId = $organization instanceof Organization ? $organization->id : $organization;
+
+        return $this->organizationMemberships()
+            ->active()
+            ->where('organization_id', $organizationId)
+            ->exists();
+    }
+
+    /**
+     * Allow profile reuse for past or present campus members and organization administrators.
+     */
+    public function isKnownToOrganization(Organization|int $organization): bool
+    {
+        $organizationId = $organization instanceof Organization ? $organization->id : $organization;
+
+        return $this->organizationMemberships()->where('organization_id', $organizationId)->exists()
+            || $this->schoolMemberships()
+                ->whereHas('school', fn ($school) => $school->where('organization_id', $organizationId))
+                ->exists();
     }
 
     /**
@@ -157,6 +274,24 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check whether the person studies at another campus and not at the given one.
+     *
+     * After a campus move the old campus keeps its history but no longer
+     * holds the learner's account, so it cannot change how they sign in.
+     */
+    public function isEnrolledOnlyElsewhere(School|int $school): bool
+    {
+        $schoolId = $school instanceof School ? $school->id : $school;
+        $enrollments = StudentRecord::query()
+            ->withoutGlobalScopes()
+            ->where('user_id', $this->id)
+            ->whereIn('status', EnrollmentStatus::enrolled());
+
+        return (clone $enrollments)->where('school_id', '!=', $schoolId)->exists()
+            && !(clone $enrollments)->where('school_id', $schoolId)->exists();
+    }
+
+    /**
      * Check if this person can work in the given school.
      */
     public function belongsToSchool(School|int $school): bool
@@ -164,6 +299,33 @@ class User extends Authenticatable implements MustVerifyEmail
         $schoolId = $school instanceof School ? $school->id : $school;
 
         return $this->schoolMemberships()->active()->where('school_id', $schoolId)->exists();
+    }
+
+    /**
+     * Retained membership after a move does not imply current enrollment.
+     * Staff roles take precedence over enrollment status for this check.
+     */
+    public function isLearnerWhoNoLongerAttends(School|int $school): bool
+    {
+        $schoolId = $school instanceof School ? $school->id : $school;
+
+        if (!$this->isPortalOnly() || !StudentRecord::query()->where('user_id', $this->id)->exists()) {
+            return false;
+        }
+
+        return !StudentRecord::query()
+            ->where('user_id', $this->id)
+            ->where('school_id', $schoolId)
+            ->enrolled()
+            ->exists();
+    }
+
+    /**
+     * Check if this person also works or studies at a school other than the working one.
+     */
+    public function belongsToAnotherSchool(): bool
+    {
+        return $this->schoolMemberships()->active()->where('school_id', '!=', current_school_id())->exists();
     }
 
     /**
@@ -177,44 +339,180 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Check if this person administers the whole platform.
+     * Check whether the person holds a staff role at a school they still belong to.
      *
-     * Platform access sits outside school roles on purpose. A school role name
-     * must never grant access above its own school.
+     * Roles are kept per school, so this reads every school, not only the one
+     * being worked in.
      */
-    public function isPlatformAdmin(): bool
+    public function worksAsStaff(): bool
     {
-        return (bool) $this->is_platform_admin;
+        return DB::table(config('permission.table_names.model_has_roles'))
+            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->where('model_has_roles.model_type', $this->getMorphClass())
+            ->where('model_has_roles.model_id', $this->id)
+            ->whereNotIn('roles.name', [Role::Student->value, Role::Parent->value])
+            ->whereIn('model_has_roles.school_id', $this->schoolMemberships()->active()->select('school_id'))
+            ->exists();
     }
 
     /**
-     * Get the studentRecord associated with the User.
+     * Check whether removing the person from the working school leaves their account.
      *
-     * @return HasOne
+     * The account stays when another school still has them, or when they hold
+     * organization or platform authority that is not this school's to end.
      */
-    public function studentRecord()
+    public function keepsAccountWhenRemovedHere(): bool
     {
-        return $this->hasOne(StudentRecord::class);
+        return $this->belongsToAnotherSchool() || $this->holdsPowerBeyond(current_school_id());
     }
 
     /**
-     * Get the studentRecord of graduation associated with the User.
-     *
-     * @return HasOne
+     * Protect accounts whose authority or family links extend beyond this organization.
+     * Changing their password or status affects access across those boundaries.
      */
-    public function graduatedStudentRecord()
+    public function holdsPowerBeyond(School|int $school): bool
     {
-        return $this->hasOne(StudentRecord::class)->withoutGlobalScopes()->where('is_Graduated', true);
+        $school = $school instanceof School ? $school : School::query()->findOrFail($school);
+        $user = $this->getMorphClass();
+        $otherMemberships = $this->schoolMemberships()->active()->where('school_id', '!=', $school->id)->select('school_id');
+
+        $holdsAnotherSchoolsRole = DB::table(config('permission.table_names.model_has_roles'))
+            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->where('model_has_roles.model_type', $user)
+            ->where('model_has_roles.model_id', $this->id)
+            ->where(fn ($roles) => $roles
+                ->where('model_has_roles.school_id', SystemPermissionScope::SystemTeamId)
+                ->orWhere(fn ($elsewhere) => $elsewhere
+                    ->whereIn('model_has_roles.school_id', $otherMemberships)
+                    ->whereNotIn('roles.name', [Role::Student->value, Role::Parent->value])))
+            ->exists();
+
+        $holdsAnotherSchoolsPermission = DB::table(config('permission.table_names.model_has_permissions'))
+            ->where('model_type', $user)
+            ->where('model_id', $this->id)
+            ->where(fn ($permissions) => $permissions
+                ->where('school_id', SystemPermissionScope::SystemTeamId)
+                ->orWhereIn('school_id', $otherMemberships))
+            ->exists();
+
+        return $holdsAnotherSchoolsRole
+            || $holdsAnotherSchoolsPermission
+            || $this->organizationMemberships()->active()->exists()
+            || School::query()
+                ->whereIn('id', $otherMemberships)
+                ->where(fn ($schools) => $schools->whereNull('organization_id')->orWhere('organization_id', '!=', $school->organization_id))
+                ->exists();
     }
 
     /**
-     * Get the studentRecord of graduation associated with the User.
-     *
-     * @return HasOne
+     * Check whether this person has only a learner or family portal role.
      */
-    public function allStudentRecords()
+    public function isPortalOnly(): bool
     {
-        return $this->hasOne(StudentRecord::class)->withoutGlobalScopes();
+        $roles = collect($this->getRoleNames());
+
+        return $roles->intersect([Role::Parent->value, Role::Student->value])->isNotEmpty()
+            && $roles->diff([Role::Parent->value, Role::Student->value])->isEmpty();
+    }
+
+    /**
+     * Check whether this person reads learners only as their guardian.
+     *
+     * A teacher who is also a parent at the school keeps reading every learner
+     * their staff role allows. Only a person with no staff role is narrowed to
+     * their own children.
+     */
+    public function readsLearnersOnlyAsGuardian(): bool
+    {
+        return $this->hasRole(Role::Parent) && $this->isPortalOnly();
+    }
+
+    /**
+     * Check whether this person reads learners only as that learner.
+     */
+    public function readsLearnersOnlyAsThemself(): bool
+    {
+        return $this->hasRole(Role::Student) && !$this->hasRole(Role::Parent) && $this->isPortalOnly();
+    }
+
+    /**
+     * Check whether this person is a guardian without a learner workspace.
+     */
+    public function isParentPortalOnly(): bool
+    {
+        return $this->isPortalOnly()
+            && $this->hasRole(Role::Parent)
+            && !$this->hasRole(Role::Student);
+    }
+
+    /**
+     * Get every enrollment this person holds, in any school and any state.
+     *
+     * A person can attend two schools at once, so this is the honest list.
+     *
+     * @return HasMany<StudentRecord, $this>
+     */
+    public function studentRecords(): HasMany
+    {
+        return $this->hasMany(StudentRecord::class);
+    }
+
+    /**
+     * Get the enrollment to show for this person in the school being worked in.
+     *
+     * The primary enrollment wins, then the newest one. It never hides the
+     * others: read `studentRecords()` when you need them all.
+     *
+     * @return HasOne<StudentRecord, $this>
+     */
+    public function studentRecord(): HasOne
+    {
+        return $this->enrollmentOfCurrentSchool();
+    }
+
+    /**
+     * Get the enrollment the student finished.
+     *
+     * @return HasOne<StudentRecord, $this>
+     */
+    public function graduatedStudentRecord(): HasOne
+    {
+        return $this->enrollmentOfCurrentSchool()->where('status', EnrollmentStatus::Graduated);
+    }
+
+    /**
+     * Get the enrollment of the student in any state.
+     *
+     * @return HasOne<StudentRecord, $this>
+     */
+    public function allStudentRecords(): HasOne
+    {
+        return $this->enrollmentOfCurrentSchool();
+    }
+
+    /**
+     * Build the one-enrollment relation used by the screens.
+     *
+     * @return HasOne<StudentRecord, $this>
+     */
+    private function enrollmentOfCurrentSchool(): HasOne
+    {
+        // The school must limit both the search for the newest enrollment and
+        // the result, or another school's enrollment can win the aggregate.
+        $ofCurrentSchool = function ($query): void {
+            if (current_school_id() === null) {
+                $query->whereRaw('1 = 0');
+
+                return;
+            }
+
+            $query->where('student_records.school_id', current_school_id());
+        };
+
+        $relation = $this->hasOne(StudentRecord::class);
+        $ofCurrentSchool($relation);
+
+        return $relation->ofMany(['is_primary' => 'max', 'id' => 'max'], $ofCurrentSchool);
     }
 
     /**
@@ -289,69 +587,21 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(FeeInvoice::class);
     }
 
-    // get first name
-    public function firstName()
+    public function defaultProfilePhotoUrl(): string
     {
-        return explode(' ', $this->name)[0];
-    }
-
-    // get first name
-    public function getFirstNameAttribute()
-    {
-        return $this->firstName();
-    }
-
-    // get last name
-    public function lastName()
-    {
-        return explode(' ', $this->name)[1];
-    }
-
-    // get last name
-    public function getLastNameAttribute()
-    {
-        return $this->lastName();
-    }
-
-    // get other names
-    public function otherNames()
-    {
-        $names = array_diff_key(explode(' ', $this->name), array_flip([0, 1]));
-
-        return implode(' ', $names);
-    }
-
-    // get other names
-    public function getOtherNamesAttribute()
-    {
-        return $this->otherNames();
-    }
-
-    public function defaultProfilePhotoUrl()
-    {
-        $name = trim(collect(explode(' ', $this->name))->map(function ($segment) {
+        $name = trim(collect(explode(' ', (string) $this->name))->map(function (string $segment): string {
             return mb_substr($segment, 0, 1);
         })->join(' '));
 
-        $email = trim($this->email);
+        $email = trim((string) $this->email);
         $email = strtolower($email);
         $email = md5($email);
 
         return 'https://www.gravatar.com/avatar/'.$email.'?d=https%3A%2F%2Fui-avatars.com%2Fapi%2F/'.urlencode($name).'/300/EBF4FF/7F9CF5';
     }
 
-    // accessor for birthday
-
-    public function getBirthdayAttribute($value)
+    public function getBirthdayAttribute($value): ?string
     {
-        return Carbon::parse($value)->format('Y-m-d');
-    }
-
-    /**
-     * The subjects that belong to the User.
-     */
-    public function subjects(): BelongsToMany
-    {
-        return $this->belongsToMany(Subject::class);
+        return $value === null ? null : Carbon::parse($value)->format('Y-m-d');
     }
 }

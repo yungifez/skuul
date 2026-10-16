@@ -2,12 +2,67 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
+use App\Livewire\Concerns\InteractsWithAprilTable;
+use App\Models\FeeCategory;
+use App\Services\Fee\FeeCategoryService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
+use Yungifez\AprilUI\Livewire\Columns\Column;
+use Yungifez\AprilUI\Livewire\DataTableComponent;
 
-class ListFeeCategoriesTable extends Component
+class ListFeeCategoriesTable extends DataTableComponent
 {
-    public function render()
+    use InteractsWithAprilTable;
+
+    protected function builder(): Builder
     {
-        return view('livewire.list-fee-categories-table');
+        return FeeCategory::query()->inSchool()->withCount('fees')->orderBy('name');
+    }
+
+    /** @return array<int, Column> */
+    protected function columns(): array
+    {
+        return [Column::make('Name', 'name')->searchable()->sortable()];
+    }
+
+    /** @return array{field: string, direction: string} */
+    protected function defaultSort(): ?array
+    {
+        return ['field' => 'name', 'direction' => 'asc'];
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    protected function serializeRows(Collection $rows): array
+    {
+        return $rows->map(function (FeeCategory $category): array {
+            $row = $category->toArray();
+            $row['edit_url'] = route('fee-categories.edit', $category);
+
+            return $row;
+        })->values()->all();
+    }
+
+    /**
+     * Delete one fee category. A category that holds fees is refused.
+     */
+    public function deleteCategory(int $categoryId, FeeCategoryService $feeCategoryService): void
+    {
+        $category = FeeCategory::query()->inSchool()->findOrFail($categoryId);
+        Gate::authorize('delete', $category);
+
+        $this->changeRow(fn () => $feeCategoryService->deleteFeeCategory($category), "{$category->name} was deleted.");
+    }
+
+    public function render(): View
+    {
+        return view('livewire.list-fee-categories-table', array_merge(
+            $this->aprilTablePayload(),
+            [
+                'canEditCategories' => auth()->user()->can('update fee category'),
+                'canDeleteCategories' => auth()->user()->can('delete fee category'),
+            ],
+        ));
     }
 }

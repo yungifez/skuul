@@ -2,24 +2,14 @@
 
 namespace App\Services\Subject;
 
+use App\Enums\TimetableStatus;
 use App\Exceptions\ResourceNotEmptyException;
 use App\Models\Subject;
-use App\Models\User;
-use App\Services\User\UserService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class SubjectService
 {
-    /**
-     * Instance of user class.
-     */
-    public UserService $user;
-
-    public function __construct(UserService $user)
-    {
-        $this->user = $user;
-    }
-
     /**
      * Get all subjects.
      *
@@ -44,83 +34,57 @@ class SubjectService
     /**
      * Create subject.
      *
-     * @param mixed $data
-     *
-     * @return void
+     * @param  array{name: string, short_name: string}  $data
      */
-    public function createSubject($data)
+    public function createSubject(array $data): void
     {
-        $subject = Subject::firstOrCreate(['name' => $data['name']], [
-            'short_name'  => $data['short_name'],
-            'school_id'   => current_school_id(),
-            'my_class_id' => $data['my_class_id'],
+        $subject = Subject::firstOrCreate(['school_id' => current_school_id(), 'name' => $data['name']], [
+            'short_name' => $data['short_name'],
         ]);
 
         if (!$subject->wasRecentlyCreated) {
             throw new ResourceNotEmptyException('Subject already exists or something went wrong');
-        }
-
-        if (isset($data['teachers'])) {
-            $teachers = [];
-            foreach ($data['teachers'] as $teacher) {
-                if ($this->user->verifyRole($teacher, 'teacher')) {
-                    $teachers[] = $teacher;
-                }
-            }
-
-            $subject->teachers()->sync($teachers);
         }
     }
 
     /**
      * Update subject.
      *
-     * @param mixed $data
-     *
-     * @return void
+     * @param  array{name: string, short_name: string}  $data
      */
-    public function updateSubject(Subject $subject, $data)
+    public function updateSubject(Subject $subject, array $data): void
     {
         $subject->name = $data['name'];
         $subject->short_name = $data['short_name'];
 
         $subject->save();
-
-        if (isset($data['teachers'])) {
-            $teachers = [];
-            foreach ($data['teachers'] as $teacher) {
-                if ($this->user->getUserById($teacher)->exists() && $this->user->verifyRole($teacher, 'teacher')) {
-                    $teacher = intval($teacher);
-                    $teachers[] = $teacher;
-                }
-            }
-            $subject->teachers()->sync($teachers);
-        } else {
-            $subject->teachers()->sync([]);
-        }
     }
 
     /**
      * Delete subject.
      *
+     * A subject that is taught cannot go. The delete is a soft delete, so the
+     * row stays but the relation reads null, and every screen that names the
+     * subject of a course offering throws on it. A published or archived
+     * timetable keeps its lessons, so a subject it shows stays too.
      *
      * @return void
      */
     public function deleteSubject(Subject $subject)
     {
+        if ($subject->courseOfferings()->exists()) {
+            throw new ResourceNotEmptyException('This subject is taught, so it cannot be deleted. Close its course offerings first.');
+        }
+
+        $isOnAFixedTimetable = $subject->timetableRecord()
+            ->whereHas('timeSlot.timetable', fn (Builder $query) => $query->where('status', '!=', TimetableStatus::Draft->value))
+            ->exists();
+
+        if ($isOnAFixedTimetable) {
+            throw new ResourceNotEmptyException('This subject is on a published timetable, so it cannot be deleted. Take it off the timetable in a new revision first.');
+        }
+
         $subject->timetableRecord()->delete();
         $subject->delete();
-    }
-
-    /**
-     * Assign a teacher to a list of subjects.
-     *
-     * @param array|mixed $records Array or collection of ids
-     *
-     * @return void
-     */
-    public function assignTeacherToSubjects(User $teacher, $records)
-    {
-        $teacher->subjects()->sync(array_filter(array_values($records['subjects'])));
     }
 }

@@ -1,0 +1,318 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Actions\Academic\SaveAcademicCalendar;
+use App\Actions\Organization\GrantOrganizationMembership;
+use App\Enums\AcademicPeriodStatus;
+use App\Enums\AcademicPeriodType;
+use App\Enums\AcademicYearSetupStep;
+use App\Http\Middleware\SetActiveAcademicPeriod;
+use App\Livewire\PublishAcademicYear;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
+use App\Models\CourseOffering;
+use App\Models\InstructionalModelSetting;
+use App\Models\Organization;
+use App\Models\School;
+use App\Models\Subject;
+use App\Traits\FeatureTestTrait;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class SetupWizardTest extends TestCase
+{
+    use FeatureTestTrait;
+    use RefreshDatabase;
+
+    public function test_new_academic_year_screen_explains_the_setup_order(): void
+    {
+        $this->authorized_user(['create academic year'])
+            ->get(route('academic-years.create'))
+            ->assertSuccessful()
+            ->assertSee('Dates and periods')
+            ->assertSee('Teaching approach')
+            ->assertSee('Review and publish')
+            ->assertSee('data-slot="step"', false)
+            ->assertSee('data-slot="step-indicator"', false)
+            ->assertSee('data-state="active"', false)
+            ->assertSee('aria-current="step"', false);
+    }
+
+    public function test_draft_academic_year_setup_does_not_require_a_working_year(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'status' => AcademicPeriodStatus::Draft,
+        ]);
+
+        academic_period_context()->forget();
+        $this->withoutMiddleware(SetActiveAcademicPeriod::class);
+
+        $this->authorized_user(['update academic year'], $school)
+            ->get(route('academic-years.setup', $academicYear))
+            ->assertSuccessful()
+            ->assertSee('Dates and periods')
+            ->assertSee('Set up '.$academicYear->getAttribute('name'))
+            ->assertSee('Save and finish later')
+            ->assertDontSee('Setup saves automatically.')
+            ->assertDontSee(AcademicYearSetupStep::Calendar->description());
+    }
+
+    public function test_incomplete_future_step_returns_to_the_first_incomplete_step(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'status' => AcademicPeriodStatus::Draft,
+        ]);
+
+        $this->authorized_user(['update academic year'], $school)
+            ->get(route('academic-years.setup', [$academicYear, 'review']))
+            ->assertSuccessful()
+            ->assertSee('Dates and periods')
+            ->assertSee('Set up '.$academicYear->getAttribute('name'));
+    }
+
+    public function test_completed_structure_step_points_to_subject_setup(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+        AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+        ]);
+
+        $this->authorized_user(['update academic year'], $school)
+            ->get(route('academic-years.setup', [$academicYear, 'structure']))
+            ->assertSuccessful()
+            ->assertSee('Continue to subjects for this year')
+            ->assertSee(route('academic-years.setup', [$academicYear, 'subjects']), false);
+    }
+
+    public function test_course_offering_setup_accepts_an_explicit_draft_year(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'status' => AcademicPeriodStatus::Draft,
+        ]);
+
+        academic_period_context()->forget();
+        $this->withoutMiddleware(SetActiveAcademicPeriod::class);
+
+        $this->authorized_user(['create subject'], $school)
+            ->get(route('course-offerings.create', ['academic_year_id' => $academicYear->getKey()]))
+            ->assertSuccessful()
+            ->assertSee($academicYear->getAttribute('name'))
+            ->assertSee('Who attends')
+            ->assertDontSee('Subject setup help');
+    }
+
+    public function test_subject_setup_lists_catalog_subjects_and_their_class_assignments(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = app(SaveAcademicCalendar::class)->save(
+            $school,
+            Carbon::parse('2030-09-01'),
+            Carbon::parse('2031-07-31'),
+            [[
+                'name' => 'First Term',
+                'type' => AcademicPeriodType::Term->value,
+                'starts_on' => '2030-09-01',
+                'ends_on' => '2031-07-31',
+            ]],
+        );
+        $academicPeriod = $academicYear->topLevelPeriods()->firstOrFail();
+        InstructionalModelSetting::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+        ]);
+        $academicLevel = AcademicLevel::factory()->create([
+            'school_id' => $school->id,
+            'name' => 'Primary 4',
+        ]);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+            'name' => 'Blue',
+            'label' => 'Blue',
+        ]);
+        $subject = Subject::factory()->create([
+            'school_id' => $school->id,
+            'name' => 'Mathematics',
+            'short_name' => 'Maths',
+        ]);
+        $courseOffering = CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_period_id' => $academicPeriod->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => $subject->id,
+        ]);
+        $courseOffering->cycleSections()->attach($section);
+
+        $this->authorized_user(['update academic year', 'read subject'], $school);
+
+        $this->get(route('academic-years.setup', [$academicYear, 'subjects']))
+            ->assertRedirect(route('course-offerings.bulk-create', ['academic_year_id' => $academicYear->id, 'setup' => 1]));
+
+        $this->get(route('course-offerings.bulk-create', ['academic_year_id' => $academicYear->id, 'setup' => 1]))
+            ->assertSuccessful()
+            ->assertSee('Subjects for '.$academicYear->name)
+            ->assertSee('Mathematics')
+            ->assertSee('Maths')
+            ->assertSee('Primary 4 · Blue')
+            ->assertSee('First Term');
+    }
+
+    public function test_publishing_from_setup_sets_the_school_default_year(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['create academic year', 'update academic year'], $school);
+        $academicYear = app(SaveAcademicCalendar::class)->save(
+            $school,
+            Carbon::parse('2030-09-01'),
+            Carbon::parse('2031-08-31'),
+            [[
+                'name' => 'Term 1',
+                'type' => AcademicPeriodType::Term->value,
+                'starts_on' => '2030-09-01',
+                'ends_on' => '2031-08-31',
+            ]],
+            auth()->user(),
+        );
+
+        Livewire::test(PublishAcademicYear::class, ['academicYear' => $academicYear])
+            ->call('publish')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('academic-years.show', $academicYear));
+
+        $this->assertDatabaseHas('schools', [
+            'id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+        ]);
+    }
+
+    public function test_publishing_from_setup_says_why_a_year_is_refused(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['update academic year'], $school);
+        $academicYear = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'status' => AcademicPeriodStatus::Open,
+        ]);
+
+        Livewire::test(PublishAcademicYear::class, ['academicYear' => $academicYear])
+            ->call('publish')
+            ->assertHasErrors('setup')
+            ->assertSee('Only a draft calendar can be published.')
+            ->assertNoRedirect();
+    }
+
+    public function test_publishing_from_setup_requires_permission_to_update_the_year(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user([], $school);
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+
+        Livewire::test(PublishAcademicYear::class, ['academicYear' => $academicYear])
+            ->assertForbidden();
+    }
+
+    public function test_structure_step_counts_missing_teachers_and_keeps_row_actions_in_one_menu(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id, 'name' => 'Primary 4']);
+        $emptyLevel = AcademicLevel::factory()->create(['school_id' => $school->id, 'name' => 'Primary 5']);
+        AcademicCycleSection::factory()->count(2)->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+            'homeroom_teacher_id' => null,
+        ]);
+
+        $this->authorized_user(['update academic year', 'create class', 'update class', 'read class', 'create section'], $school)
+            ->get(route('academic-years.setup', [$academicYear, 'structure']))
+            ->assertSuccessful()
+            ->assertSee('2 without a teacher')
+            ->assertSee('No teacher')
+            ->assertSee('Actions for Primary 4')
+            ->assertSee('Add '.with_indefinite_article(strtolower(school_term('section', 'section'))).' under Primary 5')
+            ->assertSee(e(route('academic-cycle-sections.create', ['academic_level_id' => $emptyLevel->id, 'setup' => 1, 'academic_year_id' => $academicYear->id])), false)
+            ->assertDontSee('No additional details yet')
+            ->assertDontSee('Build this year’s classes');
+    }
+
+    public function test_school_setup_explains_the_school_first_sequence(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['manage school settings'], $school)
+            ->get(route('schools.setup', $school))
+            ->assertSuccessful()
+            ->assertSee('School details')
+            ->assertSee('School language')
+            ->assertSee('Academic year')
+            ->assertSee('aria-current="step"', false);
+    }
+
+    public function test_each_school_setup_step_names_one_task_and_one_main_action(): void
+    {
+        $school = School::factory()->create();
+
+        $this->authorized_user(['manage school settings'], $school)
+            ->get(route('schools.setup', $school))
+            ->assertSuccessful()
+            ->assertSee('id="setup-step-heading"', false)
+            ->assertSee('Save and finish later')
+            ->assertDontSee('More information')
+            ->assertDontSee('First step');
+    }
+
+    public function test_creating_a_school_redirects_to_quick_setup_and_provisions_language(): void
+    {
+        $organization = Organization::factory()->create();
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), $organization);
+
+        $response = $this->post(route('schools.store'), [
+            'organization_id' => $organization->id,
+            'name' => 'Setup school',
+            'address' => '123 Setup Street',
+            'country' => 'Canada',
+            'state' => 'British Columbia',
+            'city' => 'Vancouver',
+            'postal_code' => 'V6B 1A1',
+        ]);
+
+        $school = School::query()->where('name', 'Setup school')->firstOrFail();
+
+        $response->assertRedirect(route('schools.setup', [$school, 'details']));
+        $this->assertDatabaseHas('school_operating_profiles', [
+            'school_id' => $school->id,
+            'preset' => 'home_sections',
+        ]);
+        $this->assertTrue(auth()->user()->belongsToSchool($school));
+    }
+
+    public function test_school_setup_refuses_another_campus_of_the_same_organization(): void
+    {
+        $school = $this->workingSchool();
+        $otherCampus = School::factory()->create(['organization_id' => $school->organization_id, 'name' => 'Northside campus']);
+
+        $this->authorized_user(['update school', 'manage school settings'], $school)
+            ->get(route('schools.setup', $otherCampus))
+            ->assertForbidden()
+            ->assertDontSee('Northside campus');
+
+        $this->assertSame($school->id, current_school_id());
+    }
+}

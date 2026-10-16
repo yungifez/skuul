@@ -1,0 +1,483 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Actions\Organization\AddSchoolDomain;
+use App\Actions\Organization\AssignSchoolToOrganization;
+use App\Actions\Organization\GrantOrganizationMembership;
+use App\Actions\Organization\SetOrganizationMemberPermissions;
+use App\Actions\Organization\VerifySchoolDomain;
+use App\Actions\School\GrantSchoolMembership;
+use App\Enums\AuditAction;
+use App\Enums\OrganizationPermission;
+use App\Exceptions\InvalidValueException;
+use App\Livewire\OrganizationDomains;
+use App\Models\AuditEvent;
+use App\Models\Organization;
+use App\Models\School;
+use App\Models\SchoolDomain;
+use App\Models\User;
+use App\Services\School\DnsTextRecords;
+use App\Services\School\DomainContext;
+use App\Services\School\SchoolContext;
+use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+/**
+ * An address says which campus a visitor meant. It never says who they are.
+ */
+class SchoolDomainTest extends TestCase
+{
+    use FeatureTestTrait;
+    use RefreshDatabase;
+
+    public function test_a_claimed_address_does_nothing_until_it_is_proved(): void
+    {
+        $domain = SchoolDomain::factory()->create(['host' => 'lagos.example.school']);
+
+        $this->assertNull(SchoolDomain::forHost('lagos.example.school'));
+
+        $domain->verified_at = now();
+        $domain->save();
+
+        $this->assertNotNull(SchoolDomain::forHost('lagos.example.school'));
+    }
+
+    public function test_an_address_is_read_the_same_however_it_is_typed(): void
+    {
+        SchoolDomain::factory()->verified()->create(['host' => 'lagos.example.school']);
+
+        $this->assertNotNull(SchoolDomain::forHost('LAGOS.Example.School'));
+        $this->assertNotNull(SchoolDomain::forHost('lagos.example.school:8080'));
+    }
+
+    public function test_the_address_opens_its_campus_for_a_member(): void
+    {
+        [$organization, $campus, $other] = $this->twoCampuses();
+        $user = $this->personOf($campus, $other);
+        SchoolDomain::factory()->verified()->create([
+            'organization_id' => $organization->id,
+            'school_id' => $campus->id,
+            'host' => 'lagos.example.school',
+        ]);
+
+        $this->onHost('lagos.example.school');
+
+        $this->assertSame($campus->id, app(SchoolContext::class)->resolveFor($user)?->id);
+    }
+
+    public function test_the_address_is_ignored_for_somebody_with_no_membership_there(): void
+    {
+        [$organization, $campus, $other] = $this->twoCampuses();
+        $user = $this->personOf($other);
+        SchoolDomain::factory()->verified()->create([
+            'organization_id' => $organization->id,
+            'school_id' => $campus->id,
+            'host' => 'lagos.example.school',
+        ]);
+
+        $this->onHost('lagos.example.school');
+
+        $this->assertSame($other->id, app(SchoolContext::class)->resolveFor($user)?->id);
+    }
+
+    public function test_an_address_that_names_no_campus_leaves_the_choice_alone(): void
+    {
+        [$organization, $campus, $other] = $this->twoCampuses();
+        $user = $this->personOf($other, $campus);
+        SchoolDomain::factory()->verified()->create([
+            'organization_id' => $organization->id,
+            'school_id' => null,
+            'host' => 'example.school',
+        ]);
+
+        $this->onHost('example.school');
+
+        $this->assertSame($other->id, app(SchoolContext::class)->resolveFor($user)?->id);
+    }
+
+    public function test_the_address_wins_over_the_remembered_campus(): void
+    {
+        [$organization, $campus, $other] = $this->twoCampuses();
+        $user = $this->personOf($other, $campus);
+        SchoolDomain::factory()->verified()->create([
+            'organization_id' => $organization->id,
+            'school_id' => $campus->id,
+            'host' => 'lagos.example.school',
+        ]);
+
+        $this->onHost('lagos.example.school');
+        $request = Request::create('/dashboard');
+        $request->setLaravelSession($this->app['session']->driver());
+        $request->session()->put(SchoolContext::SESSION_KEY, $other->id);
+
+        $this->assertSame($campus->id, app(SchoolContext::class)->resolveFor($user, $request)?->id);
+    }
+
+    public function test_an_unknown_address_changes_nothing(): void
+    {
+        [, $campus] = $this->twoCampuses();
+        $user = $this->personOf($campus);
+
+        $this->onHost('somebody-elses.example');
+
+        $this->assertSame($campus->id, app(SchoolContext::class)->resolveFor($user)?->id);
+    }
+
+    public function test_a_claimed_address_is_written_down_with_a_record_to_prove_it(): void
+    {
+        $organization = Organization::factory()->create();
+
+        $domain = app(AddSchoolDomain::class)->add($organization, 'Lagos.Example.School ');
+
+        $this->assertSame('lagos.example.school', $domain->host);
+        $this->assertFalse($domain->isVerified());
+        $this->assertSame('_skuul-verification.lagos.example.school', $domain->verificationRecord());
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::SchoolDomainAdded)->forSubject($domain)->first());
+    }
+
+    public function test_the_same_address_cannot_be_claimed_twice(): void
+    {
+        $organization = Organization::factory()->create();
+        app(AddSchoolDomain::class)->add($organization, 'lagos.example.school');
+
+        $this->expectException(InvalidValueException::class);
+
+        app(AddSchoolDomain::class)->add($organization, 'lagos.example.school');
+    }
+
+    public function test_the_applications_own_address_cannot_be_claimed(): void
+    {
+        config(['app.url' => 'https://app.skuul.test']);
+
+        $this->expectExceptionMessage('app.skuul.test is the address of this application. Use an address the organization owns.');
+
+        app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'APP.skuul.test');
+    }
+
+    public function test_a_proved_address_cannot_be_claimed_by_another_organization(): void
+    {
+        SchoolDomain::factory()->verified()->create(['host' => 'lagos.example.school']);
+
+        $this->expectExceptionMessage('lagos.example.school is already claimed.');
+
+        app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'lagos.example.school');
+    }
+
+    public function test_an_unproved_claim_does_not_keep_the_address_from_its_owner(): void
+    {
+        $squatter = app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'lagos.example.school');
+        $owner = app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'lagos.example.school');
+        $this->dnsAnswers([$owner->verificationRecord() => [$owner->verification_token]]);
+
+        app(VerifySchoolDomain::class)->verify($owner);
+
+        try {
+            app(VerifySchoolDomain::class)->verify($squatter);
+            $this->fail('A second organization proved an address already proved.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame('The record was not found yet. Add it at '.$squatter->verificationRecord().' and try again in a few minutes.', $exception->getMessage());
+        }
+
+        $this->assertTrue($owner->fresh()->isVerified());
+        $this->assertFalse($squatter->fresh()->isVerified());
+        $this->assertSame($owner->id, SchoolDomain::forHost('lagos.example.school')?->id);
+    }
+
+    public function test_only_the_first_organization_to_prove_an_address_keeps_it(): void
+    {
+        $first = app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'lagos.example.school');
+        $second = app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'lagos.example.school');
+        $this->dnsAnswers([$first->verificationRecord() => [$first->verification_token, $second->verification_token]]);
+
+        app(VerifySchoolDomain::class)->verify($first);
+
+        $this->expectExceptionMessage('Another organization proved lagos.example.school first.');
+
+        app(VerifySchoolDomain::class)->verify($second);
+    }
+
+    public function test_something_that_is_not_an_address_is_refused(): void
+    {
+        $this->expectException(InvalidValueException::class);
+
+        app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'not an address');
+    }
+
+    public function test_an_address_cannot_name_another_organization_campus(): void
+    {
+        $organization = Organization::factory()->create();
+        $elsewhere = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(AddSchoolDomain::class)->add($organization, 'lagos.example.school', $elsewhere);
+    }
+
+    public function test_an_address_is_proved_by_the_record_only_its_owner_can_write(): void
+    {
+        $domain = SchoolDomain::factory()->create(['host' => 'lagos.example.school']);
+        $this->dnsAnswers([$domain->verificationRecord() => [$domain->verification_token]]);
+
+        app(VerifySchoolDomain::class)->verify($domain);
+
+        $this->assertTrue($domain->fresh()->isVerified());
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::SchoolDomainVerified)->forSubject($domain)->first());
+    }
+
+    public function test_an_address_without_the_record_stays_unproved(): void
+    {
+        $domain = SchoolDomain::factory()->create(['host' => 'lagos.example.school']);
+        $this->dnsAnswers([]);
+
+        try {
+            app(VerifySchoolDomain::class)->verify($domain);
+            $this->fail('An address with no record was accepted.');
+        } catch (InvalidValueException) {
+            // The organization has not proved anything yet.
+        }
+
+        $this->assertFalse($domain->fresh()->isVerified());
+    }
+
+    public function test_somebody_elses_value_does_not_prove_the_address(): void
+    {
+        $domain = SchoolDomain::factory()->create(['host' => 'lagos.example.school']);
+        $this->dnsAnswers([$domain->verificationRecord() => ['a value from another application']]);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(VerifySchoolDomain::class)->verify($domain);
+    }
+
+    public function test_an_organization_manager_can_claim_and_prove_an_address(): void
+    {
+        $organization = Organization::factory()->create();
+        $campus = School::factory()->create(['organization_id' => $organization->id]);
+        $manager = $this->organizationManager($organization);
+
+        $this->actingAs($manager)
+            ->get(route('organizations.domains.index', $organization))
+            ->assertOk()
+            ->assertSeeLivewire(OrganizationDomains::class);
+
+        $component = Livewire::actingAs($manager)
+            ->test(OrganizationDomains::class, ['organization' => $organization])
+            ->set('host', ' LAGOS.example.school ')
+            ->set('schoolId', (string) $campus->id)
+            ->call('claim')
+            ->assertHasNoErrors()
+            ->assertSet('host', '');
+
+        $domain = SchoolDomain::firstWhere('host', 'lagos.example.school');
+        $this->assertNotNull($domain);
+        $this->assertSame($campus->id, $domain->school_id);
+
+        $component->assertSee($domain->verification_token)
+            ->call('verify', $domain->id)
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertFalse($domain->fresh()->isVerified());
+
+        $this->dnsAnswers([$domain->verificationRecord() => [$domain->verification_token]]);
+
+        $component->call('verify', $domain->id)
+            ->assertDispatched('status-message', type: 'success')
+            ->assertDontSee($domain->verification_token);
+
+        $this->assertTrue($domain->fresh()->isVerified());
+    }
+
+    public function test_a_claim_that_is_not_an_address_or_already_taken_is_shown_on_the_field(): void
+    {
+        $organization = Organization::factory()->create();
+        $manager = $this->organizationManager($organization);
+        SchoolDomain::factory()->verified()->create(['host' => 'taken.example.school']);
+
+        Livewire::actingAs($manager)
+            ->test(OrganizationDomains::class, ['organization' => $organization])
+            ->set('host', 'https://not an address')
+            ->call('claim')
+            ->assertHasErrors('host')
+            ->set('host', 'Taken.example.school')
+            ->call('claim')
+            ->assertHasErrors('host')
+            ->assertSee('taken.example.school is already claimed.');
+
+        $this->assertSame(0, $organization->domains()->count());
+    }
+
+    public function test_only_one_address_is_the_main_one(): void
+    {
+        $organization = Organization::factory()->create();
+        $first = app(AddSchoolDomain::class)->add($organization, 'one.example.school', isPrimary: true);
+        $second = app(AddSchoolDomain::class)->add($organization, 'two.example.school', isPrimary: true);
+        $elsewhere = app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'three.example.school', isPrimary: true);
+
+        $this->assertFalse($first->fresh()->is_primary);
+        $this->assertTrue($second->fresh()->is_primary);
+        $this->assertTrue($elsewhere->fresh()->is_primary);
+    }
+
+    public function test_an_address_never_opens_a_campus_that_joined_another_organization(): void
+    {
+        [$organization, $campus] = $this->twoCampuses();
+        $domain = SchoolDomain::factory()->verified()->create([
+            'organization_id' => $organization->id,
+            'school_id' => $campus->id,
+            'host' => 'lagos.example.school',
+        ]);
+
+        // A campus moved by hand, without the action, is still not opened.
+        $campus->organization_id = Organization::factory()->create()->id;
+        $campus->save();
+        $this->onHost('lagos.example.school');
+        $this->assertNull(app(DomainContext::class)->school());
+
+        $campus->organization_id = $organization->id;
+        $campus->save();
+        app(AssignSchoolToOrganization::class)->assign($campus, Organization::factory()->create());
+
+        $this->assertNull($domain->fresh()->school_id);
+    }
+
+    public function test_a_member_without_organization_management_cannot_claim_an_address(): void
+    {
+        $organization = Organization::factory()->create();
+        // The organization keeps a full administrator, so the reader can be narrowed.
+        $this->organizationManager($organization);
+        $reader = $this->organizationManager($organization, [OrganizationPermission::ReadReports]);
+
+        $this->actingAs($reader)
+            ->get(route('organizations.domains.index', $organization))
+            ->assertForbidden();
+    }
+
+    public function test_an_administrator_of_another_organization_cannot_claim_an_address(): void
+    {
+        $organization = Organization::factory()->create();
+        $outsider = $this->organizationManager(Organization::factory()->create());
+
+        Livewire::actingAs($outsider)->test(OrganizationDomains::class, ['organization' => $organization])->assertForbidden();
+    }
+
+    public function test_an_address_or_campus_of_another_organization_is_out_of_reach(): void
+    {
+        $organization = Organization::factory()->create();
+        $manager = $this->organizationManager($organization);
+        $elsewhere = SchoolDomain::factory()->create();
+        $theirCampus = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+
+        $component = Livewire::actingAs($manager)->test(OrganizationDomains::class, ['organization' => $organization])
+            ->assertDontSee($elsewhere->host)
+            ->assertDontSee($theirCampus->name);
+
+        $this->assertThrows(fn () => $component->call('giveUp', $elsewhere->id), ModelNotFoundException::class);
+        $this->assertThrows(fn () => $component->call('verify', $elsewhere->id), ModelNotFoundException::class);
+        $this->assertThrows(
+            fn () => $component->set('host', 'mine.example.school')->set('schoolId', (string) $theirCampus->id)->call('claim'),
+            ModelNotFoundException::class,
+        );
+
+        $this->assertNotNull($elsewhere->fresh());
+        $this->assertNull(SchoolDomain::firstWhere('host', 'mine.example.school'));
+    }
+
+    public function test_giving_up_an_address_stops_it_being_answered(): void
+    {
+        $organization = Organization::factory()->create();
+        $manager = $this->organizationManager($organization);
+        $domain = SchoolDomain::factory()->verified()->create([
+            'organization_id' => $organization->id,
+            'host' => 'lagos.example.school',
+        ]);
+
+        Livewire::actingAs($manager)
+            ->test(OrganizationDomains::class, ['organization' => $organization])
+            ->call('giveUp', $domain->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertNull(SchoolDomain::forHost('lagos.example.school'));
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::SchoolDomainRemoved)->first());
+    }
+
+    /**
+     * Answer domain name lookups with what the test says.
+     *
+     * @param  array<string, array<int, string>>  $answers
+     */
+    private function dnsAnswers(array $answers): void
+    {
+        $this->app->instance(DnsTextRecords::class, new class($answers) extends DnsTextRecords
+        {
+            /** @param array<string, array<int, string>> $answers */
+            public function __construct(private array $answers) {}
+
+            /** @return array<int, string> */
+            public function lookup(string $name): array
+            {
+                return $this->answers[$name] ?? [];
+            }
+        });
+    }
+
+    /**
+     * Make believe the request came in on one address.
+     */
+    private function onHost(string $host): void
+    {
+        app(DomainContext::class)->resolveFor(Request::create("https://$host/dashboard"));
+    }
+
+    /**
+     * Make an organization with two campuses.
+     *
+     * @return array{0: Organization, 1: School, 2: School}
+     */
+    private function twoCampuses(): array
+    {
+        $organization = Organization::factory()->create();
+
+        return [
+            $organization,
+            School::factory()->create(['organization_id' => $organization->id]),
+            School::factory()->create(['organization_id' => $organization->id]),
+        ];
+    }
+
+    /**
+     * Make a person who works in the given campuses, the first one primary.
+     */
+    private function personOf(School ...$schools): User
+    {
+        $user = $this->nonMember();
+
+        foreach ($schools as $index => $school) {
+            app(GrantSchoolMembership::class)->grant($user, $school, primary: $index === 0);
+        }
+
+        return $user->refresh();
+    }
+
+    /**
+     * Make a person with organization authority.
+     *
+     * @param  array<int, OrganizationPermission>|null  $permissions
+     */
+    private function organizationManager(Organization $organization, ?array $permissions = null): User
+    {
+        $user = $this->nonMember();
+
+        app(GrantOrganizationMembership::class)->grant($user, $organization);
+
+        if ($permissions !== null) {
+            app(SetOrganizationMemberPermissions::class)->set($user, $organization, $permissions);
+        }
+
+        return $user->refresh();
+    }
+}

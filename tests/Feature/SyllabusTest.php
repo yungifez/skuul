@@ -2,8 +2,34 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Syllabus\PublishSyllabus;
+use App\Actions\Syllabus\ReviseSyllabus;
+use App\Actions\Syllabus\SubmitSyllabus;
+use App\Enums\AcademicStructureStatus;
+use App\Enums\AuditAction;
+use App\Enums\CourseOfferingStatus;
+use App\Enums\LessonNoteStatus;
+use App\Enums\RosterMode;
+use App\Enums\SyllabusStatus;
+use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicPeriod;
+use App\Models\AcademicYear;
+use App\Models\AuditEvent;
+use App\Models\CourseOffering;
+use App\Models\CurriculumOutline;
+use App\Models\LessonNote;
+use App\Models\StudentRecord;
+use App\Models\Subject;
 use App\Models\Syllabus;
+use App\Models\SyllabusTopic;
+use App\Models\SyllabusTopicCoverage;
+use App\Models\TeachingAssignment;
+use App\Models\User;
+use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
+use Database\Seeders\SyllabusSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -14,80 +40,168 @@ class SyllabusTest extends TestCase
     use FeatureTestTrait;
     use RefreshDatabase;
 
-    // test unauthorized user can't view all syllabi
-
-    public function test_unauthorized_user_cant_view_all_syllabi()
+    public function test_unauthorized_user_cant_view_all_syllabi(): void
     {
         $this->unauthorized_user()
             ->get('/dashboard/syllabi')
             ->assertForbidden();
     }
 
-    // test authorized user can view all syllabi
-
-    public function test_authorized_user_can_view_all_syllabi()
+    public function test_authorized_user_can_view_all_syllabi(): void
     {
         $this->authorized_user(['read syllabus'])
             ->get('/dashboard/syllabi')
             ->assertOk();
     }
 
-    // test unauthorized user can't view create syllabus
+    public function test_a_parent_cannot_open_the_staff_syllabus_workspace(): void
+    {
+        $this->authorized_user(['read syllabus']);
+        auth()->user()->assignRole('parent');
 
-    public function test_unauthorized_user_cant_view_create_syllabus()
+        $this->get('/dashboard/syllabi')->assertForbidden();
+    }
+
+    public function test_a_student_only_sees_published_syllabi_for_their_active_offerings(): void
+    {
+        $school = $this->workingSchool();
+        $studentRecord = StudentRecord::factory()->create(['school_id' => $school->id]);
+        $student = $studentRecord->user;
+        school_context()->set($school, remember: false);
+        $student->assignRole('student');
+        $student->givePermissionTo('read syllabus');
+
+        $visibleOffering = $this->courseOffering();
+        $visibleOffering->roster_mode = RosterMode::IndividualRoster;
+        $visibleOffering->status = CourseOfferingStatus::Active;
+        $visibleOffering->save();
+        $studentSection = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $visibleOffering->academic_year_id,
+            'academic_level_id' => $visibleOffering->academic_level_id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $studentRecord->academic_cycle_section_id = $studentSection->id;
+        $studentRecord->save();
+        $visibleOffering->studentRecords()->attach($studentRecord);
+        $visibleSyllabus = Syllabus::factory()->create(['course_offering_id' => $visibleOffering->id]);
+        $visibleSyllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now()]);
+
+        $outsideOffering = $this->courseOffering();
+        $outsideOffering->roster_mode = RosterMode::IndividualRoster;
+        $outsideOffering->status = CourseOfferingStatus::Active;
+        $outsideOffering->save();
+        $outsideSyllabus = Syllabus::factory()->create(['course_offering_id' => $outsideOffering->id]);
+        $outsideSyllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now()]);
+
+        $draftSyllabus = Syllabus::factory()->create(['course_offering_id' => $visibleOffering->id]);
+
+        academic_period_context()->setAcademicYear($visibleOffering->academicYear);
+        academic_period_context()->setAcademicPeriod($visibleOffering->academicPeriod);
+
+        $this->actingAsMemberOf($school, $student)
+            ->withSession([
+                AcademicPeriodContext::YEAR_SESSION_KEY => $visibleOffering->academic_year_id,
+                AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY => $visibleOffering->academic_period_id,
+            ])
+            ->get('/dashboard/syllabi')
+            ->assertOk()
+            ->assertSee($visibleSyllabus->name)
+            ->assertDontSee($outsideSyllabus->name)
+            ->assertDontSee($draftSyllabus->name);
+    }
+
+    public function test_unauthorized_user_cant_view_create_syllabus(): void
     {
         $this->unauthorized_user()
             ->get('/dashboard/syllabi/create')
             ->assertForbidden();
     }
 
-    // test authorized user can view create syllabus
-
-    public function test_user_can_view_create_syllabus()
+    public function test_user_can_view_create_syllabus(): void
     {
         $this->authorized_user(['create syllabus'])
             ->get('/dashboard/syllabi/create')
             ->assertOk();
     }
 
-    // test unauthorized cant create syllabus
-
-    public function test_unauthorized_user_cant_create_syllabus()
+    public function test_the_syllabus_demo_seeder_creates_usable_records(): void
     {
-        $file = Storage::fake('syllabi');
+        CourseOffering::factory()->count(10)->create();
+
+        $this->seed(SyllabusSeeder::class);
+        $this->seed(SyllabusSeeder::class);
+
+        $this->assertCount(10, Syllabus::query()->where('status', SyllabusStatus::Published)->get());
+        $this->assertTrue(Syllabus::query()->whereNotNull('file')->exists());
+    }
+
+    public function test_the_syllabus_demo_seeder_shows_every_part_of_the_feature(): void
+    {
+        $courseOfferings = [$this->courseOffering(), $this->courseOffering(), $this->courseOffering()];
+        $teacher = User::query()->whereHas('teacherRecord')->orderBy('id')->firstOrFail();
+
+        $this->seed(SyllabusSeeder::class);
+        $this->seed(SyllabusSeeder::class);
+
+        $published = Syllabus::query()->where('status', SyllabusStatus::Published)->withCount('topics')->get();
+        $this->assertCount(3, $published);
+        $this->assertSame([8, 8, 8], $published->pluck('topics_count')->all());
+        $this->assertTrue(SyllabusTopicCoverage::query()->exists());
+        $this->assertSame(3, TeachingAssignment::query()->where('user_id', $teacher->id)->count());
+
+        $notes = LessonNote::query()->where('user_id', $teacher->id)->get();
+        $this->assertCount(12, $notes);
+        $this->assertSame(3, $notes->where('status', LessonNoteStatus::Submitted)->count());
+        $reviewer = User::query()->findOrFail($notes->firstWhere('status', LessonNoteStatus::Approved)?->reviewed_by);
+        $this->assertNotSame($teacher->id, $reviewer->id);
+        $this->assertTrue($reviewer->can('approve syllabus'));
+
+        $revisions = Syllabus::query()->whereNotNull('revision_of_id')->get();
+        $this->assertSame([SyllabusStatus::Submitted, SyllabusStatus::Draft], $revisions->sortBy('id')->pluck('status')->values()->all());
+        $this->assertNotNull($revisions->firstWhere('status', SyllabusStatus::Draft)?->review_note);
+        $this->assertSame($courseOfferings[1]->id, $revisions->firstWhere('status', SyllabusStatus::Submitted)?->course_offering_id);
+
+        $outline = CurriculumOutline::query()->withCount('topics')->sole();
+        $this->assertSame(8, $outline->topics_count);
+    }
+
+    public function test_unauthorized_user_cant_create_syllabus(): void
+    {
+        Storage::fake('public');
+        $courseOffering = $this->courseOffering();
+
         $this->unauthorized_user()
             ->post('/dashboard/syllabi', [
-                'name'        => 'Test syllabus',
-                'my_class_id' => 1,
-                'subject_id'  => 1,
+                'name' => 'Test syllabus',
+                'course_offering_id' => $courseOffering->id,
                 'description' => 'Test syllabus description',
-                'file'        => UploadedFile::fake()->create('test-syllabus.pdf', 100),
+                'file' => UploadedFile::fake()->create('test-syllabus.pdf', 100),
             ])->assertForbidden();
     }
 
-    // test authorized user can create syllabus
-
-    public function test_authorized_user_can_create_syllabus()
+    public function test_authorized_user_can_create_syllabus(): void
     {
-        $file = Storage::fake('syllabi');
-        $this->authorized_user(['create syllabus'])
+        Storage::fake('public');
+        $courseOffering = $this->courseOffering();
+
+        $this->authorized_user(['create syllabus', 'approve syllabus'])
             ->post('/dashboard/syllabi', [
-                'name'        => 'Test syllabus',
-                'subject_id'  => 1,
+                'name' => 'Test syllabus',
+                'course_offering_id' => $courseOffering->id,
                 'description' => 'Test syllabus description',
-                'file'        => UploadedFile::fake()->create('test-syllabus.pdf', 100),
-            ]);
+                'file' => UploadedFile::fake()->create('test-syllabus.pdf', 100),
+            ])->assertRedirect(route('syllabi.edit', Syllabus::query()->latest('id')->firstOrFail()));
 
         $this->assertDatabaseHas('syllabi', [
-            'name'        => 'Test syllabus',
-            'subject_id'  => 1,
+            'name' => 'Test syllabus',
+            'course_offering_id' => $courseOffering->id,
             'description' => 'Test syllabus description',
+            'status' => SyllabusStatus::Draft->value,
         ]);
     }
 
-    // test unauthorized user can't delete syllabus
-
-    public function test_unauthorized_user_cant_delete_syllabus()
+    public function test_unauthorized_user_cant_delete_syllabus(): void
     {
         $syllabus = Syllabus::factory()->create();
         $this->unauthorized_user()
@@ -95,14 +209,69 @@ class SyllabusTest extends TestCase
             ->assertForbidden();
     }
 
-    // test authorized user can delete syllabus
-
-    public function test_authorized_user_can_delete_syllabus()
+    public function test_published_syllabus_is_revised_and_superseded_instead_of_deleted(): void
     {
-        $syllabus = Syllabus::factory()->create();
-        $this->authorized_user(['delete syllabus'])
-            ->delete('/dashboard/syllabi/'.$syllabus->id);
+        $syllabus = Syllabus::factory()->published()->create(['course_offering_id' => $this->courseOffering()->id]);
+        SyllabusTopic::factory()->create(['syllabus_id' => $syllabus->id]);
+        $this->authorized_user(['update syllabus']);
+        $actor = auth()->user();
 
-        $this->assertModelMissing($syllabus);
+        $revision = app(ReviseSyllabus::class)->revise($syllabus, ['name' => 'Corrected syllabus'], $actor);
+
+        $this->assertSame(SyllabusStatus::Draft, $revision->status);
+        $this->assertSame($syllabus->id, $revision->revision_of_id);
+        $this->assertSame(2, $revision->revision);
+
+        app(PublishSyllabus::class)->publish($revision, $actor);
+
+        $this->assertSame(SyllabusStatus::Superseded, $syllabus->fresh()->status);
+        $this->assertSame(SyllabusStatus::Published, $revision->fresh()->status);
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::SyllabusRevised)->forSubject($revision)->first());
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::SyllabusPublished)->forSubject($revision)->first());
+    }
+
+    public function test_a_syllabus_cannot_be_revised_again_while_a_revision_waits_for_review(): void
+    {
+        $syllabus = Syllabus::factory()->published()->create(['course_offering_id' => $this->courseOffering()->id]);
+        SyllabusTopic::factory()->create(['syllabus_id' => $syllabus->id]);
+        $this->authorized_user(['read syllabus', 'update syllabus']);
+        $actor = auth()->user();
+        $revision = app(ReviseSyllabus::class)->revise($syllabus, [], $actor);
+        app(SubmitSyllabus::class)->submit($revision, $actor);
+
+        $this->get(route('syllabi.show', $syllabus))
+            ->assertOk()
+            ->assertSee('Revision 2 is waiting for review')
+            ->assertSee(route('syllabi.show', $revision))
+            ->assertDontSee('Create revised draft');
+
+        $this->expectException(InvalidValueException::class);
+        app(ReviseSyllabus::class)->revise($syllabus, [], $actor);
+    }
+
+    private function courseOffering(): CourseOffering
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::query()->findOrFail(
+            AcademicYear::factory()->create(['school_id' => $school->id])->getKey(),
+        );
+        $academicPeriod = AcademicPeriod::query()->findOrFail(AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+        ])->getKey());
+        $academicLevel = AcademicLevel::query()->findOrFail(
+            AcademicLevel::factory()->create(['school_id' => $school->id])->getKey(),
+        );
+        $subject = Subject::query()->findOrFail(
+            Subject::factory()->create(['school_id' => $school->id])->getKey(),
+        );
+
+        return CourseOffering::query()->findOrFail(CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_period_id' => $academicPeriod->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => $subject->id,
+        ])->getKey());
     }
 }

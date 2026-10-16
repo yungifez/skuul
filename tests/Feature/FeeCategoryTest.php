@@ -2,10 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\CreateFeeCategoryForm;
+use App\Livewire\EditFeeCategoryForm;
+use App\Livewire\ListFeeCategoriesTable;
+use App\Models\Fee;
 use App\Models\FeeCategory;
+use App\Models\School;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class FeeCategoryTest extends TestCase
@@ -42,38 +50,33 @@ class FeeCategoryTest extends TestCase
             ->assertSuccessful();
     }
 
-    public function test_unauthorized_user_cannot_store_a_fee_categories()
+    public function test_fee_category_create_livewire_flow_saves_in_the_working_school(): void
     {
-        $name = $this->faker->name();
-        $description = $this->faker->sentence();
-        $this->unauthorized_user()
-            ->post('dashboard/fees/fee-categories/', [
-                'name'         => $name,
-                'descripttion' => $description,
-            ])
-            ->assertForbidden();
+        $this->authorized_user(['create fee category']);
 
-        $this->assertDatabaseMissing('fee_categories', [
-            'name'        => $name,
-            'description' => $description,
+        Livewire::test(CreateFeeCategoryForm::class)
+            ->set('name', 'Boarding fees')
+            ->set('description', 'Charges for residential students.')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('fee-categories.index'));
+
+        $this->assertDatabaseHas('fee_categories', [
+            'name' => 'Boarding fees',
+            'description' => 'Charges for residential students.',
+            'school_id' => $this->workingSchool()->id,
         ]);
     }
 
-    public function test_unauthorized_user_can_store_a_fee_categories()
+    public function test_fee_category_create_livewire_flow_reports_invalid_input(): void
     {
-        $name = $this->faker->name();
-        $description = $this->faker->sentence();
-        $this->authorized_user(['create fee category'])
-            ->post('dashboard/fees/fee-categories/', [
-                'name'        => $name,
-                'description' => $description,
-            ])
-            ->assertRedirect();
+        $this->authorized_user(['create fee category']);
 
-        $this->assertDatabaseHas('fee_categories', [
-            'name'        => $name,
-            'description' => $description,
-        ]);
+        Livewire::test(CreateFeeCategoryForm::class)
+            ->set('name', '')
+            ->set('description', str_repeat('x', 10001))
+            ->call('save')
+            ->assertHasErrors(['name' => 'required', 'description' => 'max']);
     }
 
     public function test_unauthorized_user_cannot_view_edit_fee_category_page()
@@ -94,63 +97,97 @@ class FeeCategoryTest extends TestCase
             ->assertSuccessful();
     }
 
-    public function test_unauthorized_user_cannot_update_fee_category_page()
+    public function test_fee_category_edit_livewire_flow_updates_record(): void
     {
-        $FeeCategory = FeeCategory::factory()->create();
-        $name = $this->faker()->name();
-        $description = $this->faker()->sentence();
+        $feeCategory = FeeCategory::factory()->create();
+        $this->authorized_user(['update fee category']);
 
-        $this->unauthorized_user()
-            ->put("dashboard/fees/fee-categories/$FeeCategory->id", [
-                'name'        => $name,
-                'description' => $description,
-            ])
-            ->assertForbidden();
+        Livewire::test(EditFeeCategoryForm::class, ['feeCategory' => $feeCategory])
+            ->set('name', 'Updated fees')
+            ->set('description', 'Updated description')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('fee-categories.index'));
 
-        $this->assertDatabaseMissing('fee_categories', [
-            'id'   => $FeeCategory->id,
-            'name' => $name,
-        ]);
+        $this->assertSame('Updated fees', $feeCategory->fresh()->name);
+        $this->assertSame('Updated description', $feeCategory->fresh()->description);
     }
 
-    public function test_authorized_user_can_update_fee_category_page()
+    public function test_livewire_fee_category_edit_refuses_a_record_from_another_school(): void
     {
-        $FeeCategory = FeeCategory::factory()->create();
-        $name = $this->faker()->name();
-        $description = $this->faker()->sentence();
+        $otherSchool = School::factory()->create();
+        $feeCategory = FeeCategory::factory()->create(['school_id' => $otherSchool->id]);
+        $this->authorized_user(['update fee category']);
 
-        $this->authorized_user(['update fee category'])
-            ->put("dashboard/fees/fee-categories/$FeeCategory->id", [
-                'name'        => $name,
-                'description' => $description,
-            ])
-            ->assertRedirect();
+        Livewire::test(EditFeeCategoryForm::class, ['feeCategory' => $feeCategory])
+            ->assertForbidden();
+    }
 
-        $this->assertDatabaseHas('fee_categories', [
-            'id'   => $FeeCategory->id,
-            'name' => $name,
-        ]);
+    public function test_the_classic_fee_category_write_routes_are_gone(): void
+    {
+        $this->assertFalse(Route::has('fee-categories.store'));
+        $this->assertFalse(Route::has('fee-categories.update'));
+        $this->authorized_user(['create fee category'])->post('dashboard/fees/fee-categories', ['name' => 'Posted'])->assertStatus(405);
+        $this->assertDatabaseMissing('fee_categories', ['name' => 'Posted']);
+    }
+
+    public function test_a_category_that_holds_fees_cannot_be_deleted()
+    {
+        $school = $this->workingSchool();
+        $feeCategory = FeeCategory::factory()->create(['school_id' => $school->id]);
+        Fee::factory()->create(['fee_category_id' => $feeCategory->id]);
+
+        $office = $this->authorized_user(['read fee category', 'delete fee category', 'read fee']);
+
+        Livewire::test(ListFeeCategoriesTable::class)
+            ->call('deleteCategory', $feeCategory->id)
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertNotSoftDeleted($feeCategory);
+
+        $office->get('dashboard/fees')->assertSuccessful();
+
+        Livewire::test(ListFeeCategoriesTable::class)
+            ->assertSee('row.fees_count === 0', false);
     }
 
     public function test_unauthorized_user_cannot_delete_fee_category()
     {
-        $FeeCategory = FeeCategory::factory()->create();
+        $feeCategory = FeeCategory::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read fee category']);
 
-        $this->unauthorized_user()
-            ->delete("dashboard/fees/fee-categories/$FeeCategory->id")
+        Livewire::test(ListFeeCategoriesTable::class)
+            ->call('deleteCategory', $feeCategory->id)
             ->assertForbidden();
 
-        $this->assertModelExists($FeeCategory);
+        $this->assertModelExists($feeCategory);
+        $this->assertNotSoftDeleted($feeCategory);
     }
 
     public function test_authorized_user_can_delete_fee_category()
     {
-        $FeeCategory = FeeCategory::factory()->create();
+        $feeCategory = FeeCategory::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read fee category', 'delete fee category']);
 
-        $this->authorized_user(['delete fee category'])
-            ->delete("dashboard/fees/fee-categories/$FeeCategory->id")
-            ->assertRedirect();
+        Livewire::test(ListFeeCategoriesTable::class)
+            ->call('deleteCategory', $feeCategory->id)
+            ->assertDispatched('status-message', type: 'success');
 
-        $this->assertSoftDeleted($FeeCategory);
+        $this->assertSoftDeleted($feeCategory);
+    }
+
+    public function test_another_schools_fee_category_cannot_be_deleted()
+    {
+        $theirs = FeeCategory::factory()->create(['school_id' => School::factory()->create()->id]);
+        $this->authorized_user(['read fee category', 'delete fee category']);
+
+        try {
+            Livewire::test(ListFeeCategoriesTable::class)->call('deleteCategory', $theirs->id);
+            $this->fail('Another school\'s fee category was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertModelExists($theirs);
+        $this->assertNotSoftDeleted($theirs);
     }
 }

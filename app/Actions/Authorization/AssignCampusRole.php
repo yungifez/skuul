@@ -1,0 +1,124 @@
+<?php
+
+namespace App\Actions\Authorization;
+
+use App\Actions\Audit\RecordAuditEvent;
+use App\Enums\AuditAction;
+use App\Exceptions\InvalidValueException;
+use App\Models\CampusRole;
+use App\Models\School;
+use App\Models\User;
+use App\Services\Authorization\RoleAuthority;
+use Spatie\Permission\PermissionRegistrar;
+
+/**
+ * Assign campus roles to active campus members who are not enrolled learners.
+ * Audit changes; repeated assignments and removals add no history.
+ */
+class AssignCampusRole
+{
+    public function __construct(
+        private RoleAuthority $authority,
+        private RecordAuditEvent $auditor,
+    ) {}
+
+    /**
+     * Give the role to somebody who works at the campus.
+     *
+     * @throws InvalidValueException when the person is not a member, the role
+     *                               is retired, or it holds more than the giver does
+     */
+    public function give(User $person, CampusRole $role, School $school, ?User $actor = null): void
+    {
+        $this->authority->mustBeAssignableAt($role, $school);
+
+        // Giving a role hands out everything inside it, so the same rule holds
+        // as when writing one: nobody gives away what they do not hold.
+        if ($actor !== null) {
+            $this->authority->mustBeGrantable($role->permissions->pluck('name')->all(), $actor, $school);
+        }
+
+        if (!$person->belongsToSchool($school->id)) {
+            throw new InvalidValueException('That person does not work at this campus.');
+        }
+
+        if ($person->studentRecords()->enrolled()->exists()) {
+            throw new InvalidValueException("$person->name is a learner. A learner cannot hold a campus role.");
+        }
+
+        if ($role->isArchived()) {
+            throw new InvalidValueException("$role->name is no longer offered at this campus.");
+        }
+
+        if ($this->authority->tailoredCopyOf($role, $school) !== null) {
+            throw new InvalidValueException("This campus keeps its own $role->name. Give that one instead.");
+        }
+
+        if ($this->authority->holdersAt($role, $school)->whereKey($person->id)->exists()) {
+            return;
+        }
+
+        $this->within($school, function () use ($person, $role): void {
+            $person->assignRole($role);
+        });
+
+        $this->auditor->record(
+            AuditAction::RoleAttached,
+            $person,
+            ['role' => $role->name, 'role_id' => $role->id],
+            $actor,
+            $school,
+        );
+    }
+
+    /**
+     * Take the role away again.
+     *
+     * @throws InvalidValueException when the role holds more than the taker does,
+     *                               or nobody at the campus could manage roles afterwards
+     */
+    public function take(User $person, CampusRole $role, School $school, ?User $actor = null): void
+    {
+        $this->authority->mustBeAssignableAt($role, $school);
+
+        // Taking a role away is as strong as giving it. Somebody who could not
+        // give the role cannot strip it from the people who hold it.
+        if ($actor !== null && $this->authority->grantableBy($actor, $school)->intersect($role->permissions->pluck('name'))->count() !== $role->permissions->count()) {
+            throw new InvalidValueException("$role->name holds more than you do, so you cannot take it away.");
+        }
+
+        if (!$this->authority->holdersAt($role, $school)->whereKey($person->id)->exists()) {
+            return;
+        }
+
+        $this->authority->mustKeepARoleManager($school, function () use ($person, $role, $school): void {
+            $this->within($school, function () use ($person, $role): void {
+                $person->removeRole($role);
+            });
+        });
+
+        $this->auditor->record(
+            AuditAction::RoleDetached,
+            $person,
+            ['role' => $role->name, 'role_id' => $role->id],
+            $actor,
+            $school,
+        );
+    }
+
+    /**
+     * Do the work with the campus named, so the role lands in the right place.
+     */
+    private function within(School $school, callable $work): void
+    {
+        $registrar = app(PermissionRegistrar::class);
+        $before = $registrar->getPermissionsTeamId();
+
+        try {
+            $registrar->setPermissionsTeamId($school->id);
+            $work();
+        } finally {
+            $registrar->setPermissionsTeamId($before);
+        }
+    }
+}

@@ -2,50 +2,156 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
+use App\Livewire\Concerns\InteractsWithAprilTable;
+use App\Models\FeeInvoice;
+use App\Models\FinancialPeriod;
+use App\Services\Fee\FeeInvoiceService;
+use App\Services\Finance\FinancialPeriodResolver;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
+use Livewire\Attributes\Locked;
+use Yungifez\AprilUI\Livewire\Columns\Column;
+use Yungifez\AprilUI\Livewire\DataTableComponent;
 
-class ListFeeInvoicesTable extends Component
+class ListFeeInvoicesTable extends DataTableComponent
 {
-    protected $queryString = ['status'];
+    use InteractsWithAprilTable;
 
-    public $statuses = ['all', 'due', 'paid'];
+    protected $queryString = ['status', 'financialPeriodId'];
 
-    public $status;
+    /** @var array<int, string> */
+    #[Locked]
+    public array $statuses = ['all', 'due', 'paid'];
 
-    public $queryAddon;
+    public string $status = 'due';
 
-    public $year;
+    public ?int $financialPeriodId = null;
 
-    public function mount()
+    public function mount(): void
     {
-        $this->year = date('Y');
-        $this->queryAddon = [];
-        $this->status = $this->status ?? 'due';
-        $this->updatedStatus();
+        parent::mount();
+        $this->financialPeriodId ??= app(FinancialPeriodResolver::class)->currentOpen(current_school_id())?->id;
+        $this->status = in_array($this->status, $this->statuses, true) ? $this->status : 'due';
     }
 
-    public function updatedStatus()
+    public function updatedStatus(): void
     {
-        switch ($this->status) {
-            case 'all':
-                $this->queryAddon = [];
-                break;
-            case 'due':
-                $this->queryAddon = [['name' => 'isDue']];
-                break;
-            case 'paid':
-                $this->queryAddon = [['name' => 'isPaid']];
-                break;
-
-            default:
-                $this->status = 'all';
-                $this->queryAddon = [];
-                break;
+        if (!in_array($this->status, $this->statuses, true)) {
+            $this->status = 'all';
         }
+
+        $this->resetPage();
     }
 
-    public function render()
+    public function updatedFinancialPeriodId(): void
     {
-        return view('livewire.list-fee-invoices-table');
+        $this->resetPage();
+    }
+
+    protected function builder(): Builder
+    {
+        $user = auth()->user();
+        $query = FeeInvoice::query()
+            ->ofSchool()
+            ->when($this->financialPeriodId !== null, fn (Builder $query) => $query->where('financial_period_id', $this->financialPeriodId))
+            ->orderByDesc('due_date')
+            ->with(['user', 'studentRecord.school', 'studentRecord.academicCycleSection.academicLevel']);
+
+        if ($user->readsLearnersOnlyAsGuardian()) {
+            $query->whereRelation('studentRecord.user.parents', 'parent_records.user_id', $user->id);
+        } elseif ($user->readsLearnersOnlyAsThemself()) {
+            $query->where('student_record_id', $user->studentRecord?->id);
+        }
+
+        return match ($this->status) {
+            'due' => $query->isDue(),
+            'paid' => $query->isPaid(),
+            default => $query,
+        };
+    }
+
+    /** @return array<int, Column> */
+    protected function columns(): array
+    {
+        $columns = [
+            Column::make('Invoice', 'name')->searchable()->sortable(),
+            Column::make('Student', 'student_name'),
+        ];
+
+        if (!auth()->user()->hasRole('student')) {
+            $columns[] = Column::make(school_term('class_level', 'Class'), 'class_name');
+            $columns[] = Column::make(school_term('section', 'Section'), 'section_name');
+        }
+
+        return array_merge($columns, [
+            Column::make('Paid', 'paid_label'),
+            Column::make('Balance', 'balance_label'),
+            Column::make('Due date', 'due_date_label')->sortable(
+                // The column shows a written date the row works out, which is
+                // no column at all. Sort the date the record actually holds.
+                fn (Builder $query, string $direction): Builder => $query->orderBy('due_date', $direction)
+            ),
+        ]);
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    protected function serializeRows(Collection $rows): array
+    {
+        return $rows->map(function (FeeInvoice $invoice): array {
+            // Only the invoice's own columns go to the browser. The loaded
+            // learner can belong to another campus after a move.
+            $row = $invoice->attributesToArray();
+            $row['student_name'] = $invoice->user->name;
+
+            $studentRecord = $invoice->studentRecord;
+            $className = '—';
+            $sectionName = '—';
+
+            if ($studentRecord !== null && $studentRecord->school_id !== $invoice->school_id) {
+                // The learner moved. Their new campus placement is not this campus's business.
+                $className = $studentRecord->school === null ? '—' : "Moved to {$studentRecord->school->name}";
+            } elseif ($studentRecord !== null) {
+                $cycleSection = $studentRecord->academicCycleSection;
+
+                if ($cycleSection !== null) {
+                    $className = $cycleSection->academicLevel->name;
+                    $sectionName = $cycleSection->name;
+                }
+            }
+
+            $row['class_name'] = $className;
+            $row['section_name'] = $sectionName;
+            $row['paid_label'] = $invoice->paid->formatToLocale(app()->getLocale());
+            $row['balance_label'] = $invoice->balance->formatToLocale(app()->getLocale());
+            $row['due_date_label'] = $invoice->due_date->format('M j, Y');
+            $row['view_url'] = route('fee-invoices.show', $invoice);
+            $row['edit_url'] = route('fee-invoices.edit', $invoice);
+            $row['pay_url'] = route('fee-invoices.pay', $invoice);
+
+            return $row;
+        })->values()->all();
+    }
+
+    /**
+     * Delete one invoice. A posted invoice is refused.
+     */
+    public function deleteInvoice(int $invoiceId, FeeInvoiceService $feeInvoiceService): void
+    {
+        $invoice = FeeInvoice::query()->ofSchool()->findOrFail($invoiceId);
+        Gate::authorize('delete', $invoice);
+
+        $this->changeRow(fn () => $feeInvoiceService->deleteFeeInvoice($invoice), "{$invoice->name} was deleted.");
+    }
+
+    public function render(): View
+    {
+        return view('livewire.list-fee-invoices-table', array_merge($this->aprilTablePayload(), [
+            'financialPeriods' => FinancialPeriod::query()->inSchool()->orderByDesc('starts_on')->get(),
+            'canManageInvoices' => auth()->user()->can('update fee invoice'),
+            'canPayInvoices' => auth()->user()->can('update fee invoice'),
+            'canDeleteInvoices' => auth()->user()->can('delete fee invoice'),
+        ]));
     }
 }

@@ -1,0 +1,106 @@
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href' => route('dashboard'), 'text' => 'Dashboard'],
+    ['href' => route('portal.overview'), 'text' => 'My school'],
+    ['text' => 'Invoices and payments', 'active'],
+]])
+
+@section('title', 'Invoices and payments')
+@section('page_heading', 'Invoices and payments')
+
+@section('content')
+    <div class="space-y-6">
+        <div>
+            <h2 class="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{{ $studentRecord->user?->name }}</h2>
+            <p class="mt-1 text-sm text-muted-foreground">{{ $studentRecord->school?->name }} · Read-only account statement</p>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <april:card>
+                <slot:title>Still owed</slot:title>
+                <slot:description>What the school records as due.</slot:description>
+                <slot:content>
+                    <p class="text-2xl font-semibold">{{ money_text($balance) }}</p>
+                    @if ($elsewhere->isNotEmpty())
+                        <ul class="mt-3 flex flex-col gap-1 text-sm" aria-label="Owed at other campuses">
+                            @foreach ($elsewhere as $row)
+                                <li class="flex items-center justify-between gap-4">
+                                    <span class="min-w-0 break-words text-muted-foreground">Owed at {{ $row['school']->name }}</span>
+                                    <span class="shrink-0 font-medium tabular-nums">{{ money_text($row['balance']) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </slot:content>
+            </april:card>
+            <april:card>
+                <slot:title>Credit held</slot:title>
+                <slot:description>Money paid that has not been used on an invoice.</slot:description>
+                <slot:content><p class="text-2xl font-semibold">{{ money_text($unappliedCredit) }}</p></slot:content>
+            </april:card>
+        </div>
+
+        <april:card>
+            <slot:title>Invoices</slot:title>
+            <slot:description>Every invoice recorded for this learner at this school.</slot:description>
+            <slot:content>
+                @if ($invoices->isEmpty())
+                    <x-empty-state icon="lucide-receipt" title="No invoices yet"
+                        description="The school has not recorded an invoice for this learner." />
+                @else
+                    <div class="grid gap-3 md:hidden">
+                        @foreach ($invoices as $invoice)
+                            <article class="rounded-lg border p-4">
+                                <div class="flex items-start justify-between gap-3">
+                                    <h3 class="min-w-0 break-words font-medium">{{ $invoice->name }}</h3>
+                                    <p class="shrink-0 text-right font-semibold">
+                                        {{ $invoice->balance->formatToLocale(app()->getLocale()) }}
+                                        <span class="block text-xs font-normal text-muted-foreground">Balance</span>
+                                    </p>
+                                </div>
+                                <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                                    <div>
+                                        <dt class="text-muted-foreground">Issued</dt>
+                                        <dd class="mt-1">{{ $invoice->issue_date?->format('j M Y') }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-muted-foreground">Due</dt>
+                                        <dd class="mt-1">{{ $invoice->due_date?->format('j M Y') }}</dd>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <dt class="text-muted-foreground">Total</dt>
+                                        <dd class="mt-1">{{ $invoice->amount->plus($invoice->fine)->minus($invoice->waiver)->formatToLocale(app()->getLocale()) }}</dd>
+                                    </div>
+                                </dl>
+                            </article>
+                        @endforeach
+                    </div>
+
+                    <div class="hidden overflow-x-auto md:block">
+                        <table class="w-full text-left text-sm">
+                            <thead class="border-b text-muted-foreground">
+                                <tr>
+                                    <th class="p-4 font-medium">Invoice</th>
+                                    <th class="p-4 font-medium">Issued</th>
+                                    <th class="p-4 font-medium">Due</th>
+                                    <th class="p-4 text-right font-medium">Total</th>
+                                    <th class="p-4 text-right font-medium">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($invoices as $invoice)
+                                    <tr class="border-b last:border-0">
+                                        <td class="p-4 font-medium">{{ $invoice->name }}</td>
+                                        <td class="p-4 text-muted-foreground">{{ $invoice->issue_date?->format('j M Y') }}</td>
+                                        <td class="p-4 text-muted-foreground">{{ $invoice->due_date?->format('j M Y') }}</td>
+                                        <td class="p-4 text-right">{{ $invoice->amount->plus($invoice->fine)->minus($invoice->waiver)->formatToLocale(app()->getLocale()) }}</td>
+                                        <td class="p-4 text-right">{{ $invoice->balance->formatToLocale(app()->getLocale()) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </slot:content>
+        </april:card>
+    </div>
+@endsection

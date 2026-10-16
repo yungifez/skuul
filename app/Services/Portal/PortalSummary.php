@@ -1,0 +1,251 @@
+<?php
+
+namespace App\Services\Portal;
+
+use App\Enums\Feature;
+use App\Enums\NoticeStatus;
+use App\Enums\PortalArea;
+use App\Models\BoardingPlace;
+use App\Models\BoardingRollEntry;
+use App\Models\FeeInvoice;
+use App\Models\LibraryLoan;
+use App\Models\LibraryReservation;
+use App\Models\NoticeRecipient;
+use App\Models\ReportCardSnapshot;
+use App\Models\ResultSnapshot;
+use App\Models\School;
+use App\Models\StudentRecord;
+use App\Models\Timetable;
+use App\Models\TranscriptSnapshot;
+use App\Services\Attendance\AttendanceSummary;
+use App\Services\Finance\StudentLedger;
+use Illuminate\Support\Collection;
+
+/**
+ * Collect enrollment-scoped data for family portal readers.
+ */
+class PortalSummary
+{
+    public function __construct(
+        private PortalAccess $access,
+        private AttendanceSummary $attendance,
+        private StudentLedger $ledger,
+    ) {}
+
+    /**
+     * Get the newest published result of each course offering.
+     *
+     * @return Collection<int, ResultSnapshot>
+     */
+    public function results(StudentRecord $enrollment, ?int $academicYearId = null, ?int $academicPeriodId = null): Collection
+    {
+        if (!$this->access->areaIsOpen(PortalArea::Results, $enrollment->school_id)) {
+            return collect();
+        }
+
+        return ResultSnapshot::query()
+            ->where('student_record_id', $enrollment->id)
+            ->approved()
+            ->when($academicYearId !== null, fn ($query) => $query->whereHas('courseOffering', fn ($query) => $query->where('academic_year_id', $academicYearId)))
+            ->when($academicPeriodId !== null, fn ($query) => $query->whereHas('courseOffering', fn ($query) => $query->where('academic_period_id', $academicPeriodId)))
+            ->with('courseOffering.subject')
+            ->get()
+            ->groupBy('course_offering_id')
+            ->map(fn (Collection $rows): ResultSnapshot => $rows->sortByDesc('revision')->first())
+            ->values();
+    }
+
+    /**
+     * Count what the registers say.
+     *
+     * @return array{present: int, absent: int, late: int, excused: int, recorded: int, rate: float|null}|null
+     */
+    public function attendance(StudentRecord $enrollment, mixed $from = null, mixed $to = null): ?array
+    {
+        if (!$this->access->areaIsOpen(PortalArea::Attendance, $enrollment->school_id)) {
+            return null;
+        }
+
+        return $this->attendance->forStudent($enrollment, $from, $to);
+    }
+
+    /**
+     * Get the published timetable of the student's current home group.
+     */
+    public function timetable(StudentRecord $enrollment): ?Timetable
+    {
+        if (!$this->access->areaIsOpen(PortalArea::Timetable, $enrollment->school_id)) {
+            return null;
+        }
+
+        return Timetable::query()
+            ->where('academic_cycle_section_id', $enrollment->academic_cycle_section_id)
+            ->published()
+            ->orderByDesc('published_at')
+            ->first();
+    }
+
+    /**
+     * Get the notices sent to the student.
+     *
+     * @return Collection<int, NoticeRecipient>
+     */
+    public function notices(StudentRecord $enrollment): Collection
+    {
+        if (!$this->access->areaIsOpen(PortalArea::Notices, $enrollment->school_id)) {
+            return collect();
+        }
+
+        return NoticeRecipient::query()
+            ->where('user_id', $enrollment->user_id)
+            ->whereHas('notice', fn ($query) => $query->where('status', NoticeStatus::Published))
+            ->with('notice')
+            ->orderByDesc('id')
+            ->get();
+    }
+
+    /**
+     * Get the invoices and what the student owes.
+     *
+     * A campus with its own books keeps what a learner owed it after they
+     * moved on, so the family sees those debts beside the current campus.
+     *
+     * @return array{invoices: Collection<int, FeeInvoice>, balance: float, unapplied_credit: float, elsewhere: Collection<int, array{school: School, balance: float}>}|null
+     */
+    public function invoices(StudentRecord $enrollment): ?array
+    {
+        if (!$this->access->areaIsOpen(PortalArea::Invoices, $enrollment->school_id)) {
+            return null;
+        }
+
+        return [
+            'invoices' => FeeInvoice::query()
+                ->ofSchool($enrollment->school_id)
+                ->where('student_record_id', $enrollment->id)
+                ->with(['feeInvoiceRecords', 'allocations'])
+                ->orderByDesc('id')
+                ->get(),
+            'balance' => $this->ledger->balance($enrollment),
+            'unapplied_credit' => $this->ledger->unappliedCredit($enrollment),
+            'elsewhere' => $this->ledger->balancesByCampus($enrollment)
+                ->reject(fn (array $row): bool => $row['school']->id === $enrollment->school_id)
+                ->values(),
+        ];
+    }
+
+    /**
+     * Get the learner's current loans and library queue entries.
+     *
+     * A learner who moved campus may still hold a book from the library they
+     * left, and that library still fines it, so loans from every campus of
+     * the organization are listed.
+     *
+     * @return array{loans: Collection<int, LibraryLoan>, reservations: Collection<int, LibraryReservation>}|null
+     */
+    public function library(StudentRecord $enrollment): ?array
+    {
+        if (!$this->access->areaIsOpen(PortalArea::Library, $enrollment->school_id)) {
+            return null;
+        }
+
+        return [
+            'loans' => LibraryLoan::query()
+                ->whereIn('school_id', $this->campusIdsOf($enrollment))
+                ->where('user_id', $enrollment->user_id)
+                ->open()
+                ->with(['copy.title', 'school:id,name'])
+                ->orderBy('due_on')
+                ->get(),
+            'reservations' => LibraryReservation::query()
+                ->where('school_id', $enrollment->school_id)
+                ->where('user_id', $enrollment->user_id)
+                ->stillGoing()
+                ->with(['title', 'copy'])
+                ->orderBy('id')
+                ->get(),
+        ];
+    }
+
+    /**
+     * Get the newest official documents published for the learner.
+     *
+     * @return array{reportCards: Collection<int, ReportCardSnapshot>, transcript: TranscriptSnapshot|null}|null
+     */
+    public function documents(StudentRecord $enrollment): ?array
+    {
+        if (!$this->access->areaIsOpen(PortalArea::Documents, $enrollment->school_id)) {
+            return null;
+        }
+
+        $reportCards = ReportCardSnapshot::query()
+            ->where('student_record_id', $enrollment->id)
+            ->with('academicPeriod:id,name,label')
+            ->orderBy('academic_period_id')
+            ->orderByDesc('revision')
+            ->get()
+            ->unique('academic_period_id')
+            ->values();
+
+        return [
+            'reportCards' => $reportCards,
+            'transcript' => TranscriptSnapshot::query()
+                ->where('student_record_id', $enrollment->id)
+                ->latest('revision')
+                ->first(),
+        ];
+    }
+
+    /**
+     * Get the current house, room, and bed for a boarder.
+     *
+     * @return array{place: string|null, latest_roll: array{type: string, status: string, taken_on: string}|null}|null
+     */
+    public function boarding(StudentRecord $enrollment): ?array
+    {
+        if (!$this->access->areaIsOpen(PortalArea::Boarding, $enrollment->school_id)
+            || !features()->enabled(Feature::Boarding, $enrollment->school_id)) {
+            return null;
+        }
+
+        $place = BoardingPlace::query()
+            ->where('school_id', $enrollment->school_id)
+            ->where('student_record_id', $enrollment->id)
+            ->latest('id')
+            ->with('bed.room.dormitory')
+            ->first();
+        $bed = $place?->bed;
+        $room = $bed?->room;
+        $house = $room?->dormitory;
+        $latestRollEntry = $place?->isBoarding()
+            ? BoardingRollEntry::inSchool($enrollment->school_id)
+                ->where('student_record_id', $enrollment->id)
+                ->whereHas('roll', fn ($roll) => $roll->where('school_id', $enrollment->school_id)->whereDate('taken_on', '<=', school_today($enrollment->school_id)->toDateString()))
+                ->with('roll')
+                ->latest('id')
+                ->first()
+            : null;
+
+        return [
+            'place' => $place?->isBoarding()
+                ? trim(implode(' · ', array_filter([$house?->name, $room?->name, $bed?->name])), ' ·')
+                : null,
+            'latest_roll' => $latestRollEntry === null ? null : [
+                'type' => $latestRollEntry->roll->type->label(),
+                'status' => $latestRollEntry->status->label(),
+                'taken_on' => $latestRollEntry->roll->taken_on->format('j M Y'),
+            ],
+        ];
+    }
+
+    /**
+     * Get the campuses of the organization the learner attends.
+     *
+     * @return array<int, int>
+     */
+    private function campusIdsOf(StudentRecord $enrollment): array
+    {
+        $organizationId = School::query()->whereKey($enrollment->school_id)->value('organization_id');
+
+        return School::query()->where('organization_id', $organizationId)->pluck('id')->all();
+    }
+}

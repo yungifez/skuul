@@ -1,0 +1,63 @@
+<?php
+
+namespace App\Actions\Curriculum;
+
+use App\Actions\Audit\RecordAuditEvent;
+use App\Enums\AcademicStructureStatus;
+use App\Enums\AuditAction;
+use App\Exceptions\InvalidValueException;
+use App\Models\AcademicLevel;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+
+class CreateAcademicLevel
+{
+    public function __construct(private RecordAuditEvent $auditor) {}
+
+    /**
+     * @throws InvalidValueException when the parent belongs to another school
+     */
+    public function create(
+        string $name,
+        ?string $code = null,
+        ?AcademicLevel $parent = null,
+        int $position = 0,
+        ?User $actor = null,
+        bool $isGroup = false,
+    ): AcademicLevel {
+        $schoolId = current_school_id();
+
+        if ($parent !== null && $parent->school_id !== $schoolId) {
+            throw new InvalidValueException('That level group belongs to another school.');
+        }
+
+        if ($isGroup && $parent !== null) {
+            throw new InvalidValueException('A level group must be a top-level group without a parent.');
+        }
+
+        return DB::transaction(function () use ($schoolId, $name, $code, $parent, $position, $actor, $isGroup): AcademicLevel {
+            $academicLevel = AcademicLevel::create([
+                'school_id' => $schoolId,
+                'parent_id' => $parent?->id,
+                'is_group' => $isGroup,
+                'name' => $name,
+                'code' => $code,
+                'position' => $position,
+                'status' => AcademicStructureStatus::Active,
+            ]);
+
+            $this->auditor->record(
+                AuditAction::AcademicLevelCreated,
+                $academicLevel,
+                [
+                    'parent_id' => $parent?->id,
+                    'is_group' => $isGroup,
+                    'code' => $code,
+                ],
+                $actor,
+            );
+
+            return $academicLevel;
+        });
+    }
+}

@@ -4,6 +4,146 @@
 @source "../../resources/**/*.blade.php";
 @source "../../app/**/*.php";
 
+/* Keep x-cloak hidden before Alpine starts, independently of April UI. */
+[x-cloak] {
+    display: none !important;
+}
+
+/* April's combobox transition can leave the panel hidden after opening when
+   the component is nested inside an Alpine location field. */
+[data-slot="combobox"][data-state="open"] > [data-slot="combobox-content"] {
+    display: block !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+/* Native selects are flex items on form screens. Let long learner and period
+   options shrink to their column instead of pushing the control past the card. */
+[data-slot="native-select"] {
+    min-width: 0;
+}
+
+/* Use the readable foreground token for links; --primary is a surface color.
+   Keep these rules outside layers to override Tailwind utilities. */
+[data-slot="button"].text-primary,
+[data-slot="editor-content"] .tiptap a {
+    color: hsl(var(--primary-foreground));
+}
+
+/* Notice content is sanitized to this small set of tags before it is stored.
+   Keep its published form readable even though the typography plugin is not
+   part of the application bundle. */
+.rich-text {
+    overflow-wrap: anywhere;
+}
+
+.rich-text > * + * {
+    margin-top: 0.75rem;
+}
+
+.rich-text h1,
+.rich-text h2,
+.rich-text h3 {
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.rich-text h1 {
+    font-size: 1.5rem;
+}
+
+.rich-text h2 {
+    font-size: 1.25rem;
+}
+
+.rich-text h3 {
+    font-size: 1.125rem;
+}
+
+.rich-text ul,
+.rich-text ol {
+    padding-left: 1.5rem;
+}
+
+.rich-text ul {
+    list-style: disc;
+}
+
+.rich-text ol {
+    list-style: decimal;
+}
+
+.rich-text blockquote {
+    border-left: 3px solid hsl(var(--border));
+    color: hsl(var(--muted-foreground));
+    padding-left: 1rem;
+}
+
+.rich-text pre {
+    overflow-x: auto;
+    border-radius: 0.375rem;
+    background: hsl(var(--muted));
+    padding: 0.75rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875rem;
+}
+
+.rich-text code {
+    border-radius: 0.25rem;
+    background: hsl(var(--muted));
+    padding: 0.125rem 0.25rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875rem;
+}
+
+.rich-text pre code {
+    background: transparent;
+    padding: 0;
+}
+
+.rich-text a {
+    color: hsl(var(--primary-foreground));
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.rich-text hr {
+    border-top: 1px solid hsl(var(--border));
+}
+
+/* Use a separate dark-theme text token to meet 4.5:1 contrast without changing button backgrounds.
+   Keep these rules outside layers to override Tailwind utilities. */
+:root {
+    --destructive-text: var(--destructive);
+}
+
+.dark {
+    --destructive-text: 0 72% 68%;
+}
+
+.text-destructive {
+    color: hsl(var(--destructive-text));
+}
+
+/* Use the foreground token for focus rings to meet 3:1 contrast in both themes.
+   Keep these rules outside layers to override Tailwind utilities. */
+:root {
+    --ring: var(--primary-foreground);
+}
+
+.dark {
+    --ring: var(--primary-foreground);
+}
+
+/* Match native checkbox size and color to custom controls.
+   Exclude switches, which draw their own tracks. Override utilities outside layers. */
+input[type="checkbox"]:not([role="switch"]),
+input[type="radio"] {
+    accent-color: hsl(var(--primary-foreground));
+    width: 1rem;
+    height: 1rem;
+}
+
 @layer components {
     .beautify-scrollbar::-webkit-scrollbar {
         width: 5px;
@@ -34,5 +174,101 @@
 
     .card-title {
         @apply text-lg font-semibold leading-none tracking-tight;
+    }
+
+    [data-slot="data-table"] > .relative {
+        @apply max-w-full overflow-x-auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-gutter: stable;
+    }
+
+    [data-slot="data-table"] th {
+        white-space: nowrap;
+    }
+
+    [data-slot="data-table"] th:last-child,
+    [data-slot="data-table"] td:last-child {
+        position: sticky;
+        right: 0;
+        z-index: 2;
+        width: 1%;
+        min-width: 0;
+        white-space: nowrap;
+        box-shadow: -0.75rem 0 1rem -1rem rgb(0 0 0 / 0.55);
+    }
+
+    [data-slot="data-table"] th:last-child {
+        z-index: 3;
+        /* Opaque, so a column scrolling under the pinned one never shows through. */
+        background-color: color-mix(in oklab, var(--color-muted) 50%, var(--color-background));
+    }
+
+    [data-slot="data-table"] td:last-child {
+        background-color: var(--color-background);
+    }
+
+    [data-slot="data-table"] td:last-child > div {
+        flex-wrap: nowrap;
+    }
+
+    @media (max-width: 768px) {
+        [data-slot="data-table"] th,
+        [data-slot="data-table"] td {
+            white-space: nowrap;
+        }
+
+        [data-slot="data-table-pagination"] {
+            align-items: stretch;
+        }
+
+        [data-slot="data-table-pagination"] > p {
+            width: 100%;
+        }
+
+        [data-slot="data-table-pagination"] > div {
+            display: grid;
+            width: 100%;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        [data-slot="data-table-pagination"] > div > label {
+            grid-column: 1 / -1;
+            width: 100%;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        [data-slot="data-table-pagination"] > div > button:first-of-type {
+            justify-self: start;
+            width: 2.25rem;
+            padding-inline: 0;
+            font-size: 0;
+        }
+
+        [data-slot="data-table-pagination"] > div > button:first-of-type::before {
+            content: "←";
+            font-size: 1rem;
+        }
+
+        [data-slot="data-table-pagination"] > div > span {
+            justify-self: center;
+            min-width: max-content;
+            white-space: nowrap;
+        }
+
+        [data-slot="data-table-pagination"] > div > button:last-child {
+            justify-self: end;
+            width: 2.25rem;
+            padding-inline: 0;
+            font-size: 0;
+        }
+
+        [data-slot="data-table-pagination"] > div > button:last-child::before {
+            content: "→";
+            font-size: 1rem;
+        }
     }
 }

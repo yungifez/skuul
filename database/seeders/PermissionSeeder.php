@@ -2,12 +2,58 @@
 
 namespace Database\Seeders;
 
+use App\Enums\OrganizationPermission;
+use App\Enums\PlatformPermission;
+use App\Enums\Role as RoleName;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class PermissionSeeder extends Seeder
 {
+    /**
+     * What a librarian does: run the library and look up borrowers.
+     *
+     * @var list<string>
+     */
+    public const LIBRARIAN_PERMISSIONS = [
+        'read student',
+        'read library',
+        'manage library',
+        'lend library item',
+    ];
+
+    /**
+     * What an accountant does day to day. Deleting, budgets and closing
+     * financial periods stay with the admin.
+     *
+     * @var list<string>
+     */
+    public const ACCOUNTANT_PERMISSIONS = [
+        'read student',
+        'read report',
+        'create report',
+        'create fee',
+        'read fee',
+        'update fee',
+        'create fee category',
+        'read fee category',
+        'update fee category',
+        'create fee invoice',
+        'read fee invoice',
+        'update fee invoice',
+        'create fee invoice record',
+        'read fee invoice record',
+        'update fee invoice record',
+        'refund student payment',
+        'read expense',
+        'create expense',
+        'read cash deposit',
+        'create cash deposit',
+        'read budget',
+        'read financial period',
+    ];
+
     /**
      * Run the database seeds.
      *
@@ -20,6 +66,14 @@ class PermissionSeeder extends Seeder
          *
          * EVERYTHING HERE IS USED IN A SINGULAR SENSE
          */
+        foreach ([
+            ...OrganizationPermission::all(),
+            PlatformPermission::AccessAllSchools,
+            PlatformPermission::AccessAllOrganizations,
+            PlatformPermission::ManagePlatform,
+        ] as $permission) {
+            Permission::findOrCreate($permission);
+        }
 
         // Permissions for school
         Permission::firstOrCreate([
@@ -36,6 +90,9 @@ class PermissionSeeder extends Seeder
         ]);
         Permission::firstOrCreate([
             'name' => 'manage school settings',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'migrate instructional model',
         ]);
 
         // Permissions for class group
@@ -93,6 +150,12 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'delete student',
         ]);
+        Permission::firstOrCreate([
+            'name' => 'read admission waitlist',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'manage admission waitlist',
+        ]);
 
         // Permission for admins
         Permission::firstOrCreate([
@@ -123,6 +186,12 @@ class PermissionSeeder extends Seeder
         ]);
         Permission::firstOrCreate([
             'name' => 'set academic year',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'close academic period',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'reopen academic period',
         ]);
 
         // Permission for teacher
@@ -178,6 +247,15 @@ class PermissionSeeder extends Seeder
             'name' => 'reset promotion',
         ]);
 
+        // Permissions for moving a student to another campus. A campus
+        // administrator asks; the receiving campus decides.
+        Permission::firstOrCreate([
+            'name' => 'request campus move',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'approve campus move',
+        ]);
+
         // permission for graduation
         Permission::firstOrCreate([
             'name' => 'graduate student',
@@ -189,22 +267,22 @@ class PermissionSeeder extends Seeder
             'name' => 'reset graduation',
         ]);
 
-        // permission for semesters
+        // permission for academic periods
         Permission::firstOrCreate([
-            'name' => 'create semester',
+            'name' => 'create academic period',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read semester',
+            'name' => 'read academic period',
         ]);
         Permission::firstOrCreate([
-            'name' => 'update semester',
+            'name' => 'update academic period',
         ]);
         Permission::firstOrCreate([
-            'name' => 'delete semester',
+            'name' => 'delete academic period',
         ]);
 
         Permission::firstOrCreate([
-            'name' => 'set semester',
+            'name' => 'set academic period',
         ]);
 
         // permission for syllabus
@@ -220,10 +298,16 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'delete syllabus',
         ]);
+        Permission::firstOrCreate([
+            'name' => 'approve syllabus',
+        ]);
 
         // permission for timetable
         Permission::firstOrCreate([
             'name' => 'create timetable',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'create schoolwide timetable',
         ]);
         Permission::firstOrCreate([
             'name' => 'read timetable',
@@ -263,51 +347,33 @@ class PermissionSeeder extends Seeder
             'name' => 'delete exam',
         ]);
 
-        // permission for grade system
+        // Grading scales are reusable school configuration, not class-specific ranges.
         Permission::firstOrCreate([
-            'name' => 'create grade system',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'read grade system',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'update grade system',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'delete grade system',
+            'name' => 'manage grading scale',
         ]);
 
-        // permission for exam slots
+        // Gradebook permissions
         Permission::firstOrCreate([
-            'name' => 'create exam slot',
+            'name' => 'read gradebook',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read exam slot',
+            'name' => 'manage gradebook',
         ]);
         Permission::firstOrCreate([
-            'name' => 'update exam slot',
+            'name' => 'publish result',
         ]);
         Permission::firstOrCreate([
-            'name' => 'delete exam slot',
-        ]);
-
-        // permission for exam records
-        Permission::firstOrCreate([
-            'name' => 'create exam record',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'read exam record',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'update exam record',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'delete exam record',
+            'name' => 'approve result',
         ]);
 
-        // check result permission
         Permission::firstOrCreate([
-            'name' => 'check result',
+            'name' => 'read attendance',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'take attendance',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'menu-attendance',
         ]);
 
         // permission for notices
@@ -331,6 +397,176 @@ class PermissionSeeder extends Seeder
         // permission for account access
         Permission::firstOrCreate([
             'name' => 'manage account access',
+        ]);
+
+        // Permissions for discipline and safeguarding
+        Permission::firstOrCreate([
+            'name' => 'create incident',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read incident',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update incident',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete incident',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read safeguarding case',
+        ]);
+
+        // Permissions for student support and wellbeing
+        Permission::firstOrCreate([
+            'name' => 'create support plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read support plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update support plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete support plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read confidential support plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read health record',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update health record',
+        ]);
+
+        // Permissions for staff operations
+        Permission::firstOrCreate([
+            'name' => 'create staff profile',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read staff profile',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update staff profile',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete staff profile',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read staff leave',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'request staff leave',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'approve staff leave',
+        ]);
+
+        // Permissions for imports
+        Permission::firstOrCreate([
+            'name' => 'create import',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read import',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'apply import',
+        ]);
+
+        // Permissions for cohorts, programmes, and graduation planning
+        Permission::firstOrCreate([
+            'name' => 'create cohort',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read cohort',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update cohort',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete cohort',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read restricted cohort',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'create program',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read program',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update program',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete program',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'manage graduation plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read graduation plan',
+        ]);
+
+        // Permission for rankings
+        Permission::firstOrCreate([
+            'name' => 'read ranking',
+        ]);
+
+        // Permissions for the school calendar
+        Permission::firstOrCreate([
+            'name' => 'create calendar event',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read calendar event',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update calendar event',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete calendar event',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'publish calendar event',
+        ]);
+
+        // Permissions for the student and guardian portal
+        Permission::firstOrCreate([
+            'name' => 'read portal request',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'answer portal request',
+        ]);
+
+        // Permissions for sharing records between schools
+        Permission::firstOrCreate([
+            'name' => 'request data sharing',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'approve data sharing',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'fulfil data sharing',
+        ]);
+
+        /*
+         * Permissions for the roles a campus writes for itself. Holding
+         * "manage role" never widens what a person can hand out: a role can
+         * only carry permissions its author already holds at that campus.
+         */
+        Permission::firstOrCreate([
+            'name' => 'read role',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'manage role',
+        ]);
+
+        // Permissions for reports
+        Permission::firstOrCreate([
+            'name' => 'create report',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read report',
         ]);
 
         // permissions for fee categories
@@ -405,6 +641,83 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee invoice record',
         ]);
 
+        // boarding
+        Permission::firstOrCreate([
+            'name' => 'read boarding',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'manage boarding',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'decide overnight leave',
+        ]);
+
+        // shared facilities
+        Permission::firstOrCreate([
+            'name' => 'read facility',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'manage facility',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'book facility',
+        ]);
+
+        // library
+        Permission::firstOrCreate([
+            'name' => 'read library',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'manage library',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'lend library item',
+        ]);
+
+        // budgets
+        Permission::firstOrCreate([
+            'name' => 'read budget',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'manage budget',
+        ]);
+
+        // student money that leaves the school again
+        Permission::firstOrCreate([
+            'name' => 'refund student payment',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read expense',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'create expense',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read financial period',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'manage financial period',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read cash deposit',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'create cash deposit',
+        ]);
+
         // header permissions (for controlling the menu headers)
         Permission::firstOrCreate([
             'name' => 'header-administrate',
@@ -434,7 +747,7 @@ class PermissionSeeder extends Seeder
             'name' => 'menu-academic-year',
         ]);
         Permission::firstOrCreate([
-            'name' => 'menu-semester',
+            'name' => 'menu-academic-period',
         ]);
         Permission::firstOrCreate([
             'name' => 'menu-subject',
@@ -449,7 +762,7 @@ class PermissionSeeder extends Seeder
             'name' => 'menu-exam',
         ]);
         Permission::firstOrCreate([
-            'name' => 'menu-grade-system',
+            'name' => 'menu-gradebook',
         ]);
         Permission::firstOrCreate([
             'name' => 'menu-notice',
@@ -474,13 +787,14 @@ class PermissionSeeder extends Seeder
             'menu-subject',
             'menu-syllabus',
             'menu-timetable',
-            'menu-semester',
+            'menu-academic-period',
             'menu-exam',
-            'menu-grade-system',
+            'menu-gradebook',
             'menu-notice',
             'menu-parent',
             'menu-fee',
             'manage school settings',
+            'migrate instructional model',
             'create section',
             'read section',
             'update section',
@@ -497,11 +811,15 @@ class PermissionSeeder extends Seeder
             'read student',
             'update student',
             'delete student',
+            'read admission waitlist',
+            'manage admission waitlist',
             'create academic year',
             'read academic year',
             'update academic year',
             'delete academic year',
             'set academic year',
+            'close academic period',
+            'reopen academic period',
             'create teacher',
             'read teacher',
             'update teacher',
@@ -513,19 +831,23 @@ class PermissionSeeder extends Seeder
             'promote student',
             'read promotion',
             'reset promotion',
+            'request campus move',
+            'approve campus move',
             'graduate student',
             'view graduations',
             'reset graduation',
-            'create semester',
-            'read semester',
-            'update semester',
-            'delete semester',
-            'set semester',
+            'create academic period',
+            'read academic period',
+            'update academic period',
+            'delete academic period',
+            'set academic period',
             'create syllabus',
             'read syllabus',
             'update syllabus',
             'delete syllabus',
+            'approve syllabus',
             'create timetable',
+            'create schoolwide timetable',
             'read timetable',
             'update timetable',
             'delete timetable',
@@ -537,28 +859,66 @@ class PermissionSeeder extends Seeder
             'read exam',
             'update exam',
             'delete exam',
-            'create grade system',
-            'read grade system',
-            'update grade system',
-            'delete grade system',
-            'create exam slot',
-            'read exam slot',
-            'update exam slot',
-            'delete exam slot',
-            'create exam record',
-            'read exam record',
-            'update exam record',
-            'delete exam record',
+            'manage grading scale',
+            'read gradebook',
+            'manage gradebook',
+            'publish result',
+            'approve result',
+            'read attendance',
+            'take attendance',
+            'menu-attendance',
             'create notice',
             'read notice',
             'update notice',
             'delete notice',
-            'check result',
             'create parent',
             'read parent',
             'update parent',
             'delete parent',
             'manage account access',
+            'request data sharing',
+            'approve data sharing',
+            'fulfil data sharing',
+            'create report',
+            'read report',
+            'read role',
+            'manage role',
+            'create incident',
+            'read incident',
+            'update incident',
+            'delete incident',
+            'create support plan',
+            'read support plan',
+            'update support plan',
+            'delete support plan',
+            'create staff profile',
+            'read staff profile',
+            'update staff profile',
+            'delete staff profile',
+            'read staff leave',
+            'request staff leave',
+            'approve staff leave',
+            'create import',
+            'read import',
+            'apply import',
+            'read ranking',
+            'create calendar event',
+            'read calendar event',
+            'update calendar event',
+            'delete calendar event',
+            'publish calendar event',
+            'create cohort',
+            'read cohort',
+            'update cohort',
+            'delete cohort',
+            'create program',
+            'read program',
+            'update program',
+            'delete program',
+            'manage graduation plan',
+            'read graduation plan',
+            'read portal request',
+            'answer portal request',
             'create custom timetable item',
             'read custom timetable item',
             'update custom timetable item',
@@ -579,6 +939,24 @@ class PermissionSeeder extends Seeder
             'read fee invoice record',
             'update fee invoice record',
             'delete fee invoice record',
+            'refund student payment',
+            'read expense',
+            'create expense',
+            'read financial period',
+            'manage financial period',
+            'read cash deposit',
+            'create cash deposit',
+            'read budget',
+            'manage budget',
+            'read boarding',
+            'manage boarding',
+            'decide overnight leave',
+            'read library',
+            'manage library',
+            'lend library item',
+            'read facility',
+            'manage facility',
+            'book facility',
         ]);
 
         // assign permissions to teacher
@@ -589,13 +967,13 @@ class PermissionSeeder extends Seeder
             'menu-syllabus',
             'menu-timetable',
             'menu-exam',
+            'menu-gradebook',
             'menu-notice',
             'menu-student',
-            'menu-grade-system',
+            'set academic year',
+            'set academic period',
             'read student',
             'read exam',
-            'read exam slot',
-            'read grade system',
             'create syllabus',
             'read syllabus',
             'update syllabus',
@@ -604,12 +982,14 @@ class PermissionSeeder extends Seeder
             'read timetable',
             'update timetable',
             'delete timetable',
-            'create exam record',
-            'read exam record',
-            'update exam record',
-            'delete exam record',
+            'read gradebook',
+            'manage gradebook',
+            'read attendance',
+            'take attendance',
+            'menu-attendance',
             'read notice',
-            'check result',
+            'read calendar event',
+            'read ranking',
         ]);
 
         // assign permissions to student
@@ -622,13 +1002,11 @@ class PermissionSeeder extends Seeder
             'menu-timetable',
             'menu-notice',
             'menu-exam',
-            'menu-grade-system',
             'read syllabus',
             'read timetable',
-            'read grade system',
             'read notice',
             'read fee invoice',
-            'check result',
+            'read calendar event',
         ]);
 
         // assign permissions to parent
@@ -641,19 +1019,31 @@ class PermissionSeeder extends Seeder
             'menu-notice',
             'menu-exam',
             'menu-fee',
-            'menu-grade-system',
             'menu-student',
             'read student',
             'read syllabus',
             'read timetable',
-            'read grade system',
             'read notice',
             'read fee invoice',
-            'check result',
+            'read calendar event',
         ]);
 
+        $organizationAdmin = Role::query()
+            ->where('name', RoleName::OrganizationAdmin)
+            ->whereNull('school_id')
+            ->firstOrFail();
+        $organizationAdmin->syncPermissions(OrganizationPermission::all());
+
+        $platformAdmin = Role::query()
+            ->where('name', RoleName::PlatformAdmin)
+            ->whereNull('school_id')
+            ->firstOrFail();
+        $platformAdmin->syncPermissions(Permission::query()->pluck('name')->all());
+
         // assign permissions to librarian
+        Role::query()->where('name', 'librarian')->whereNull('school_id')->firstOrFail()->syncPermissions(self::LIBRARIAN_PERMISSIONS);
 
         // assign permissions to accountant
+        Role::query()->where('name', 'accountant')->whereNull('school_id')->firstOrFail()->syncPermissions(self::ACCOUNTANT_PERMISSIONS);
     }
 }

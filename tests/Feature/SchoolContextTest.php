@@ -3,12 +3,16 @@
 namespace Tests\Feature;
 
 use App\Actions\School\GrantSchoolMembership;
+use App\Livewire\Layouts\Menu;
+use App\Livewire\SetSchool;
 use App\Models\AcademicYear;
 use App\Models\School;
 use App\Models\User;
 use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -22,15 +26,70 @@ class SchoolContextTest extends TestCase
     public function test_switching_school_writes_to_the_session_not_the_user(): void
     {
         $second = School::factory()->create();
-        $user = User::where('email', 'super@admin.com')->firstOrFail();
+        $user = User::where('email', 'super@example.com')->firstOrFail();
 
         $before = $user->schoolMemberships()->pluck('school_id')->all();
 
-        $this->actingAs($user)
-            ->post('/dashboard/schools/set-school', ['school_id' => $second->id])
+        $this->actingAs($user);
+
+        Livewire::test(Menu::class)
+            ->call('switchSchool', $second->id)
+            ->assertRedirect(route('dashboard'))
             ->assertSessionHas(SchoolContext::SESSION_KEY, $second->id);
 
         $this->assertSame($before, $user->fresh()->schoolMemberships()->pluck('school_id')->all());
+    }
+
+    public function test_livewire_school_switch_redirects_to_dashboard_and_updates_the_session(): void
+    {
+        $home = $this->workingSchool();
+        $destination = School::factory()->create();
+        $user = $this->memberOf($home);
+        $this->memberOf($destination, $user);
+        $this->actingAsMemberOf($home, $user);
+
+        Livewire::test(SetSchool::class)
+            ->set('school_id', $destination->id)
+            ->call('setSchool')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas(SchoolContext::SESSION_KEY, $destination->id);
+
+        $this->assertDatabaseHas('school_memberships', [
+            'user_id' => $user->id,
+            'school_id' => $home->id,
+        ]);
+    }
+
+    public function test_livewire_school_switch_rejects_a_school_without_membership(): void
+    {
+        $home = $this->workingSchool();
+        $other = School::factory()->create();
+        $user = $this->memberOf($home);
+        $this->actingAsMemberOf($home, $user);
+
+        Livewire::test(SetSchool::class)
+            ->set('school_id', $other->id)
+            ->call('setSchool')
+            ->assertForbidden();
+
+        $this->assertSame($home->id, school_context()->id());
+    }
+
+    public function test_a_member_cannot_switch_to_a_school_without_membership(): void
+    {
+        $home = $this->workingSchool();
+        $other = School::query()->findOrFail(School::factory()->create()->getKey());
+        $user = $this->memberOf($home);
+
+        $this->actingAsMemberOf($home, $user);
+
+        Livewire::test(Menu::class)
+            ->call('switchSchool', $other->id)
+            ->assertForbidden();
+
+        $this->assertSame($home->id, school_context()->id());
+        $this->assertFalse(Route::has('schools.setSchool'));
     }
 
     public function test_the_remembered_school_is_ignored_when_access_ended(): void

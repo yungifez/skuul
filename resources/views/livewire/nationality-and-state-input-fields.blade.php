@@ -1,17 +1,42 @@
-<div class="md:flex gap-2">
-    <x-select id="nationality" name="nationality" label="Nationality *" group-class="md:w-6/12"  wire:model.live="nationality"> 
-        @foreach ($nationalities as $item)
-            <option value="{{$item}}">{{$item}}</option>
-        @endforeach
-    </x-select>
-    <x-select id="state" name="state" label="State *" group-class="md:w-6/12"  wire:init="loadInitialStates" wire:model.live="state">
-        @if (isset($states))
-            @foreach ($states as $item)
-                <option value="{{$item['name']}}"  wire:key="{{ $loop->index }}">{{$item['name']}}</option>
+<div class="grid min-w-0 w-full gap-4 sm:grid-cols-2 {{ $showNationality ? 'md:grid-cols-3' : '' }}">
+    @if ($showNationality)
+        <april:input-group id="nationality" name="nationality" label="Nationality" placeholder="Person's nationality" value="{{ old('nationality', $nationality) }}" />
+    @endif
+
+    <div class="flex w-full flex-col gap-2">
+        <april:label for="country">Country</april:label>
+        <april:combobox name="country" :value="$country" placeholder="Search countries" wire:model.live="country">
+            <slot:trigger>
+                <button id="country" type="button" class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-left text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
+                    <span class="truncate" x-text="selectedLabel() || 'Not specified'"></span>
+                    <span aria-hidden="true" class="ml-2 text-muted-foreground">⌄</span>
+                </button>
+            </slot:trigger>
+            <slot:empty>No matching country.</slot:empty>
+            <april:combobox-option value="">Not specified</april:combobox-option>
+            @foreach ($countries as $item)
+                <april:combobox-option value="{{ $item }}">{{ $item }}</april:combobox-option>
             @endforeach
-        @else 
-            <option value="" disabled>Select a country first</option>
-        @endif
-    </x-select>
+        </april:combobox>
+        <x-field-error name="country" />
+    </div>
+    <div class="flex w-full flex-col gap-2">
+        <april:label for="state">State / Province</april:label>
+        <april:combobox name="state" :value="$state" placeholder="Search states or provinces" wire:init="loadInitialStates" wire:model.live="state">
+            <slot:trigger>
+                <button id="state" type="button" class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-left text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
+                    <span class="truncate" x-text="selectedLabel() || 'Not specified'"></span>
+                    <span aria-hidden="true" class="ml-2 text-muted-foreground">⌄</span>
+                </button>
+            </slot:trigger>
+            <slot:empty>No matching state or province.</slot:empty>
+            <april:combobox-option value="">Not specified</april:combobox-option>
+            @if (isset($states))
+                @foreach ($states as $item)
+                    <april:combobox-option value="{{ $item['name'] }}">{{ $item['name'] }}</april:combobox-option>
+                @endforeach
+            @endif
+        </april:combobox>
+        <x-field-error name="state" />
+    </div>
 </div>
-    

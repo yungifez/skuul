@@ -24,6 +24,16 @@ class PasswordResetTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_a_refused_request_says_it_was_not_done(): void
+    {
+        $this->from('/forgot-password')
+            ->followingRedirects()
+            ->post('/forgot-password', ['email' => ''])
+            ->assertOk()
+            ->assertSee('Not done')
+            ->assertDontSee('Whoops');
+    }
+
     public function test_reset_password_link_can_be_requested()
     {
         if (!Features::enabled(Features::resetPasswords())) {
@@ -80,9 +90,9 @@ class PasswordResetTest extends TestCase
 
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
             $response = $this->post('/reset-password', [
-                'token'                 => $notification->token,
-                'email'                 => $user->email,
-                'password'              => 'password',
+                'token' => $notification->token,
+                'email' => $user->email,
+                'password' => 'password',
                 'password_confirmation' => 'password',
             ]);
 

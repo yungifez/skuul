@@ -15,21 +15,19 @@ use Illuminate\Support\Carbon;
  * Membership carries school access. It does not carry the account state and it
  * does not carry student enrollment. Ending a membership keeps the record.
  *
- * @property int                    $id
- * @property int                    $user_id
- * @property int                    $school_id
+ * @property int $id
+ * @property int $user_id
+ * @property int $school_id
  * @property SchoolMembershipStatus $status
- * @property bool                   $is_primary
- * @property Carbon|null            $joined_at
- * @property Carbon|null            $ended_at
+ * @property bool $is_primary
+ * @property Carbon|null $joined_at
+ * @property Carbon|null $ended_at
  */
 class SchoolMembership extends Model
 {
     use HasFactory;
 
     /**
-     * The attributes that are mass assignable.
-     *
      * @var list<string>
      */
     protected $fillable = [
@@ -42,15 +40,13 @@ class SchoolMembership extends Model
     ];
 
     /**
-     * The attributes that should be cast.
-     *
      * @var array<string, string>
      */
     protected $casts = [
-        'status'     => SchoolMembershipStatus::class,
+        'status' => SchoolMembershipStatus::class,
         'is_primary' => 'boolean',
-        'joined_at'  => 'datetime',
-        'ended_at'   => 'datetime',
+        'joined_at' => 'datetime',
+        'ended_at' => 'datetime',
     ];
 
     /**
@@ -76,8 +72,7 @@ class SchoolMembership extends Model
     /**
      * Limit the query to memberships that grant access.
      *
-     * @param Builder<SchoolMembership> $query
-     *
+     * @param  Builder<SchoolMembership>  $query
      * @return Builder<SchoolMembership>
      */
     public function scopeActive(Builder $query): Builder
@@ -88,8 +83,7 @@ class SchoolMembership extends Model
     /**
      * Limit the query to the membership used for organization-level work.
      *
-     * @param Builder<SchoolMembership> $query
-     *
+     * @param  Builder<SchoolMembership>  $query
      * @return Builder<SchoolMembership>
      */
     public function scopePrimary(Builder $query): Builder

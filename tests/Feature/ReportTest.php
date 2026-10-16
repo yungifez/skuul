@@ -1,0 +1,305 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Actions\Finance\ChargeStudent;
+use App\Actions\Report\RequestReport;
+use App\Enums\AuditAction;
+use App\Enums\ReportStatus;
+use App\Exceptions\InvalidValueException;
+use App\Jobs\BuildReport;
+use App\Livewire\ReportDesk;
+use App\Models\AuditEvent;
+use App\Models\FinancialPeriod;
+use App\Models\ReportRun;
+use App\Models\School;
+use App\Models\StudentRecord;
+use App\Services\Report\ExportFormatRegistry;
+use App\Services\Report\Formats\CsvFormat;
+use App\Services\Report\ReportRegistry;
+use App\Traits\FeatureTestTrait;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
+use RuntimeException;
+use Tests\TestCase;
+
+/**
+ * Reports are requested, built by a worker, and collected afterwards.
+ */
+class ReportTest extends TestCase
+{
+    use FeatureTestTrait;
+    use RefreshDatabase;
+
+    public function test_the_registry_lists_the_reports(): void
+    {
+        $reports = app(ReportRegistry::class)->all();
+
+        $this->assertArrayHasKey('student-balances', $reports);
+        $this->assertArrayHasKey('class-list', $reports);
+        $this->assertArrayHasKey('report-cards', $reports);
+        $this->assertArrayHasKey('transcripts', $reports);
+    }
+
+    public function test_an_unknown_report_is_refused(): void
+    {
+        $this->expectException(InvalidValueException::class);
+
+        app(ReportRegistry::class)->get('made-up-report');
+    }
+
+    public function test_a_request_is_recorded_and_queued(): void
+    {
+        Queue::fake();
+        $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+
+        $run = app(RequestReport::class)->request('student-balances');
+
+        $this->assertSame(ReportStatus::Queued, $run->status);
+        $this->assertSame($this->workingSchool()->id, $run->school_id);
+        Queue::assertPushed(BuildReport::class);
+    }
+
+    public function test_official_report_cards_and_transcripts_are_queued(): void
+    {
+        Queue::fake();
+        $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+
+        $reportCard = app(RequestReport::class)->request('report-cards');
+        $transcript = app(RequestReport::class)->request('transcripts');
+
+        $this->assertSame(ReportStatus::Queued, $reportCard->status);
+        $this->assertSame(ReportStatus::Queued, $transcript->status);
+        Queue::assertPushed(BuildReport::class, 2);
+    }
+
+    public function test_building_a_report_writes_a_file(): void
+    {
+        Storage::fake('local');
+        $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        FinancialPeriod::create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Term one',
+            'starts_on' => now()->startOfYear()->toDateString(),
+            'ends_on' => now()->endOfYear()->toDateString(),
+        ]);
+        app(ChargeStudent::class)->charge($enrollment, 500, 'Term one fees');
+
+        $run = app(RequestReport::class)->request('student-balances');
+        $run = $run->fresh();
+
+        $this->assertSame(ReportStatus::Ready, $run->status);
+        $this->assertNotNull($run->file_path);
+        Storage::disk('local')->assertExists($run->file_path);
+        $this->assertStringContainsString('Admission number', Storage::disk('local')->get($run->file_path));
+        $this->assertStringContainsString('500', Storage::disk('local')->get($run->file_path));
+    }
+
+    public function test_a_report_only_reads_its_own_school(): void
+    {
+        Storage::fake('local');
+        $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+        StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id, 'admission_number' => 'MINE/1']);
+        StudentRecord::factory()->create(['school_id' => School::factory()->create()->id, 'admission_number' => 'THEIRS/1']);
+
+        $run = app(RequestReport::class)->request('student-balances')->fresh();
+        $csv = Storage::disk('local')->get($run->file_path);
+
+        $this->assertStringContainsString('MINE/1', $csv);
+        $this->assertStringNotContainsString('THEIRS/1', $csv);
+    }
+
+    public function test_a_failing_report_says_why(): void
+    {
+        $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+        $run = ReportRun::create([
+            'school_id' => $this->workingSchool()->id,
+            'type' => 'made-up-report',
+        ]);
+
+        try {
+            app(BuildReport::class, ['reportRunId' => $run->id])->handle(app(ReportRegistry::class), app(ExportFormatRegistry::class));
+        } catch (InvalidValueException) {
+            // The job records the failure before it gives up.
+        }
+
+        $run = $run->fresh();
+
+        $this->assertSame(ReportStatus::Failed, $run->status);
+        $this->assertStringContainsString('made-up-report', (string) $run->error);
+    }
+
+    public function test_a_fault_while_building_a_report_does_not_show_its_details(): void
+    {
+        $this->authorized_user(['create report', 'read report']);
+        $run = ReportRun::create([
+            'school_id' => $this->workingSchool()->id,
+            'type' => 'made-up-report',
+        ]);
+        $this->mock(ReportRegistry::class)
+            ->shouldReceive('get')
+            ->andThrow(new RuntimeException('SQLSTATE[HY000]: secret table detail'));
+
+        try {
+            app(BuildReport::class, ['reportRunId' => $run->id])->handle(app(ReportRegistry::class), app(ExportFormatRegistry::class));
+        } catch (RuntimeException) {
+            // The job records the failure before it gives up.
+        }
+
+        $this->assertStringNotContainsString('SQLSTATE', (string) $run->fresh()->error);
+        $this->assertStringContainsString('could not be built', (string) $run->fresh()->error);
+    }
+
+    public function test_a_csv_cell_that_looks_like_a_formula_stays_text(): void
+    {
+        $csv = app(CsvFormat::class)->render('People', ['Name', 'Balance'], collect([
+            ['=HYPERLINK("http://example.test","Ada")', '-1200.50'],
+            ['@SUM(A1)', -3],
+            ['Grace-Ola', '+ fee'],
+        ]));
+
+        $this->assertStringContainsString("'=HYPERLINK", $csv);
+        $this->assertStringContainsString("'@SUM(A1)", $csv);
+        $this->assertStringContainsString("'+ fee", $csv);
+        $this->assertStringContainsString('-1200.50', $csv);
+        $this->assertStringNotContainsString("'-1200.50", $csv);
+        $this->assertStringContainsString('Grace-Ola', $csv);
+    }
+
+    public function test_an_authorized_user_can_ask_for_a_report(): void
+    {
+        Queue::fake();
+        $this->authorized_user(['create report', 'read report', 'read student']);
+
+        $this->get(route('reports.index'))->assertOk()->assertSee('Class list');
+
+        Livewire::test(ReportDesk::class)
+            ->set('type', 'class-list')
+            ->call('build')
+            ->assertHasNoErrors()
+            ->assertSee('Number');
+
+        $this->assertSame(1, ReportRun::count());
+    }
+
+    public function test_an_unauthorized_user_cannot_ask_for_a_report(): void
+    {
+        $this->authorized_user(['read report', 'read student']);
+
+        Livewire::test(ReportDesk::class)
+            ->set('type', 'class-list')
+            ->call('build')
+            ->assertForbidden();
+
+        $this->assertSame(0, ReportRun::count());
+    }
+
+    public function test_an_unknown_report_name_is_refused_by_the_form(): void
+    {
+        $this->authorized_user(['create report', 'read report', 'read student']);
+
+        Livewire::test(ReportDesk::class)
+            ->set('type', 'made-up-report')
+            ->call('build')
+            ->assertHasErrors('type');
+    }
+
+    public function test_nobody_asks_for_a_report_about_data_they_cannot_read(): void
+    {
+        Queue::fake();
+        $this->authorized_user(['create report', 'read report', 'read student']);
+
+        Livewire::test(ReportDesk::class)
+            ->assertDontSee('General ledger')
+            ->set('type', 'general-ledger')
+            ->call('build')
+            ->assertHasErrors('type');
+
+        $this->assertThrows(fn () => app(RequestReport::class)->request('general-ledger'), InvalidValueException::class);
+        $this->assertSame(0, ReportRun::count());
+    }
+
+    public function test_a_finished_report_reaches_only_people_who_may_read_its_data(): void
+    {
+        Storage::fake('local');
+        $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+        $balances = app(RequestReport::class)->request('student-balances')->fresh();
+
+        $this->authorized_user(['read report', 'read student']);
+
+        $this->get(route('reports.download', $balances->id))->assertForbidden();
+        Livewire::test(ReportDesk::class)->assertDontSee('Download number '.$balances->id);
+    }
+
+    public function test_asking_twice_while_it_builds_queues_one_report(): void
+    {
+        Queue::fake();
+        $this->authorized_user(['create report', 'read report', 'read student']);
+
+        $first = app(RequestReport::class)->request('class-list');
+        $second = app(RequestReport::class)->request('class-list');
+        $asSpreadsheet = app(RequestReport::class)->request('class-list', format: 'xlsx');
+
+        $this->assertSame($first->id, $second->id);
+        $this->assertNotSame($first->id, $asSpreadsheet->id);
+        $this->assertSame(2, ReportRun::count());
+    }
+
+    public function test_a_finished_report_can_be_downloaded(): void
+    {
+        Storage::fake('local');
+        $actor = $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+        $run = app(RequestReport::class)->request('class-list')->fresh();
+
+        $actor->get("/dashboard/reports/$run->id/download")
+            ->assertSuccessful()
+            ->assertHeader('content-type', 'text/csv; charset=utf-8');
+    }
+
+    public function test_a_report_whose_file_is_gone_says_so(): void
+    {
+        Storage::fake('local');
+        $actor = $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+        $run = app(RequestReport::class)->request('class-list')->fresh();
+        Storage::disk('local')->delete($run->file_path);
+
+        $actor->get("/dashboard/reports/$run->id/download")
+            ->assertStatus(410)
+            ->assertSee('This report file is no longer stored. Build the report again.');
+    }
+
+    public function test_another_school_cannot_download_the_report(): void
+    {
+        Storage::fake('local');
+        $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+        $run = app(RequestReport::class)->request('class-list')->fresh();
+
+        $this->authorized_user(['read report', 'read student'], School::factory()->create())
+            ->get("/dashboard/reports/$run->id/download")
+            ->assertForbidden();
+    }
+
+    public function test_a_download_is_written_to_the_audit_log(): void
+    {
+        Storage::fake('local');
+        $actor = $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+        $run = app(RequestReport::class)->request('class-list')->fresh();
+
+        $actor->get("/dashboard/reports/$run->id/download");
+
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::ReportDownloaded)->forSubject($run)->first());
+    }
+
+    public function test_a_request_is_written_to_the_audit_log(): void
+    {
+        Queue::fake();
+        $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+
+        $run = app(RequestReport::class)->request('class-list');
+
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::ReportRequested)->forSubject($run)->first());
+    }
+}

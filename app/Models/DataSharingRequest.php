@@ -1,0 +1,178 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\DataCategory;
+use App\Enums\DataSharingStatus;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+
+/**
+ * One school's request to read another school's records about one student.
+ *
+ * This model names two schools on purpose, so it does not use the school
+ * scope: the school that holds the records decides, and the school that asked
+ * must still be able to see its own request.
+ *
+ * @property DataSharingStatus $status
+ * @property array<int, string> $categories
+ */
+class DataSharingRequest extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'requesting_school_id',
+        'holding_school_id',
+        'student_record_id',
+        'status',
+        'categories',
+        'purpose',
+        'expires_on',
+        'requested_by',
+        'decided_by',
+        'decided_at',
+        'decision_note',
+    ];
+
+    /**
+     * The default values for a new request.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'status' => DataSharingStatus::Requested->value,
+    ];
+
+    /**
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'status' => DataSharingStatus::class,
+        'categories' => 'array',
+        'expires_on' => 'date',
+        'decided_at' => 'datetime',
+    ];
+
+    /**
+     * Get the categories as the enum they name.
+     *
+     * @return array<int, DataCategory>
+     */
+    public function categories(): array
+    {
+        return array_values(array_filter(array_map(
+            fn (string $value): ?DataCategory => DataCategory::tryFrom($value),
+            $this->categories ?? [],
+        )));
+    }
+
+    /**
+     * Get the restricted categories the person may not read at the campus they work in now.
+     *
+     * @return array<int, DataCategory>
+     */
+    public function categoriesUnreadableBy(User $user): array
+    {
+        return array_values(array_filter(
+            $this->categories(),
+            fn (DataCategory $category): bool => !$category->isReadableBy($user),
+        ));
+    }
+
+    /**
+     * Check if the permission ran out.
+     */
+    public function hasExpired(mixed $on = null): bool
+    {
+        if ($this->expires_on === null) {
+            return false;
+        }
+
+        return $this->expires_on->lt(Carbon::parse($on ?? school_today($this->requesting_school_id))->startOfDay());
+    }
+
+    /**
+     * Check if the records may be handed over now.
+     */
+    public function isUsable(): bool
+    {
+        return $this->status->allowsFulfilment() && !$this->hasExpired() && $this->isStillHeldByTheAskedSchool();
+    }
+
+    /**
+     * Check if the learner still attends the school that was asked.
+     *
+     * After a campus move another campus holds the records. The school that
+     * was asked can no longer agree to share them.
+     */
+    public function isStillHeldByTheAskedSchool(): bool
+    {
+        return $this->studentRecord?->school_id === $this->holding_school_id;
+    }
+
+    /**
+     * Limit the query to the requests one school must answer.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeAwaiting(Builder $query, School|int $school): Builder
+    {
+        return $query->where('holding_school_id', $school instanceof School ? $school->id : $school)
+            ->where('status', DataSharingStatus::Requested);
+    }
+
+    /**
+     * Get the enrollment the request is about.
+     *
+     * @return BelongsTo<StudentRecord, $this>
+     */
+    public function studentRecord(): BelongsTo
+    {
+        return $this->belongsTo(StudentRecord::class);
+    }
+
+    /**
+     * Get the school that asked.
+     *
+     * @return BelongsTo<School, $this>
+     */
+    public function requestingSchool(): BelongsTo
+    {
+        return $this->belongsTo(School::class, 'requesting_school_id');
+    }
+
+    /**
+     * Get the person who asked.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function requestedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    /**
+     * Get the person who answered.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function decidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'decided_by');
+    }
+
+    /**
+     * Get the school that holds the records.
+     *
+     * @return BelongsTo<School, $this>
+     */
+    public function holdingSchool(): BelongsTo
+    {
+        return $this->belongsTo(School::class, 'holding_school_id');
+    }
+}

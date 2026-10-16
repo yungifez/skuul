@@ -13,7 +13,10 @@
     <div class="grid gap-3" x-data="{ submitting: false }">
         <form method="POST" action="{{ route('verification.send') }}" x-on:submit="submitting = true">
             @csrf
-            <x-auth.submit label="Resend verification email" class="w-full" />
+            <april:button type="submit" class="w-full justify-center" x-bind:disabled="submitting" x-bind:aria-busy="submitting">
+                <span x-show="! submitting">Resend verification email</span>
+                <span x-show="submitting" x-cloak>Working...</span>
+            </april:button>
         </form>
 
         <form method="POST" action="{{ route('logout') }}">

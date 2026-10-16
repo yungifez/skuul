@@ -2,12 +2,28 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Organization\GrantOrganizationMembership;
+use App\Actions\Organization\SetOrganizationMemberPermissions;
+use App\Actions\School\EndSchoolMembership;
+use App\Enums\OrganizationPermission;
+use App\Http\Middleware\SetActiveAcademicPeriod;
+use App\Livewire\CreateSchoolForm;
+use App\Livewire\EditSchoolForm;
+use App\Livewire\EditSchoolLanguage;
+use App\Livewire\Layouts\Menu;
+use App\Models\AcademicYear;
+use App\Models\Organization;
 use App\Models\School;
+use App\Models\SchoolOperatingProfile;
 use App\Models\User;
 use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class SchoolTest extends TestCase
@@ -22,6 +38,11 @@ class SchoolTest extends TestCase
             ->assertSuccessful();
     }
 
+    public function test_school_schema_does_not_keep_address_line_2(): void
+    {
+        $this->assertFalse(Schema::hasColumn('schools', 'address_line_2'));
+    }
+
     public function test_view_schools_cannot_be_rendered_to_unauthorized_user()
     {
         $this->unauthorized_user()
@@ -31,9 +52,15 @@ class SchoolTest extends TestCase
 
     public function test_create_schools_can_be_rendered_to_authorized_user()
     {
-        $this->authorized_user(['create school'])
-            ->get('/dashboard/schools/create')
-            ->assertSuccessful();
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), Organization::factory()->create());
+
+        $this->get('/dashboard/schools/create')
+            ->assertSuccessful()
+            ->assertSee('Address *')
+            ->assertDontSee('Address line 2')
+            ->assertSee('data-slot="combobox"', false)
+            ->assertSee('Postal / ZIP code');
     }
 
     public function test_create_schools_cannot_be_rendered_to_unauthorized_user()
@@ -45,16 +72,204 @@ class SchoolTest extends TestCase
 
     public function test_user_can_create_school()
     {
-        $this->authorized_user(['create school'])
-            ->post('/dashboard/schools', ['name' => 'Test school', 'address' => 'Test address', 'phone' => '+123 456789', 'email' => 'test@email.com', 'initials' => 'TS']);
+        // A campus belongs to an organization, so the person needs scope in
+        // the organization they are adding it to.
+        $organization = Organization::factory()->create();
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), $organization);
 
-        $this->assertDatabaseHas('schools', [
-            'name'     => 'Test school',
-            'address'  => 'Test address',
-            'phone'    => '+123 456789',
-            'email'    => 'test@email.com',
+        $this->post('/dashboard/schools', [
+            'organization_id' => $organization->id,
+            'name' => 'Test school',
+            'address' => 'Test address',
+            'country' => 'Canada',
+            'state' => 'British Columbia',
+            'city' => 'Vancouver',
+            'postal_code' => 'V6B 1A1',
+            'phone' => '+123 456789',
+            'email' => 'test@email.com',
             'initials' => 'TS',
         ]);
+
+        $this->assertDatabaseHas('schools', [
+            'organization_id' => $organization->id,
+            'name' => 'Test school',
+            'address' => 'Test address',
+            'country' => 'Canada',
+            'state' => 'British Columbia',
+            'city' => 'Vancouver',
+            'postal_code' => 'V6B 1A1',
+            'phone' => '+123 456789',
+            'email' => 'test@email.com',
+            'initials' => 'TS',
+        ]);
+    }
+
+    public function test_a_school_is_created_from_the_form_and_setup_begins(): void
+    {
+        $organization = Organization::factory()->create(['name' => 'Harbor Trust']);
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), $organization);
+
+        $form = Livewire::test(CreateSchoolForm::class)
+            ->assertSet('organizationId', (string) $organization->id)
+            ->assertSee('Harbor Trust')
+            ->set('name', 'Harbor Primary')
+            ->set('address', '12 Wharf Road')
+            ->set('country', 'Canada')
+            ->set('state', 'British Columbia')
+            ->set('city', 'Vancouver')
+            ->set('postalCode', 'V6B 1A1')
+            ->set('initials', 'HP')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $school = School::query()->where('name', 'Harbor Primary')->sole();
+        $form->assertRedirect(route('schools.setup', [$school, 'details']));
+        $this->assertSame($organization->id, $school->organization_id);
+        $this->assertSame('V6B 1A1', $school->postal_code);
+        $this->assertNull($school->phone);
+        $this->assertNotNull($school->operatingProfile);
+        $this->assertTrue(auth()->user()->belongsToSchool($school));
+    }
+
+    public function test_the_create_form_names_the_missing_fields(): void
+    {
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), Organization::factory()->create());
+
+        Livewire::test(CreateSchoolForm::class)
+            ->set('name', 'Harbor Primary')
+            ->set('phone', 'call us')
+            ->call('save')
+            ->assertHasErrors(['address', 'country', 'state', 'city', 'postalCode', 'phone'])
+            ->assertSee('The postal code field is required.')
+            ->assertSeeHtml('aria-describedby="address-error"');
+
+        $this->assertDatabaseMissing('schools', ['name' => 'Harbor Primary']);
+    }
+
+    public function test_the_create_form_offers_only_organizations_the_person_can_grow(): void
+    {
+        $growable = Organization::factory()->create(['name' => 'Harbor Trust']);
+        $readOnly = Organization::factory()->create(['name' => 'Summit Group']);
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), $growable);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), $readOnly);
+        app(SetOrganizationMemberPermissions::class)->set(auth()->user(), $readOnly, [OrganizationPermission::ManageMembers]);
+
+        Livewire::test(CreateSchoolForm::class)
+            ->assertSet('organizationId', (string) $growable->id)
+            ->assertDontSee('Summit Group')
+            ->set('organizationId', (string) $readOnly->id)
+            ->set('name', 'Summit Primary')
+            ->set('address', '12 Wharf Road')
+            ->set('country', 'Canada')
+            ->set('state', 'British Columbia')
+            ->set('city', 'Vancouver')
+            ->set('postalCode', 'V6B 1A1')
+            ->call('save')
+            ->assertHasErrors(['organizationId' => 'Choose an organization you can add a campus to.']);
+
+        $this->assertDatabaseMissing('schools', ['name' => 'Summit Primary']);
+    }
+
+    public function test_the_create_form_says_when_no_organization_can_be_grown(): void
+    {
+        $organization = Organization::factory()->create();
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), $organization);
+        app(SetOrganizationMemberPermissions::class)->set(auth()->user(), $organization, [OrganizationPermission::ManageMembers]);
+
+        Livewire::test(CreateSchoolForm::class)
+            ->assertSee('You cannot add a campus to any organization.')
+            ->assertDontSee('Create school');
+    }
+
+    public function test_school_details_are_saved_from_the_edit_form(): void
+    {
+        Storage::fake('public');
+        $school = $this->workingSchool();
+        $school->update(['logo_path' => UploadedFile::fake()->image('old.png')->store('schools', 'public')]);
+        $oldLogo = $school->logo_path;
+        $school->update(['address' => '12 Wharf Road', 'country' => 'Canada', 'state' => 'Ontario', 'city' => 'Toronto', 'postal_code' => 'M5V 2T6']);
+        $this->authorized_user(['update school'], $school);
+
+        Livewire::test(EditSchoolForm::class, ['school' => $school])
+            ->set('phone', 'call me')
+            ->call('save')
+            ->assertHasErrors(['phone' => 'Use only digits, spaces, and the signs + - ( ) in the phone number.']);
+
+        Livewire::test(EditSchoolForm::class, ['school' => $school])
+            ->assertSet('name', $school->name)
+            ->set('name', 'Renamed school')
+            ->set('phone', '')
+            ->set('logo', UploadedFile::fake()->image('new.png'))
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success', message: 'The changes were saved.')
+            ->assertSet('logo', null);
+
+        $school->refresh();
+        $this->assertSame('Renamed school', $school->name);
+        $this->assertNull($school->phone);
+        $this->assertNotSame($oldLogo, $school->logo_path);
+        Storage::disk('public')->assertExists($school->logo_path);
+        Storage::disk('public')->assertMissing($oldLogo);
+    }
+
+    public function test_saving_details_during_setup_moves_to_the_next_step(): void
+    {
+        $school = $this->workingSchool();
+        $school->update(['address' => '12 Wharf Road', 'country' => 'Canada', 'state' => 'Ontario', 'city' => 'Toronto', 'postal_code' => 'M5V 2T6']);
+        $this->authorized_user(['update school'], $school);
+
+        Livewire::test(EditSchoolForm::class, ['school' => $school, 'setup' => true])
+            ->assertSee('Save and continue')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('schools.setup', [$school, 'language']));
+    }
+
+    public function test_the_edit_form_refuses_another_school(): void
+    {
+        $other = School::factory()->create(['name' => 'Other school']);
+        $this->authorized_user(['update school']);
+
+        Livewire::test(EditSchoolForm::class, ['school' => $other])->assertForbidden();
+    }
+
+    public function test_the_edit_page_links_only_to_pages_the_person_can_open(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['update school'], $school);
+
+        $this->get(route('schools.edit', $school))
+            ->assertOk()
+            ->assertDontSee('href="'.route('schools.index').'"', false)
+            ->assertDontSee('href="'.route('schools.show', $school).'"', false);
+    }
+
+    public function test_the_organization_page_links_campuses_only_for_people_who_can_edit_them(): void
+    {
+        $organization = Organization::factory()->create();
+        $campus = School::factory()->create(['organization_id' => $organization->id, 'name' => 'Harbor Primary']);
+        app(GrantOrganizationMembership::class)->grant(User::factory()->create(), $organization);
+        $reader = $this->memberOf($campus);
+        app(GrantOrganizationMembership::class)->grant($reader, $organization);
+        app(SetOrganizationMemberPermissions::class)->set($reader, $organization, [OrganizationPermission::Read]);
+
+        $this->actingAs($reader)
+            ->get(route('organizations.show', $organization))
+            ->assertOk()
+            ->assertSee('Harbor Primary')
+            ->assertDontSee('href="'.route('schools.edit', $campus).'"', false)
+            ->assertDontSee('Add campus');
+
+        // Scope delegated as reading only reads: the campus opens but does not change.
+        $this->assertTrue($reader->can('view', $campus));
+        $this->assertFalse($reader->can('update', $campus));
+        $this->actingAs($reader)->get(route('schools.edit', $campus))->assertForbidden();
     }
 
     public function test_unauthorized_user_can_not_create_school()
@@ -68,7 +283,10 @@ class SchoolTest extends TestCase
     {
         $this->authorized_user(['read school'])
             ->get('/dashboard/schools/1')
-            ->assertSuccessful();
+            ->assertSuccessful()
+            ->assertSee('Core details and the academic workspace this school is currently using.')
+            ->assertSee('Academic workspace')
+            ->assertSee('Contact details');
     }
 
     public function test_show_school_can_be_rendered_to_authorized_user_in_same_school()
@@ -82,14 +300,235 @@ class SchoolTest extends TestCase
     {
         $this->authorized_user(['update school'])
             ->get('/dashboard/schools/1/edit')
-            ->assertSuccessful();
+            ->assertSuccessful()
+            ->assertSee('Edit school details')
+            ->assertSee('Details')
+            ->assertSee('Upload a logo')
+            ->assertSee('Address *')
+            ->assertDontSee('Address line 2')
+            ->assertSee('data-slot="combobox"', false)
+            ->assertSee('Postal / ZIP code');
     }
 
-    public function test_school_settings_redirects_to_edit_school()
+    public function test_missing_school_logo_falls_back_to_the_application_logo(): void
     {
-        $this->authorized_user(['update school'])
+        Storage::fake('public');
+        $school = $this->workingSchool();
+        $school->update(['logo_path' => 'schools/missing-logo.png']);
+
+        $this->assertSame(asset(config('app.logo')), $school->fresh()->logo_url);
+    }
+
+    public function test_the_application_logo_has_a_deployable_default(): void
+    {
+        $this->assertSame('img/logo/logo.png', config('app.logo'));
+        $this->assertFileExists(public_path(config('app.logo')));
+    }
+
+    public function test_school_setup_can_be_rendered_for_the_current_school()
+    {
+        $school = $this->workingSchool();
+        $school->update([
+            'academic_year_id' => null,
+            'academic_period_id' => null,
+        ]);
+
+        $this->withoutMiddleware(SetActiveAcademicPeriod::class);
+        academic_period_context()->forget();
+
+        $this->authorized_user(['manage school settings'], $school)
             ->get('/dashboard/schools/settings')
-            ->assertRedirect('/dashboard/schools/1/edit');
+            ->assertSuccessful()
+            ->assertSee('Set up your school')
+            ->assertSee('School setup checklist')
+            ->assertSee('Teaching approach')
+            ->assertSee('Classes')
+            ->assertSee('required steps remain')
+            ->assertSee('No current school year is selected.')
+            ->assertSee('id="day-to-day-heading"', false)
+            ->assertDontSee('More information')
+            ->assertDontSee('School calendar help');
+    }
+
+    public function test_the_setup_page_links_only_to_areas_the_person_can_open(): void
+    {
+        $this->authorized_user(['manage school settings', 'read student'])
+            ->get(route('schools.settings'))
+            ->assertSuccessful()
+            ->assertSee(route('students.index'), false)
+            ->assertDontSee('href="'.route('admins.index').'"', false)
+            ->assertDontSee('href="'.route('fee-invoices.index').'"', false)
+            ->assertSee('href="'.route('teachers.index').'"', false);
+    }
+
+    public function test_a_long_school_name_can_wrap_in_the_page_heading(): void
+    {
+        $school = $this->workingSchool();
+        $school->update([
+            'name' => 'Gentle Touch School for International Science and Creative Arts Campus',
+            'academic_year_id' => null,
+            'academic_period_id' => null,
+        ]);
+
+        $this->withoutMiddleware(SetActiveAcademicPeriod::class);
+        academic_period_context()->forget();
+
+        $this->authorized_user(['manage school settings'], $school)
+            ->get(route('schools.settings'))
+            ->assertSuccessful()
+            ->assertSee('min-w-0 max-w-full break-words', false)
+            ->assertSee('Gentle Touch School for International Science and Creative Arts Campus');
+    }
+
+    public function test_school_administrator_sees_setup_guidance_on_the_dashboard(): void
+    {
+        $school = $this->workingSchool();
+        $school->update([
+            'academic_year_id' => null,
+            'academic_period_id' => null,
+        ]);
+
+        $this->withoutMiddleware(SetActiveAcademicPeriod::class);
+        academic_period_context()->forget();
+
+        $response = $this->platform_admin($school)
+            ->get('/dashboard')
+            ->assertSuccessful()
+            ->assertSee('Finish setting up your school')
+            ->assertSee('Next:')
+            ->assertSee('All setup steps')
+            ->assertDontSee('Your school, ready for the day');
+
+        $content = $response->getContent();
+        $setupPosition = strpos($content, 'id="school-setup-heading"');
+        $todayPosition = strpos($content, 'id="today-overview"');
+
+        $this->assertNotFalse($setupPosition);
+        $this->assertNotFalse($todayPosition);
+        $this->assertLessThan($todayPosition, $setupPosition);
+    }
+
+    public function test_dashboard_links_to_create_the_first_academic_year_when_none_exists(): void
+    {
+        $school = School::factory()->create();
+        $school->update([
+            'setup_details_completed_at' => now(),
+            'country' => 'Canada',
+            'state' => 'British Columbia',
+            'city' => 'Vancouver',
+            'postal_code' => 'V6B 1A1',
+        ]);
+
+        $this->withoutMiddleware(SetActiveAcademicPeriod::class);
+        academic_period_context()->forget();
+
+        $this->platform_admin($school)
+            ->get('/dashboard')
+            ->assertSuccessful()
+            ->assertSee('Create first school year')
+            ->assertSee(route('academic-years.create', ['setup' => 1]), false);
+
+        $this->assertFalse(AcademicYear::query()->where('school_id', $school->id)->exists());
+    }
+
+    public function test_a_school_can_save_its_familiar_operating_language(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['manage school settings'], $school);
+
+        Livewire::test(EditSchoolLanguage::class)
+            ->set('preset', 'subject_schedule')
+            ->set('labels.class_level', 'Form')
+            ->set('labels.homeroom_teacher', 'Form teacher')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('schools.settings'));
+
+        $profile = SchoolOperatingProfile::query()->where('school_id', $school->id)->firstOrFail();
+        $this->assertSame('subject_schedule', $profile->preset);
+        $this->assertSame('Form teacher', $profile->labels['homeroom_teacher']);
+        $this->assertSame('Form', $profile->labels['class_level']);
+        $this->assertNotNull($profile->setup_completed_at);
+    }
+
+    public function test_school_language_starts_with_one_explicit_default_pattern(): void
+    {
+        $school = $this->workingSchool();
+
+        $this->authorized_user(['manage school settings'], $school)
+            ->get(route('schools.operating-profile.edit'))
+            ->assertSuccessful()
+            ->assertSeeLivewire(EditSchoolLanguage::class)
+            ->assertSee('Starting language pattern')
+            ->assertSee('Class-based school')
+            ->assertSee('Grade and subject-based school')
+            ->assertSee('Mixed class and subject school')
+            ->assertSee('Default');
+
+        Livewire::test(EditSchoolLanguage::class)->assertSet('preset', SchoolOperatingProfile::DEFAULT_PRESET);
+    }
+
+    public function test_picking_a_language_pattern_fills_in_its_words(): void
+    {
+        $this->authorized_user(['manage school settings']);
+        $words = SchoolOperatingProfile::labelsFor('subject_schedule');
+
+        Livewire::test(EditSchoolLanguage::class)
+            ->set('preset', 'subject_schedule')
+            ->assertSet('labels.class_level', $words['class_level'])
+            ->assertSet('labels.course', $words['course']);
+    }
+
+    public function test_every_school_word_must_be_filled_in(): void
+    {
+        $this->authorized_user(['manage school settings']);
+
+        Livewire::test(EditSchoolLanguage::class)
+            ->set('labels.fee', '')
+            ->set('labels.section', str_repeat('a', 41))
+            ->call('save')
+            ->assertHasErrors(['labels.fee' => 'required', 'labels.section' => 'max']);
+    }
+
+    public function test_school_language_during_setup_continues_to_classes(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['manage school settings'], $school);
+
+        Livewire::test(EditSchoolLanguage::class, ['setup' => true])
+            ->call('save')
+            ->assertRedirect(route('schools.setup', [$school, 'classes']));
+
+        Livewire::test(EditSchoolLanguage::class)
+            ->call('save', true)
+            ->assertRedirect(route('schools.setup', [$school, 'classes']));
+    }
+
+    public function test_someone_without_school_settings_access_cannot_change_its_language(): void
+    {
+        $this->unauthorized_user()
+            ->get(route('schools.operating-profile.edit'))
+            ->assertForbidden();
+
+        Livewire::test(EditSchoolLanguage::class)->assertForbidden();
+    }
+
+    public function test_school_terminology_is_rendered_on_the_school_setup_screen(): void
+    {
+        $school = $this->workingSchool();
+        SchoolOperatingProfile::query()->updateOrCreate(
+            ['school_id' => $school->id],
+            [
+                'preset' => 'subject_schedule',
+                'labels' => ['academic_year' => 'Academic year', 'class_level' => 'Form', 'section' => 'Stream', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition', 'homeroom_teacher' => 'Form teacher'],
+            ],
+        );
+
+        $this->authorized_user(['manage school settings'], $school)
+            ->get('/dashboard/schools/settings')
+            ->assertSuccessful()
+            ->assertSee('Forms')
+            ->assertSee('Streams for this year');
     }
 
     public function test_unauthorized_user_cannot_update_school()
@@ -101,17 +540,51 @@ class SchoolTest extends TestCase
 
     public function test_authorized_user_can_update_school()
     {
-        $school = School::factory()->create();
-        $this->authorized_user(['update school'])
-            ->patch("/dashboard/schools/$school->id", ['name' => 'Test school 2', 'address' => 'something street', 'initials' => 'TS2', 'phone' => '123456789', 'email' => 'school@test.com']);
+        $school = $this->workingSchool();
+        $this->authorized_user(['update school'], $school)
+            ->patch("/dashboard/schools/$school->id", [
+                'name' => 'Test school 2',
+                'address' => 'something street',
+                'country' => 'Canada',
+                'state' => 'Ontario',
+                'city' => 'Toronto',
+                'postal_code' => 'M5V 2T6',
+                'initials' => 'TS2',
+                'phone' => '123456789',
+                'email' => 'school@test.com',
+            ]);
 
         $this->assertDatabaseHas('schools', [
-            'id'       => $school->id,
-            'name'     => 'Test school 2',
-            'address'  => 'something street',
+            'id' => $school->id,
+            'name' => 'Test school 2',
+            'address' => 'something street',
+            'country' => 'Canada',
+            'state' => 'Ontario',
+            'city' => 'Toronto',
+            'postal_code' => 'M5V 2T6',
             'initials' => 'TS2',
-            'phone'    => '123456789',
-            'email'    => 'school@test.com',
+            'phone' => '123456789',
+            'email' => 'school@test.com',
+        ]);
+    }
+
+    public function test_a_school_member_cannot_update_another_school()
+    {
+        $school = School::factory()->create(['name' => 'Other school']);
+
+        $this->authorized_user(['update school'])
+            ->patch("/dashboard/schools/$school->id", [
+                'name' => 'Changed school',
+                'address' => 'changed address',
+                'initials' => 'CS',
+                'phone' => '123456789',
+                'email' => 'changed@example.com',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('schools', [
+            'id' => $school->id,
+            'name' => 'Other school',
         ]);
     }
 
@@ -138,7 +611,7 @@ class SchoolTest extends TestCase
         $school = School::factory()->create();
         $this->memberOf($school, User::factory()->create());
 
-        $this->authorized_user(['delete school'])
+        $this->authorized_user(['delete school'], $school)
             ->delete("/dashboard/schools/$school->id");
 
         $this->assertDatabaseHas('schools', [
@@ -148,16 +621,43 @@ class SchoolTest extends TestCase
 
     public function test_user_can_delete_school_with_no_users()
     {
+        // A school with no users has nobody who could hold a permission in it,
+        // so only a platform administrator can empty one out.
         $school = School::factory()->create();
-        $this->authorized_user(['delete school'])
+
+        $this->platform_admin()
             ->delete("/dashboard/schools/$school->id");
 
         $this->assertModelMissing($school);
     }
 
+    public function test_a_school_whose_people_all_left_is_not_deleted(): void
+    {
+        $school = School::factory()->create();
+        $leaver = User::factory()->create();
+        $this->memberOf($school, $leaver);
+        app(EndSchoolMembership::class)->end($leaver, $school);
+
+        $this->platform_admin()
+            ->delete("/dashboard/schools/$school->id");
+
+        $this->assertModelExists($school);
+    }
+
+    public function test_a_school_member_cannot_delete_another_school()
+    {
+        $school = School::factory()->create();
+
+        $this->authorized_user(['delete school'])
+            ->delete("/dashboard/schools/$school->id")
+            ->assertForbidden();
+
+        $this->assertModelExists($school);
+    }
+
     public function test_platform_admin_can_set_the_working_school()
     {
-        $user = User::where('email', 'super@admin.com')->first();
+        $user = User::where('email', 'super@example.com')->first();
         // since factory produces random password, it had to be changed
         $user->password = Hash::make('random-password-lolololololol');
         $user->save();
@@ -165,7 +665,8 @@ class SchoolTest extends TestCase
         $this->actingAs($user);
         $school = School::factory()->create();
 
-        $this->post('/dashboard/schools/set-school', ['school_id' => $school->id])
+        Livewire::test(Menu::class)
+            ->call('switchSchool', $school->id)
             ->assertSessionHas(SchoolContext::SESSION_KEY, $school->id);
 
         // Switching school must never write to the person's record.
@@ -176,8 +677,47 @@ class SchoolTest extends TestCase
     {
         $otherSchool = School::factory()->create();
 
-        $this->authorized_user(['read school'])
-            ->post('/dashboard/schools/set-school', ['school_id' => $otherSchool->id])
+        $this->authorized_user(['read school']);
+
+        Livewire::test(Menu::class)
+            ->call('switchSchool', $otherSchool->id)
             ->assertForbidden();
+    }
+
+    public function test_sidebar_shows_the_school_switcher_for_people_with_multiple_schools(): void
+    {
+        $school = $this->workingSchool();
+        $otherSchool = School::factory()->create(['name' => 'Second Campus']);
+        $user = User::factory()->create();
+        school_context()->set($school, remember: false);
+        $user->givePermissionTo('read school');
+        $this->memberOf($school, $user);
+        $this->memberOf($otherSchool, $user);
+        $this->actingAsMemberOf($school, $user);
+
+        $response = $this->get('/dashboard/schools')
+            ->assertSuccessful()
+            ->assertSee('aria-label="Working school"', false)
+            ->assertSee('Second Campus');
+
+        // april:sidebar draws its header twice, once for the desktop rail and
+        // once for the mobile drawer. Anything with an id in that header
+        // appears twice on every page of the application.
+        $this->assertSame([], $this->repeatedElementIds((string) $response->getContent()));
+    }
+
+    /**
+     * List every id that the page uses more than once.
+     *
+     * @return list<string>
+     */
+    private function repeatedElementIds(string $html): array
+    {
+        $matches = [];
+        preg_match_all('/\sid="([^"]+)"/', $html, $matches);
+
+        $counts = array_count_values($matches[1]);
+
+        return array_values(array_keys(array_filter($counts, fn (int $count): bool => $count > 1)));
     }
 }

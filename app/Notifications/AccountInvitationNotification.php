@@ -3,26 +3,28 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Carbon;
 
 /**
  * Invite a provisioned person to set a password and sign in.
+ *
+ * Sending mail is slow, so the message goes to the queue. The screen that
+ * provisions the account does not wait for the mail server.
  */
-class AccountInvitationNotification extends Notification
+class AccountInvitationNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      *
-     * @param string $token     the plain, one-time invitation token
-     * @param Carbon $expiresAt the time the link stops working
+     * @param  string  $token  the plain, one-time invitation token
+     * @param  Carbon  $expiresAt  the time the link stops working
      */
-    public function __construct(private string $token, private Carbon $expiresAt)
-    {
-    }
+    public function __construct(private string $token, private Carbon $expiresAt) {}
 
     /**
      * Get the delivery channels.
@@ -41,9 +43,9 @@ class AccountInvitationNotification extends Notification
     {
         $url = route('invitations.show', ['token' => $this->token]);
 
-        return (new MailMessage())
+        return (new MailMessage)
             ->subject('Set up your '.config('app.name').' account')
-            ->greeting('Hello '.$notifiable->firstName().',')
+            ->greeting('Hello '.$notifiable->name.',')
             ->line('An administrator created an account for you on '.config('app.name').'.')
             ->line('Use the button below to set your password and sign in.')
             ->action('Set my password', $url)

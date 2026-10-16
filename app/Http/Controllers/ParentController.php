@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AssignStudentRequest;
 use App\Models\User;
 use App\Services\Parent\ParentService;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ParentController extends Controller
@@ -22,9 +19,6 @@ class ParentController extends Controller
         $this->parentService = $parentService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         $this->authorize('viewAny', [User::class, 'parent']);
@@ -32,25 +26,11 @@ class ParentController extends Controller
         return view('pages.parent.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
         $this->authorize('create', [User::class, 'parent']);
 
         return view('pages.parent.create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): RedirectResponse
-    {
-        $this->authorize('create', [User::class, 'parent']);
-        $this->parentService->createParent($request->except('_token'));
-
-        return back()->with('success', 'Parent Created Successfully');
     }
 
     /**
@@ -82,36 +62,6 @@ class ParentController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     *
-     * @throws AuthorizationException
-     */
-    public function update(Request $request, User $parent): RedirectResponse
-    {
-        $this->authorize('update', [$parent, 'parent']);
-        $this->parentService->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
-        $this->parentService->updateParent($parent, $request->except('_token', '_method'));
-
-        return back()->with('success', 'Parent Updated Successfully');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     *
-     * @throws AuthorizationException
-     */
-    public function destroy(User $parent): RedirectResponse
-    {
-        $this->authorize('delete', [$parent, 'parent']);
-        $this->parentService->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
-        $this->parentService->deleteParent($parent);
-
-        return back()->with('success', 'Parent Deleted Successfully');
-    }
-
-    /**
      * View for assigning students to parent.
      */
     public function assignStudentsView(User $parent)
@@ -120,27 +70,5 @@ class ParentController extends Controller
         $this->parentService->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
 
         return view('pages.parent.assign-students', compact('parent'));
-    }
-
-    /**
-     *  Assign or deassign student to parent.
-     */
-    public function assignStudent(AssignStudentRequest $request, User $parent): RedirectResponse
-    {
-        $this->authorize('update', [$parent, 'parent']);
-
-        $this->parentService->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
-        $student = $request->student_id;
-        // set to true if null
-        $request->assign == null ? $assign = true : $assign = $request->assign;
-        $this->parentService->assignStudentToParent($parent, $student, $assign);
-
-        if ($assign == false) {
-            $message = 'Student successfully removed from parent';
-        } else {
-            $message = 'Student successfully assigned to parent';
-        }
-
-        return back()->with('success', $message);
     }
 }

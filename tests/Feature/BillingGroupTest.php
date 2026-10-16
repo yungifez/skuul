@@ -1,0 +1,587 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
+use App\Actions\Finance\ApplyStudentCredit;
+use App\Actions\Finance\CarryBalanceToCampus;
+use App\Actions\Finance\ChargeStudent;
+use App\Actions\Finance\ReceivePayment;
+use App\Actions\Finance\RefundStudent;
+use App\Actions\Finance\ReversePayment;
+use App\Actions\Organization\GrantOrganizationMembership;
+use App\Actions\Organization\SetOrganizationMemberPermissions;
+use App\Enums\AcademicStructureStatus;
+use App\Enums\AuditAction;
+use App\Enums\OrganizationPermission;
+use App\Exceptions\InvalidValueException;
+use App\Livewire\OrganizationBillingGroups;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
+use App\Models\AuditEvent;
+use App\Models\BillingGroup;
+use App\Models\Fee;
+use App\Models\FeeCategory;
+use App\Models\FeeInvoice;
+use App\Models\Organization;
+use App\Models\School;
+use App\Models\StudentRecord;
+use App\Models\User;
+use App\Services\Fee\FeeInvoiceService;
+use App\Services\Finance\ChartOfAccounts;
+use App\Services\Finance\StudentLedger;
+use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+/**
+ * Campuses that keep one purse bill a family as one school. Campuses that keep
+ * separate books keep what they are owed.
+ */
+class BillingGroupTest extends TestCase
+{
+    use FeatureTestTrait;
+    use RefreshDatabase;
+
+    public function test_a_campus_bills_on_its_own_until_it_is_put_in_a_group(): void
+    {
+        [$first, $second] = $this->twoCampuses();
+
+        $this->assertFalse($first->billsWith($second));
+        $this->assertTrue($first->billsWith($first));
+    }
+
+    public function test_two_campuses_of_one_group_bill_together(): void
+    {
+        [$first, $second, $group] = $this->twoCampuses(sharing: true);
+
+        $this->assertNotNull($group);
+        $this->assertTrue($first->billsWith($second));
+        $this->assertTrue($second->billsWith($first));
+    }
+
+    public function test_a_debt_follows_a_learner_between_campuses_of_one_group(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ChargeStudent::class)->charge($enrollment, 500, 'Term one fees');
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $moved = $enrollment->fresh();
+
+        $this->assertSame($destination->id, $moved->school_id);
+        $this->assertSame(500.0, app(StudentLedger::class)->balance($moved));
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::BalanceCarriedToCampus)->first());
+    }
+
+    public function test_each_campus_of_the_group_keeps_its_own_books_balanced(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ChargeStudent::class)->charge($enrollment, 500, 'Term one fees');
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $chart = app(ChartOfAccounts::class);
+
+        // The campus that was left is owed by the campus that took the learner.
+        $this->assertSame(0.0, round($chart->account('fees_receivable', $source->id)->balance(), 2));
+        $this->assertSame(500.0, round($chart->account('due_from_campus', $source->id)->balance(), 2));
+        $this->assertSame(500.0, round($chart->account('fees_receivable', $destination->id)->balance(), 2));
+        $this->assertSame(500.0, round($chart->account('due_to_campus', $destination->id)->balance(), 2));
+    }
+
+    public function test_money_held_for_a_learner_follows_them_too(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ReceivePayment::class)->receive($enrollment, 20000);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $moved = $enrollment->fresh();
+
+        $this->assertSame(200.0, app(StudentLedger::class)->unappliedCredit($moved));
+        $this->assertSame(0.0, round(app(ChartOfAccounts::class)->account('unapplied_credits', $source->id)->balance(), 2));
+    }
+
+    public function test_a_debt_stays_behind_when_the_campuses_bill_separately(): void
+    {
+        [$source, $destination] = $this->twoCampuses();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ChargeStudent::class)->charge($enrollment, 500, 'Term one fees');
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $moved = $enrollment->fresh();
+
+        $this->assertSame(0.0, app(StudentLedger::class)->balance($moved));
+        $this->assertNull(AuditEvent::ofAction(AuditAction::BalanceCarriedToCampus)->first());
+    }
+
+    public function test_the_campus_that_is_owed_still_says_so(): void
+    {
+        [$source, $destination] = $this->twoCampuses();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ChargeStudent::class)->charge($enrollment, 500, 'Term one fees');
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $elsewhere = app(StudentLedger::class)->balancesByCampus($enrollment->fresh());
+
+        $this->assertCount(1, $elsewhere);
+        $this->assertSame($source->id, $elsewhere->first()['school']->id);
+        $this->assertSame(500.0, $elsewhere->first()['balance']);
+    }
+
+    public function test_money_never_moves_between_campuses_that_bill_separately(): void
+    {
+        [$source, $destination] = $this->twoCampuses();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ChargeStudent::class)->charge($enrollment, 500, 'Term one fees');
+
+        $this->expectException(InvalidValueException::class);
+
+        app(CarryBalanceToCampus::class)->carry($enrollment, $source, $destination);
+    }
+
+    public function test_credit_held_at_a_campus_with_separate_books_stays_there(): void
+    {
+        [$source, $destination] = $this->twoCampuses();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ReceivePayment::class)->receive($enrollment, 20000);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $moved = $enrollment->fresh();
+
+        $this->assertSame(0, app(ApplyStudentCredit::class)->creditHeld($moved));
+
+        try {
+            app(RefundStudent::class)->refund($moved, 5000, 'Family asked for it back');
+            $this->fail('The new campus gave back money another campus holds.');
+        } catch (InvalidValueException) {
+        }
+
+        $this->assertSame(200.0, round(app(ChartOfAccounts::class)->account('unapplied_credits', $source->id)->balance(), 2));
+    }
+
+    public function test_credit_carried_inside_a_group_can_still_be_spent(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ReceivePayment::class)->receive($enrollment, 20000);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $this->assertSame(20000, app(ApplyStudentCredit::class)->creditHeld($enrollment->fresh()));
+    }
+
+    public function test_joining_a_group_later_does_not_pull_credit_across(): void
+    {
+        [$source, $destination, $organization] = $this->twoCampusesAndOrganization();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ReceivePayment::class)->receive($enrollment, 20000);
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $group = BillingGroup::factory()->create(['organization_id' => $organization->id]);
+        $source->forceFill(['billing_group_id' => $group->id])->save();
+        $destination->forceFill(['billing_group_id' => $group->id])->save();
+
+        $credit = app(ApplyStudentCredit::class);
+        $this->assertSame(0, $credit->creditHeld($enrollment->fresh()));
+        $this->assertSame(20000, $credit->creditHeld($enrollment->fresh(), $source->id));
+    }
+
+    public function test_leaving_a_group_later_keeps_carried_credit_where_it_was_carried(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ReceivePayment::class)->receive($enrollment, 20000);
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $source->forceFill(['billing_group_id' => null])->save();
+
+        $credit = app(ApplyStudentCredit::class);
+        $this->assertSame(20000, $credit->creditHeld($enrollment->fresh()));
+        $this->assertSame(0, $credit->creditHeld($enrollment->fresh(), $source->id));
+    }
+
+    public function test_a_carried_invoice_can_be_paid_at_the_new_campus(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $invoice = $this->invoiceAt($source, $enrollment, 100);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $moved = $enrollment->fresh();
+
+        app(ReceivePayment::class)->receive($moved, 10_000);
+
+        $chart = app(ChartOfAccounts::class);
+        $this->assertSame(10_000, $invoice->fresh()->paid->getMinorAmount()->toInt());
+        $this->assertSame(0.0, app(StudentLedger::class)->balance($moved));
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($moved));
+        $this->assertSame(0.0, round($chart->account('fees_receivable', $source->id)->balance(), 2));
+        $this->assertSame(0.0, round($chart->account('fees_receivable', $destination->id)->balance(), 2));
+        $this->assertSame($destination->id, $invoice->fresh()->school_id);
+        $this->assertSame($destination->id, $invoice->fresh()->financialPeriod->school_id);
+    }
+
+    public function test_a_bill_stays_with_the_campus_that_keeps_separate_books(): void
+    {
+        [$source, $destination] = $this->twoCampuses();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $invoice = $this->invoiceAt($source, $enrollment, 100);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $this->assertSame($source->id, $invoice->fresh()->school_id);
+        app(ReceivePayment::class)->receive($enrollment->fresh(), 10_000, schoolId: $source->id);
+        $this->assertSame(10_000, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_a_bounced_payment_taken_back_at_the_old_campus_takes_back_the_carried_credit(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $payment = app(ReceivePayment::class)->receive($enrollment, 20_000, schoolId: $source->id);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $moved = $enrollment->fresh();
+        $this->assertSame(200.0, app(StudentLedger::class)->unappliedCredit($moved));
+
+        app(ReversePayment::class)->reverse($payment, 'The cheque bounced');
+
+        $chart = app(ChartOfAccounts::class);
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($moved));
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($moved, $source->id));
+        $this->assertSame(0.0, round($chart->account('due_from_campus', $source->id)->balance() - $chart->account('due_to_campus', $source->id)->balance(), 2));
+    }
+
+    public function test_a_payment_taken_back_after_a_carry_opens_the_debt_at_the_new_campus(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $invoice = $this->invoiceAt($source, $enrollment, 100);
+        $payment = app(ReceivePayment::class)->receive($enrollment, 4_000, schoolId: $source->id);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        app(ReversePayment::class)->reverse($payment, 'Recorded against the wrong child');
+        $moved = $enrollment->fresh();
+
+        $this->assertSame(100.0, app(StudentLedger::class)->balance($moved));
+        $this->assertSame(0.0, app(StudentLedger::class)->balance($moved, $source->id));
+        $this->assertSame(0, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_a_payment_taken_back_after_the_group_ends_takes_back_the_carried_credit(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $payment = app(ReceivePayment::class)->receive($enrollment, 20_000, schoolId: $source->id);
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $source->forceFill(['billing_group_id' => null])->save();
+
+        app(ReversePayment::class)->reverse($payment, 'The cheque bounced');
+
+        $moved = $enrollment->fresh();
+        $ledger = app(StudentLedger::class);
+        $chart = app(ChartOfAccounts::class);
+        $this->assertSame(0.0, $ledger->unappliedCredit($moved));
+        $this->assertSame(0.0, $ledger->unappliedCredit($moved, $source->id));
+        $this->assertSame(0.0, $ledger->balance($moved, $source->id));
+        $this->assertSame(0.0, round($chart->account('due_from_campus', $source->id)->balance() - $chart->account('due_to_campus', $source->id)->balance(), 2));
+        $this->assertSame(0.0, round($chart->account('due_from_campus', $destination->id)->balance() - $chart->account('due_to_campus', $destination->id)->balance(), 2));
+    }
+
+    public function test_a_part_payment_taken_back_after_the_group_ends_reopens_the_debt_once(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $invoice = $this->invoiceAt($source, $enrollment, 100);
+        $payment = app(ReceivePayment::class)->receive($enrollment, 4_000, schoolId: $source->id);
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $source->forceFill(['billing_group_id' => null])->save();
+
+        app(ReversePayment::class)->reverse($payment, 'Recorded against the wrong child');
+
+        $moved = $enrollment->fresh();
+        $ledger = app(StudentLedger::class);
+        $chart = app(ChartOfAccounts::class);
+        $this->assertSame(100.0, $ledger->balance($moved));
+        $this->assertSame(0.0, $ledger->balance($moved, $source->id));
+        $this->assertSame(0, $invoice->fresh()->paid->getMinorAmount()->toInt());
+        $this->assertSame(0.0, round($chart->account('fees_receivable', $source->id)->balance(), 2));
+        $this->assertSame(100.0, round($chart->account('fees_receivable', $destination->id)->balance(), 2));
+    }
+
+    public function test_a_bill_settled_before_the_move_reopens_where_it_stayed(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $invoice = $this->invoiceAt($source, $enrollment, 100);
+        $payment = app(ReceivePayment::class)->receive($enrollment, 30_000, schoolId: $source->id);
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $source->forceFill(['billing_group_id' => null])->save();
+
+        app(ReversePayment::class)->reverse($payment, 'The cheque bounced');
+
+        $moved = $enrollment->fresh();
+        $ledger = app(StudentLedger::class);
+        $this->assertSame($source->id, $invoice->fresh()->school_id);
+        $this->assertSame(100.0, $ledger->balance($moved, $source->id));
+        $this->assertSame(0.0, $ledger->unappliedCredit($moved, $source->id));
+        $this->assertSame(0.0, $ledger->unappliedCredit($moved));
+        $this->assertSame(0.0, $ledger->balance($moved));
+    }
+
+    public function test_a_payment_taken_back_after_the_group_ends_leaves_other_campus_money_alone(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $source->forceFill(['billing_group_id' => null])->save();
+        $payment = app(ReceivePayment::class)->receive($enrollment->fresh(), 5_000, schoolId: $source->id);
+
+        app(ReversePayment::class)->reverse($payment, 'Recorded against the wrong child');
+
+        $chart = app(ChartOfAccounts::class);
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($enrollment->fresh(), $source->id));
+        $this->assertSame(0.0, round($chart->account('due_to_campus', $source->id)->balance(), 2));
+        $this->assertSame(0.0, round($chart->account('due_from_campus', $destination->id)->balance(), 2));
+    }
+
+    public function test_money_taken_at_the_old_campus_after_a_move_is_credit_at_the_new_one(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $moved = $enrollment->fresh();
+        app(ReceivePayment::class)->receive($moved, 5_000, schoolId: $source->id);
+
+        $this->assertSame(50.0, app(StudentLedger::class)->unappliedCredit($moved));
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($moved, $source->id));
+    }
+
+    public function test_a_learner_who_owes_nothing_carries_nothing(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+
+        $carried = app(CarryBalanceToCampus::class)->carryIfTheyBillTogether($enrollment, $source, $destination);
+
+        $this->assertSame([], $carried);
+    }
+
+    public function test_an_organization_manager_can_start_a_group_and_put_a_campus_in_it(): void
+    {
+        [$first, , $organization] = $this->twoCampusesAndOrganization();
+        $manager = $this->organizationManager($organization);
+
+        $this->actingAs($manager)
+            ->get(route('organizations.billing-groups.index', $organization))
+            ->assertOk()
+            ->assertSeeLivewire(OrganizationBillingGroups::class);
+
+        $component = Livewire::actingAs($manager)
+            ->test(OrganizationBillingGroups::class, ['organization' => $organization])
+            ->set('name', '  City campuses ')
+            ->call('startGroup')
+            ->assertHasNoErrors()
+            ->assertSet('name', '');
+
+        $group = BillingGroup::firstWhere('name', 'City campuses');
+        $this->assertNotNull($group);
+
+        $component->set('name', 'city CAMPUSES')
+            ->call('startGroup')
+            ->assertHasErrors('name')
+            ->assertSee('This organization already has a group with that name.');
+
+        $component->call('placeCampus', $first->id, (string) $group->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertSame($group->id, $first->fresh()->billing_group_id);
+        $this->assertSame('campus_placed', AuditEvent::ofAction(AuditAction::BillingGroupChanged)->latest('id')->first()?->context['change']);
+
+        $component->call('placeCampus', $first->id, '');
+
+        $this->assertNull($first->fresh()->billing_group_id);
+    }
+
+    public function test_a_campus_of_another_organization_cannot_be_put_in_the_group(): void
+    {
+        [, , $organization] = $this->twoCampusesAndOrganization();
+        $manager = $this->organizationManager($organization);
+        $elsewhere = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+
+        $this->assertThrows(
+            fn () => Livewire::actingAs($manager)->test(OrganizationBillingGroups::class, ['organization' => $organization])->call('placeCampus', $elsewhere->id, ''),
+            ModelNotFoundException::class,
+        );
+    }
+
+    public function test_a_group_of_another_organization_is_refused(): void
+    {
+        [$first, , $organization] = $this->twoCampusesAndOrganization();
+        $manager = $this->organizationManager($organization);
+        $elsewhere = BillingGroup::factory()->create();
+
+        Livewire::actingAs($manager)
+            ->test(OrganizationBillingGroups::class, ['organization' => $organization])
+            ->assertDontSee($elsewhere->name)
+            ->call('placeCampus', $first->id, (string) $elsewhere->id)
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertNull($first->fresh()->billing_group_id);
+
+        $this->assertThrows(
+            fn () => Livewire::actingAs($manager)->test(OrganizationBillingGroups::class, ['organization' => $organization])->call('deleteGroup', $elsewhere->id),
+            ModelNotFoundException::class,
+        );
+        $this->assertNotNull($elsewhere->fresh());
+    }
+
+    public function test_a_group_that_holds_a_campus_is_not_deleted(): void
+    {
+        [$first, , $group] = $this->twoCampuses(sharing: true);
+        $manager = $this->organizationManager($first->organization);
+
+        Livewire::actingAs($manager)
+            ->test(OrganizationBillingGroups::class, ['organization' => $first->organization])
+            ->assertDontSeeHtml('wire:click="deleteGroup('.$group->id.')"')
+            ->call('deleteGroup', $group->id)
+            ->assertDispatched('status-message', type: 'danger', message: "Take every campus out of {$group->name} first.");
+
+        $this->assertNotNull($group->fresh());
+    }
+
+    public function test_an_empty_group_is_deleted_and_cannot_then_take_a_campus(): void
+    {
+        [$first, , $organization] = $this->twoCampusesAndOrganization();
+        $manager = $this->organizationManager($organization);
+        $group = BillingGroup::factory()->create(['organization_id' => $organization->id]);
+
+        // A second manager still has the page open with the group listed.
+        $stale = Livewire::actingAs($manager)->test(OrganizationBillingGroups::class, ['organization' => $organization]);
+
+        Livewire::actingAs($manager)
+            ->test(OrganizationBillingGroups::class, ['organization' => $organization])
+            ->assertSeeHtml('wire:click="deleteGroup('.$group->id.')"')
+            ->call('deleteGroup', $group->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertNull($group->fresh());
+
+        $stale->call('placeCampus', $first->id, (string) $group->id)
+            ->assertDispatched('status-message', type: 'danger', message: 'That group no longer exists. Choose another.');
+
+        $this->assertNull($first->fresh()->billing_group_id);
+    }
+
+    public function test_a_member_without_organization_management_cannot_open_the_screen(): void
+    {
+        [, , $organization] = $this->twoCampusesAndOrganization();
+        $this->organizationManager($organization);
+        $reader = $this->organizationManager($organization, [OrganizationPermission::ReadReports]);
+
+        $this->actingAs($reader)
+            ->get(route('organizations.billing-groups.index', $organization))
+            ->assertForbidden();
+
+        Livewire::actingAs($reader)->test(OrganizationBillingGroups::class, ['organization' => $organization])->assertForbidden();
+    }
+
+    /**
+     * Bill a learner at one campus.
+     */
+    private function invoiceAt(School $school, StudentRecord $enrollment, int $amount): FeeInvoice
+    {
+        $this->actingAsMemberOf($school);
+        $category = FeeCategory::factory()->create(['school_id' => $school->id]);
+        $fee = Fee::factory()->create(['fee_category_id' => $category->id]);
+
+        app(FeeInvoiceService::class)->storeFeeInvoice([
+            'issue_date' => now()->toDateString(),
+            'due_date' => now()->toDateString(),
+            'student_records' => [$enrollment->id],
+            'records' => [['fee_id' => $fee->id, 'amount' => $amount, 'waiver' => 0, 'fine' => 0]],
+        ]);
+
+        return FeeInvoice::where('user_id', $enrollment->user_id)->latest('id')->firstOrFail();
+    }
+
+    /**
+     * Make two campuses of one organization.
+     *
+     * @return array{0: School, 1: School, 2: BillingGroup|null}
+     */
+    private function twoCampuses(bool $sharing = false): array
+    {
+        [$first, $second, $organization] = $this->twoCampusesAndOrganization();
+        $group = null;
+
+        if ($sharing) {
+            $group = BillingGroup::factory()->create(['organization_id' => $organization->id]);
+
+            foreach ([$first, $second] as $campus) {
+                $campus->billing_group_id = $group->id;
+                $campus->save();
+            }
+        }
+
+        return [$first->fresh(), $second->fresh(), $group];
+    }
+
+    /**
+     * Make two campuses and hand back the organization that owns them.
+     *
+     * @return array{0: School, 1: School, 2: Organization}
+     */
+    private function twoCampusesAndOrganization(): array
+    {
+        $organization = Organization::factory()->create();
+        $first = $this->workingSchool();
+        $first->organization_id = $organization->id;
+        $first->save();
+
+        return [$first->fresh(), School::factory()->create(['organization_id' => $organization->id]), $organization];
+    }
+
+    /**
+     * Make a home group at one campus.
+     */
+    private function cycleSection(School $school): AcademicCycleSection
+    {
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+
+        return AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => AcademicLevel::factory()->create(['school_id' => $school->id])->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+    }
+
+    /**
+     * Make a person with organization authority.
+     *
+     * @param  array<int, OrganizationPermission>|null  $permissions
+     */
+    private function organizationManager(Organization $organization, ?array $permissions = null): User
+    {
+        $user = $this->nonMember();
+
+        app(GrantOrganizationMembership::class)->grant($user, $organization);
+
+        if ($permissions !== null) {
+            app(SetOrganizationMemberPermissions::class)->set($user, $organization, $permissions);
+        }
+
+        return $user->refresh();
+    }
+}

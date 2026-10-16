@@ -2,8 +2,8 @@
 
 namespace App\Services\Parent;
 
+use App\Actions\Identity\ChangeGuardianLink;
 use App\Enums\Role;
-use App\Exceptions\InvalidUserException;
 use App\Models\User;
 use App\Services\Print\PrintService;
 use App\Services\User\UserService;
@@ -17,7 +17,7 @@ class ParentService
      */
     public UserService $user;
 
-    public function __construct(UserService $user)
+    public function __construct(UserService $user, private ChangeGuardianLink $changeGuardianLink)
     {
         $this->user = $user;
     }
@@ -33,16 +33,18 @@ class ParentService
     /**
      * Create a new parent.
      *
-     * @param array|Collection $record
-     *
+     * @param  array|Collection  $record
      * @return User
      */
     public function createParent($record)
     {
+        $this->user->failIfAlreadyHolds($record['email'], Role::Parent);
+
         $parent = DB::transaction(function () use ($record) {
             $parent = $this->user->createUser($record);
             $parent->assignRole(Role::Parent);
-            $parent->parentRecord()->create(['user_id' => $parent->id]);
+            // One guardian record per person, shared by every school they join.
+            $parent->parentRecord()->firstOrCreate(['user_id' => $parent->id]);
 
             return $parent;
         });
@@ -53,8 +55,7 @@ class ParentService
     /**
      * Update a parent.
      *
-     * @param array|object|Collection $records
-     *
+     * @param  array|object|Collection  $records
      * @return User
      */
     public function updateParent(User $parent, $records)
@@ -65,14 +66,25 @@ class ParentService
     }
 
     /**
-     * Delete parent record.
+     * Delete a parent, or only remove them from the working school.
      *
-     *
-     * @return void
+     * The portal follows guardian links, not memberships. A parent who stays
+     * at another school would still read this school's children, so those
+     * links end first.
      */
-    public function deleteParent(User $parent)
+    public function deleteParent(User $parent): void
     {
-        $this->user->deleteUser($parent);
+        DB::transaction(function () use ($parent): void {
+            $learners = $parent->parentRecord?->students()
+                ->whereHas('studentRecords', fn ($enrollments) => $enrollments->inSchool())
+                ->get() ?? collect();
+
+            foreach ($learners as $learner) {
+                $this->changeGuardianLink->unlink($parent, $learner, auth()->user());
+            }
+
+            $this->user->deleteUser($parent);
+        });
     }
 
     /**
@@ -83,31 +95,6 @@ class ParentService
      */
     public function printProfile(string $name, string $view, array $data)
     {
-        return PrintService::createPdfFromView($view, $data);
-    }
-
-    /**
-     * Add student as child of parent or remove student from parent.
-     *
-     *
-     *
-     * @throws InvalidUserException
-     *
-     * @return void
-     */
-    public function assignStudentToParent(User $parent, int $student, bool $assign = true)
-    {
-        $student = $this->user->getUserById($student);
-        if (!$this->user->verifyRole($student->id, 'student')) {
-            throw new InvalidUserException('User is not a student', 1);
-
-            return;
-        }
-
-        if ($assign == false) {
-            $parent->parentRecord->students()->detach($student);
-        } else {
-            $parent->parentRecord->students()->syncWithoutDetaching($student);
-        }
+        return PrintService::page($view, $data);
     }
 }

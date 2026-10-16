@@ -21,9 +21,9 @@ class FeeFactory extends Factory
         $feeCategory = FeeCategory::query()->where('school_id', 1)->inRandomOrder()->first();
 
         return [
-            'fee_Category_id' => $feeCategory->id,
-            'name'            => $this->faker->name(),
-            'description'     => $this->faker->sentence(),
+            'fee_category_id' => $feeCategory->id,
+            'name' => $this->faker->name(),
+            'description' => $this->faker->sentence(),
         ];
     }
 }

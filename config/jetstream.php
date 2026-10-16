@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsActive;
 use Laravel\Jetstream\Features;
 
 return [
@@ -28,7 +29,7 @@ return [
      |
      */
 
-    'middleware' => ['web'],
+    'middleware' => ['web', EnsureAccountIsActive::class],
 
     /*
     |--------------------------------------------------------------------------

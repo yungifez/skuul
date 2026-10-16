@@ -1,28 +1,13 @@
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Create exam </h3>
+<form wire:submit="save" class="flex max-w-2xl flex-col gap-4" aria-label="Plan an exam">
+    <p class="text-sm text-muted-foreground">
+        The exam goes on the calendar of {{ $academicYear?->name ?? 'the chosen '.strtolower(school_term('academic_year', 'school year')) }} and stays with its reporting period.
+    </p>
+
+    @include('livewire.partials.exam-fields')
+
+    <div class="flex justify-end">
+        <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="save" :disabled="$academicPeriods->isEmpty()">
+            Plan the exam
+        </april:button>
     </div>
-    <div class="card-body">
-        <form action="{{route('exams.store')}}" method="POST" class="md:w-6/12">
-            <x-display-validation-errors/>
-            <p class="text-secondary">
-                {{__('All fields marked * are required')}}
-            </p>
-            <x-input id="name" name="name" label="Exam Name *" placeholder="Enter Exam name"/>
-            <x-textarea id="description" name="description" label="Description " placeholder="Enter description" />
-            <div class="col-md-6">
-                <x-input id="start_date" type="date" name="start_date" label="Start date *" required  value="{{old('start_date')}}"/>
-            </div>
-            <div class="col-md-6">
-                <x-input type="date" id="date" name="stop_date" label="Stop date *" required value="{{old('stop_date')}}"/>
-            </div>
-            <x-select id="select" name="semester_id" label="Select Semester *"  wire:loading.attr="disabled" wire:target="semester" >
-                @foreach ($semesters as $item)
-                    <option value="{{$item['id']}}" @selected(current_school()->semester->id == $item['id'])>{{$item['name']}}</option>
-                @endforeach
-            </x-select>
-            @csrf
-            <x-button label="Create" icon="fas fa-key" type="submit" class="w-full md:w-6/12"/>
-        </form>
-    </div>
-</div>
+</form>

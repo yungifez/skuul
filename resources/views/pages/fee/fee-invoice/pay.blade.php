@@ -1,14 +1,14 @@
 @extends('layouts.app', ['breadcrumbs' => [
-    ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-    ['href'=> route('fees.index'), 'text'=> 'Fees'],
-    ['href'=> route('fee-invoices.index'), 'text'=> 'Fee Invoices'],
-    ['href'=> route('fee-invoices.pay', $feeInvoice->id), 'text'=> 'Pay', 'active'],
+    ['href' => route('dashboard'), 'text' => 'Dashboard'],
+    ['href' => route('fee-invoices.index'), 'text' => 'Finance'],
+    ['href' => route('fee-invoices.show', $feeInvoice->id), 'text' => $feeInvoice->name],
+    ['href' => route('fee-invoices.pay', $feeInvoice->id), 'text' => 'Take payment', 'active'],
 ]])
 
-@section('title',  __('Add Payments to Fees Invoice'))
+@section('title', 'Take payment · '.$feeInvoice->name)
 
-@section('page_heading',   __('Add Payments to Fees Invoice'))
+@section('page_heading', 'Take payment')
 
-@section('content', )
-    @livewire('pay-invoice-form' , compact('feeInvoice'))
+@section('content')
+    <livewire:take-invoice-payment :fee-invoice="$feeInvoice" />
 @endsection

@@ -1,18 +1,11 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Promotion list</h4>
-    </div>
-    <div class="card-body">
-        <livewire:datatable :model="App\Models\Promotion::Class" :filters="[['name' => 'where' , 'arguments' => ['academic_year_id', $academicYear->id]], ['name' => 'with' , 'arguments' => ['oldClass','newClass', 'oldSection', 'newSection']]]" :columns="[
-                ['property' => 'name', 'name' => 'Old Class' ,'relation' => 'oldClass'] , 
-                ['property' => 'name', 'name' => 'New Class' ,'relation' => 'newClass'] , 
-                ['property' => 'name', 'name' => 'Old Section' ,'relation' => 'oldSection'] , 
-                ['property' => 'name', 'name' => 'New Section' ,'relation' => 'newSection'] , 
-                ['method' => 'count', 'name' => 'New Section' ,'relation' => 'students'] , 
-                ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'students.promotions.show', 'text' => 'View Promoted Students', 'icon' => 'fas fa-eye',],
-                ]],
-                ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.promotions.reset',]
-            ]"/>
-    </div>
-</div>
+@php
+    // Built here, not inside the tag: a double quote inside a component
+    // attribute ends the attribute, and Blade then leaves the tag raw.
+    $rowActions = array_filter([
+        $canViewPromotions ? ['label' => 'View promotion', 'icon' => 'eye', 'url' => 'view_url'] : null,
+        $canResetPromotions ? ['label' => 'Reset promotion', 'icon' => 'rotate-ccw', 'method' => 'resetPromotion', 'type' => 'action', 'destructive' => false, 'confirm' => 'Reset the promotion into :name?', 'names' => "row.to_level + ' ' + row.to_section"] : null,
+    ]);
+@endphp
+<april:card><slot:title>Promotion list</slot:title><slot:description>Promotions recorded for {{ $academicYear?->name ?? 'the selected academic year' }}.</slot:description><slot:content><div wire:key="{{ $id }}-{{ $this->tableRevision }}"><april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)"><slot:empty><div class="space-y-1"><p class="font-medium text-foreground">No promotions yet</p><p>Promotions will appear here after they are recorded.</p></div></slot:empty><slot:actions>
+    <x-table-actions :items="$rowActions" />
+</slot:actions></april:data-table></div></slot:content></april:card>

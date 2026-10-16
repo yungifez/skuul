@@ -2,29 +2,52 @@
 
 namespace App\Services\Print;
 
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
 
+/**
+ * Render a printable Blade view with the configured document renderer.
+ */
 class PrintService
 {
     /**
-     * create a pdf from a view.
+     * Render a document as a browser print view.
      *
+     * The browser owns pagination, fonts, previews, and PDF saving. This keeps
+     * the printed page aligned with the HTML and CSS that the user can see.
      *
-     * @return \Barryvdh\DomPDF\PDF
+     * @param  array<string, mixed>  $data
      */
-    public static function createPdfFromView(string $view, array $data)
+    public static function page(string $view, array $data): Response
     {
-        $pdf = Pdf::loadView($view, $data);
-        $pdf->getDomPDF()->setHttpContext(
-            stream_context_create([
-                'ssl' => [
-                    'allow_self_signed' => true,
-                    'verify_peer'       => false,
-                    'verify_peer_name'  => false,
-                ],
-            ])
-        );
+        return response()->view($view, $data);
+    }
 
-        return $pdf;
+    /**
+     * Render a view and get the bytes of the document.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array{paper?: string, orientation?: string, title?: string}  $options
+     */
+    public static function render(string $view, array $data, array $options = []): string
+    {
+        $html = view($view, $data)->render();
+
+        return app(DocumentRendererRegistry::class)->current()->render($html, $options);
+    }
+
+    /**
+     * Render a view and send it to the reader as a download.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array{paper?: string, orientation?: string, title?: string}  $options
+     */
+    public static function download(string $view, array $data, string $name, array $options = []): Response
+    {
+        $file = str_replace('"', '', $name).'.pdf';
+
+        return response(self::render($view, $data, $options), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "attachment; filename=\"$file\"",
+        ]);
     }
 }

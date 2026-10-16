@@ -1,0 +1,535 @@
+<?php
+
+namespace App\Services\Timetable;
+
+use App\Enums\RosterMode;
+use App\Models\AcademicPeriod;
+use App\Models\Facility;
+use App\Models\FacilityBooking;
+use App\Models\School;
+use App\Models\SchoolMembership;
+use App\Models\Subject;
+use App\Models\TeachingAssignment;
+use App\Models\Timetable;
+use App\Models\TimetableRecord;
+use App\Models\TimetableTimeSlot;
+use App\Models\User;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+
+/**
+ * Check room, teacher, and section conflicts across the whole academic period.
+ */
+class TimetableConflictChecker
+{
+    /**
+     * Get every conflict in the timetable, as sentences people can act on.
+     *
+     * @return array<int, string>
+     */
+    public function conflicts(Timetable $timetable): array
+    {
+        return array_merge(
+            $this->overlappingSlots($timetable),
+            $this->teacherClashes($timetable),
+            $this->roomClashes($timetable),
+            $this->bookingClashes($timetable),
+            $this->roomsOutOfUse($timetable),
+        );
+    }
+
+    /**
+     * Find lessons placed in a room taken out of use after they were placed.
+     *
+     * @return array<int, string>
+     */
+    private function roomsOutOfUse(Timetable $timetable): array
+    {
+        $facilityIds = TimetableRecord::query()
+            ->whereIn('timetable_time_slot_id', $timetable->timeSlots()->select('id'))
+            ->whereNotNull('facility_id')
+            ->distinct()
+            ->pluck('facility_id');
+
+        if ($facilityIds->isEmpty()) {
+            return [];
+        }
+
+        return Facility::query()
+            ->whereKey($facilityIds)
+            ->where('is_active', false)
+            ->orderBy('name')
+            ->pluck('name')
+            ->map(fn (string $name): string => "$name is out of use. Move its lessons to another room.")
+            ->all();
+    }
+
+    /**
+     * Find time slots of one timetable that cover the same minutes.
+     *
+     * @return array<int, string>
+     */
+    private function overlappingSlots(Timetable $timetable): array
+    {
+        $slots = $timetable->timeSlots()->get(['id', 'start_time', 'stop_time', 'recurrence', 'occurs_on', 'starts_on', 'recurrence_interval', 'recurrence_weekdays'])->values();
+        $period = $timetable->academicPeriod;
+        $conflicts = [];
+
+        foreach ($slots as $index => $slot) {
+            foreach ($slots->slice($index + 1) as $other) {
+                if ($this->sameSlotOccurrence($slot, $other, $period)
+                    && $this->overlaps($slot->start_time, $slot->stop_time, $other->start_time, $other->stop_time)) {
+                    $conflicts[] = "The time slots $slot->start_time-$slot->stop_time and $other->start_time-$other->stop_time overlap.";
+                }
+            }
+        }
+
+        return $conflicts;
+    }
+
+    /**
+     * Find teachers who would stand in two places at once.
+     *
+     * @return array<int, string>
+     */
+    private function teacherClashes(Timetable $timetable): array
+    {
+        $entries = $this->entriesOf($timetable);
+
+        if ($entries->isEmpty()) {
+            return [];
+        }
+
+        $conflicts = [];
+
+        foreach ($this->publishedAlongside($timetable) as $other) {
+            $window = $this->sharedDates($timetable->academicPeriod, $other->academicPeriod);
+
+            foreach ($this->entriesOf($other) as $otherEntry) {
+                foreach ($entries as $entry) {
+                    if (!$this->sameEntryOccurrence($entry, $otherEntry, $window)) {
+                        continue;
+                    }
+
+                    if (!$this->overlaps($entry['start_time'], $entry['stop_time'], $otherEntry['start_time'], $otherEntry['stop_time'])) {
+                        continue;
+                    }
+
+                    $shared = array_intersect($entry['teacher_ids'], $otherEntry['teacher_ids'], $this->teachersStillAt($other, $otherEntry['teacher_ids']));
+
+                    foreach ($shared as $teacherId) {
+                        $name = $entry['teacher_names'][$teacherId] ?? "Teacher $teacherId";
+                        $conflicts[] = "$name already teaches $other->name at {$entry['start_time']} on that day.";
+                    }
+                }
+            }
+        }
+
+        return array_values(array_unique($conflicts));
+    }
+
+    /**
+     * Get the lessons a teacher takes on one date at any campus of the school's organization.
+     *
+     * A campus the teacher has left may still name them on its timetable,
+     * but they no longer teach there, so it does not hold their time.
+     *
+     * @return Collection<int, array{timetable: Timetable, time_slot_id: int, weekday_id: int, start_time: string, stop_time: string}>
+     */
+    public function lessonsTaughtBy(User $teacher, CarbonInterface $date, School $school): Collection
+    {
+        $day = Carbon::parse($date->toDateString());
+        $campusIds = School::query()
+            ->where('organization_id', $school->organization_id)
+            ->whereIn('id', $teacher->schoolMemberships()->active()->select('school_id'))
+            ->pluck('id')
+            ->all();
+
+        $timetables = Timetable::query()
+            ->published()
+            ->whereHas('academicPeriod', fn ($periods) => $periods
+                ->whereIn('school_id', $campusIds)
+                ->where(fn ($dated) => $dated->whereNull('starts_on')->orWhereDate('starts_on', '<=', $day))
+                ->where(fn ($dated) => $dated->whereNull('ends_on')->orWhereDate('ends_on', '>=', $day)))
+            ->get();
+
+        $lessons = collect();
+
+        foreach ($timetables as $timetable) {
+            foreach ($this->entriesOf($timetable) as $entry) {
+                if (in_array($teacher->id, $entry['teacher_ids'], true) && $this->entryOccursOn($entry, $day)) {
+                    $lessons->push([
+                        'timetable' => $timetable,
+                        'time_slot_id' => $entry['time_slot_id'],
+                        'weekday_id' => $entry['weekday_id'],
+                        'start_time' => $entry['start_time'],
+                        'stop_time' => $entry['stop_time'],
+                    ]);
+                }
+            }
+        }
+
+        return $lessons;
+    }
+
+    /**
+     * Get the teachers of another timetable who still work at its campus.
+     *
+     * A campus a teacher has left may still name them, but it no longer
+     * holds their time.
+     *
+     * @param  array<int, int>  $teacherIds
+     * @return array<int, int>
+     */
+    private function teachersStillAt(Timetable $timetable, array $teacherIds): array
+    {
+        return SchoolMembership::query()
+            ->active()
+            ->where('school_id', $timetable->academicPeriod->school_id)
+            ->whereIn('user_id', $teacherIds)
+            ->pluck('user_id')
+            ->all();
+    }
+
+    /**
+     * Get the published timetables a teacher could also be standing in.
+     *
+     * A teacher can work at several campuses of one organization. Each campus
+     * keeps its own periods, so another campus's timetable counts when its
+     * period shares dates with this one. Another organization's timetables
+     * stay private.
+     *
+     * @return Collection<int, Timetable>
+     */
+    private function publishedAlongside(Timetable $timetable): Collection
+    {
+        $period = $timetable->academicPeriod;
+        $organizationId = $period->school->organization_id;
+
+        return Timetable::query()
+            ->published()
+            ->whereKeyNot($timetable->getKey())
+            ->where(function ($query) use ($timetable, $period, $organizationId): void {
+                $query->where('academic_period_id', $timetable->academic_period_id);
+
+                if ($period->starts_on === null || $period->ends_on === null) {
+                    return;
+                }
+
+                $query->orWhereIn('academic_period_id', AcademicPeriod::query()
+                    ->whereKeyNot($period->id)
+                    ->whereIn('school_id', School::query()->where('organization_id', $organizationId)->select('id'))
+                    ->whereDate('starts_on', '<=', $period->ends_on)
+                    ->whereDate('ends_on', '>=', $period->starts_on)
+                    ->select('id'));
+            })
+            ->with('academicPeriod')
+            ->get();
+    }
+
+    /**
+     * Get the dates two periods share, as a period to walk through.
+     *
+     * Two timetables of one period share all of it.
+     */
+    private function sharedDates(?AcademicPeriod $period, ?AcademicPeriod $other): ?AcademicPeriod
+    {
+        if ($period === null || $other === null || $period->is($other)
+            || $other->starts_on === null || $other->ends_on === null
+            || $period->starts_on === null || $period->ends_on === null) {
+            return $period;
+        }
+
+        $window = new AcademicPeriod;
+        $window->starts_on = $period->starts_on->max($other->starts_on);
+        $window->ends_on = $period->ends_on->min($other->ends_on);
+
+        return $window;
+    }
+
+    /**
+     * Find sections that have claimed the same place at the same time.
+     *
+     * A place is the shared hall or laboratory a lesson was moved into, or,
+     * when it was not moved, the section's own room. A section room is
+     * optional, so schedules without one remain valid: a school that uses one
+     * stable homeroom per section gains room protection without configuring
+     * a facilities catalogue first.
+     *
+     * @return array<int, string>
+     */
+    private function roomClashes(Timetable $timetable): array
+    {
+        $entries = $this->entriesOf($timetable);
+
+        if ($entries->isEmpty()) {
+            return [];
+        }
+
+        $published = Timetable::query()
+            ->published()
+            ->where('academic_period_id', $timetable->academic_period_id)
+            ->whereKeyNot($timetable->getKey())
+            ->get();
+        $conflicts = [];
+
+        foreach ($published as $other) {
+            foreach ($this->entriesOf($other) as $otherEntry) {
+                foreach ($entries as $entry) {
+                    if ($entry['room'] === null || $entry['room'] !== $otherEntry['room'] || !$this->sameEntryOccurrence($entry, $otherEntry, $timetable->academicPeriod)) {
+                        continue;
+                    }
+
+                    if ($this->overlaps($entry['start_time'], $entry['stop_time'], $otherEntry['start_time'], $otherEntry['stop_time'])) {
+                        $conflicts[] = "{$entry['room']} is already in use by $other->name at {$entry['start_time']} on that day.";
+                    }
+                }
+            }
+        }
+
+        return array_values(array_unique($conflicts));
+    }
+
+    /**
+     * Find lessons placed in a shared place somebody booked for that time.
+     *
+     * A booking is made against the lessons already published, so a lesson
+     * published later must respect the bookings already made. Only bookings
+     * still ahead and inside the timetable's period count.
+     *
+     * @return array<int, string>
+     */
+    private function bookingClashes(Timetable $timetable): array
+    {
+        $entries = $this->entriesOf($timetable)->filter(fn (array $entry): bool => $entry['facility_id'] !== null);
+
+        if ($entries->isEmpty()) {
+            return [];
+        }
+
+        $period = $timetable->academicPeriod;
+        $bookings = FacilityBooking::query()
+            ->running()
+            ->whereIn('facility_id', $entries->pluck('facility_id')->unique())
+            ->where('ends_at', '>', now())
+            ->when($period?->starts_on !== null, fn ($query) => $query->where('ends_at', '>', $period->starts_on->copy()->startOfDay()))
+            ->when($period?->ends_on !== null, fn ($query) => $query->where('starts_at', '<', $period->ends_on->copy()->endOfDay()))
+            ->with('facility:id,name')
+            ->orderBy('starts_at')
+            ->get();
+        $conflicts = [];
+
+        foreach ($bookings as $booking) {
+            $day = Carbon::instance($booking->starts_at)->startOfDay();
+
+            while ($day->lessThan($booking->ends_at)) {
+                foreach ($entries->where('facility_id', $booking->facility_id) as $entry) {
+                    $lessonFrom = $day->copy()->setTimeFromTimeString($entry['start_time']);
+                    $lessonTo = $day->copy()->setTimeFromTimeString($entry['stop_time']);
+
+                    if ($this->entryOccursOn($entry, $day) && $lessonFrom->lessThan($booking->ends_at) && $lessonTo->greaterThan($booking->starts_at)) {
+                        $conflicts[] = sprintf(
+                            '%s is booked for %s on %s from %s to %s.',
+                            $booking->facility?->name,
+                            $booking->purpose,
+                            $day->format('j M Y'),
+                            $booking->starts_at->format('H:i'),
+                            $booking->ends_at->format('H:i'),
+                        );
+                    }
+                }
+
+                $day->addDay();
+            }
+        }
+
+        return array_values(array_unique($conflicts));
+    }
+
+    /**
+     * Read the lessons of a timetable with the teachers who take them.
+     */
+    private function entriesOf(Timetable $timetable): Collection
+    {
+        $records = TimetableRecord::query()
+            ->whereIn('timetable_time_slot_id', $timetable->timeSlots()->pluck('id'))
+            ->get();
+
+        $slots = $timetable->timeSlots()->get()->keyBy('id');
+        $subjectMorphClass = (new Subject)->getMorphClass();
+        $subjects = Subject::query()
+            ->whereKey(
+                $records
+                    ->where('timetable_time_slot_weekdayable_type', $subjectMorphClass)
+                    ->pluck('timetable_time_slot_weekdayable_id')
+                    ->unique()
+            )
+            ->get()
+            ->keyBy('id');
+        $cycleSection = $timetable->academicCycleSection;
+        $cycleSection?->loadMissing('academicLevel');
+        $levelScopeIds = $cycleSection?->academicLevel?->hierarchyIds() ?? [];
+        $facilityNames = Facility::query()
+            ->whereKey($records->pluck('facility_id')->filter()->unique())
+            ->pluck('name', 'id');
+        $assignmentsBySubject = $cycleSection === null || $subjects->isEmpty()
+            ? collect()
+            : TeachingAssignment::query()
+                ->whereIn('subject_id', $subjects->keys())
+                ->where('academic_period_id', $timetable->academic_period_id)
+                ->runningOn()
+                ->whereHas('courseOffering', function ($query) use ($cycleSection, $levelScopeIds): void {
+                    $query->where(function ($offerings) use ($cycleSection, $levelScopeIds): void {
+                        $offerings->whereHas('cycleSections', fn ($sections) => $sections->whereKey($cycleSection->id))
+                            ->orWhere(function ($offerings) use ($levelScopeIds): void {
+                                $offerings->where('roster_mode', RosterMode::AcademicLevel)
+                                    ->whereIn('academic_level_id', $levelScopeIds);
+                            });
+                    });
+                })
+                ->with('teacher:id,name')
+                ->get()
+                ->groupBy('subject_id');
+
+        /** @var Collection<int, array{time_slot_id: int, weekday_id: int, start_time: string, stop_time: string, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>, room: string|null, facility_id: int|null, teacher_ids: array<int, int>, teacher_names: array<int|string, string>}> $entries */
+        $entries = $records->map(function (TimetableRecord $record) use ($assignmentsBySubject, $facilityNames, $slots, $subjectMorphClass, $subjects, $timetable): ?array {
+            $slot = $slots->get($record->timetable_time_slot_id);
+            $subject = $record->timetable_time_slot_weekdayable_type === $subjectMorphClass
+                ? $subjects->get($record->timetable_time_slot_weekdayable_id)
+                : null;
+
+            if ($slot === null || !$subject instanceof Subject) {
+                return null;
+            }
+
+            $teachers = $assignmentsBySubject->get($subject->id, collect())
+                ->map(fn (TeachingAssignment $assignment): ?\App\Models\User => $assignment->teacher)
+                ->filter();
+
+            return [
+                'time_slot_id' => (int) $slot->id,
+                'weekday_id' => (int) $record->weekday_id,
+                'start_time' => (string) $slot->start_time,
+                'stop_time' => (string) $slot->stop_time,
+                'recurrence' => (string) $slot->recurrence,
+                'occurs_on' => $slot->occurs_on?->toDateString(),
+                'starts_on' => $slot->starts_on?->toDateString(),
+                'recurrence_interval' => (int) $slot->recurrence_interval,
+                'recurrence_weekdays' => array_map('intval', $slot->recurrence_weekdays ?? []),
+                // A lesson moved into a shared place claims that place. Every
+                // other lesson keeps the section's own room.
+                'room' => $record->facility_id !== null
+                    ? $facilityNames->get($record->facility_id)
+                    : (filled($timetable->academicCycleSection?->room) ? $timetable->academicCycleSection->room : null),
+                'facility_id' => $record->facility_id === null ? null : (int) $record->facility_id,
+                'teacher_ids' => $teachers->pluck('id')->map(fn ($id): int => (int) $id)->all(),
+                'teacher_names' => $teachers->pluck('name', 'id')->all(),
+            ];
+        })->filter()->values();
+
+        return $entries
+            ->map(fn (array $entry): array => $entry)
+            ->values();
+    }
+
+    /**
+     * Check if two time ranges cover any of the same minutes.
+     */
+    private function overlaps(string $start, string $stop, string $otherStart, string $otherStop): bool
+    {
+        $start = Carbon::parse($start);
+        $stop = Carbon::parse($stop);
+        $otherStart = Carbon::parse($otherStart);
+        $otherStop = Carbon::parse($otherStop);
+
+        return $start->lessThan($otherStop) && $stop->greaterThan($otherStart);
+    }
+
+    private function sameSlotOccurrence(object $slot, object $other, ?AcademicPeriod $period): bool
+    {
+        if ($period === null || $period->starts_on === null || $period->ends_on === null) {
+            return $slot->recurrence === 'weekly'
+                || $other->recurrence === 'weekly'
+                || $slot->occurs_on?->toDateString() === $other->occurs_on?->toDateString();
+        }
+
+        for ($date = $period->starts_on->copy(); $date->lte($period->ends_on); $date->addDay()) {
+            if ($this->slotOccursOn($slot, $date) && $this->slotOccursOn($other, $date)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check whether two entries can happen on the same day.
+     *
+     * Weekly entries overlap by weekday. A one-date entry only overlaps with
+     * that weekday's weekly entries or another entry on the same date.
+     *
+     * @param  array{weekday_id: int, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>}  $entry
+     * @param  array{weekday_id: int, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>}  $other
+     */
+    private function sameEntryOccurrence(array $entry, array $other, ?AcademicPeriod $period): bool
+    {
+        if ($period !== null && $period->starts_on !== null && $period->ends_on !== null) {
+            for ($date = $period->starts_on->copy(); $date->lte($period->ends_on); $date->addDay()) {
+                if ($this->entryOccursOn($entry, $date) && $this->entryOccursOn($other, $date)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return $entry['weekday_id'] === $other['weekday_id']
+            && ($entry['recurrence'] === 'weekly' || $other['recurrence'] === 'weekly');
+    }
+
+    private function slotOccursOn(object $slot, Carbon $date): bool
+    {
+        $weekdayId = $date->dayOfWeekIso;
+
+        return (new TimetableTimeSlot(array_filter([
+            'recurrence' => $slot->recurrence,
+            'occurs_on' => $slot->occurs_on,
+            'starts_on' => $slot->starts_on,
+            'recurrence_interval' => $slot->recurrence_interval,
+            'recurrence_weekdays' => $slot->recurrence_weekdays,
+        ], fn ($value): bool => $value !== null)))->occursOn($date, $weekdayId);
+    }
+
+    /**
+     * Check one placed entry against a date in its timetable period.
+     *
+     * @param  array{weekday_id: int, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>}  $entry
+     */
+    private function entryOccursOn(array $entry, Carbon $date): bool
+    {
+        if ($entry['weekday_id'] !== $date->dayOfWeekIso) {
+            return false;
+        }
+
+        $startsOn = $entry['starts_on'] === null ? null : Carbon::parse($entry['starts_on']);
+
+        if ($entry['recurrence'] === 'one_time') {
+            return $entry['occurs_on'] === $date->toDateString();
+        }
+
+        if ($startsOn !== null && $date->lt($startsOn)) {
+            return false;
+        }
+
+        if ($entry['recurrence'] === 'monthly') {
+            return $startsOn !== null
+                && $date->day === $startsOn->day
+                && $startsOn->startOfMonth()->diffInMonths($date->startOfMonth()) % max(1, $entry['recurrence_interval']) === 0;
+        }
+
+        $weeks = $startsOn === null ? 0 : $startsOn->startOfWeek(Carbon::MONDAY)->diffInWeeks($date->startOfWeek(Carbon::MONDAY));
+
+        return $weeks % max(1, $entry['recurrence_interval']) === 0;
+    }
+}

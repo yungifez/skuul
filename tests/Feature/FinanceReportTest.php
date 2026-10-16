@@ -1,0 +1,376 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Actions\Finance\ChargeStudent;
+use App\Actions\Finance\PostLedgerTransaction;
+use App\Actions\Finance\ReceivePayment;
+use App\Actions\Finance\RecordCashDeposit;
+use App\Actions\Finance\RecordExpense;
+use App\Actions\Finance\RefundStudent;
+use App\Actions\Finance\SetBudget;
+use App\Enums\EnrollmentStatus;
+use App\Models\AcademicYear;
+use App\Models\Fee;
+use App\Models\FeeCategory;
+use App\Models\FeeInvoice;
+use App\Models\FinancialPeriod;
+use App\Models\School;
+use App\Models\StudentRecord;
+use App\Services\Fee\FeeInvoiceService;
+use App\Services\Finance\ChartOfAccounts;
+use App\Services\Finance\StudentLedger;
+use App\Services\Report\ReportRegistry;
+use App\Traits\FeatureTestTrait;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+/**
+ * The reports a school office and a school board actually ask for.
+ */
+class FinanceReportTest extends TestCase
+{
+    use FeatureTestTrait;
+    use RefreshDatabase;
+
+    public function test_every_finance_report_is_registered_and_named(): void
+    {
+        $reports = app(ReportRegistry::class)->all();
+
+        foreach ([
+            'student-balances', 'student-aging', 'income-by-fee-type', 'expenses',
+            'cash-and-bank', 'general-ledger', 'trial-balance', 'income-statement',
+            'balance-sheet', 'budget-variance',
+        ] as $key) {
+            $this->assertArrayHasKey($key, $reports, "The $key report is missing.");
+            $this->assertNotSame('', app(ReportRegistry::class)->get($key)->title());
+        }
+    }
+
+    public function test_the_trial_balance_has_two_sides_that_match(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        app(ChargeStudent::class)->charge($this->enrollment(), 500, 'Term one fees');
+
+        $rows = app(ReportRegistry::class)->get('trial-balance')->rows($this->parameters());
+        $total = $rows->last();
+
+        $this->assertSame('Total', $total[1]);
+        $this->assertSame($total[3], $total[4]);
+        $this->assertSame(500.0, $total[3]);
+    }
+
+    public function test_the_income_statement_says_what_is_left_over(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        app(ChargeStudent::class)->charge($this->enrollment(), 900, 'Term one fees');
+        $this->spend(400);
+
+        $rows = app(ReportRegistry::class)->get('income-statement')->rows($this->parameters());
+        $result = $rows->last();
+
+        $this->assertSame('Surplus', $result[1]);
+        $this->assertSame(500.0, $result[2]);
+    }
+
+    public function test_the_balance_sheet_meets_on_both_sides(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $enrollment = $this->enrollment();
+        app(ChargeStudent::class)->charge($enrollment, 700, 'Term one fees');
+
+        $rows = app(ReportRegistry::class)->get('balance-sheet')->rows($this->parameters());
+        $assets = $rows->first(fn (array $row): bool => $row[1] === 'Total assets');
+        $check = $rows->last();
+
+        $this->assertSame('Liabilities and equity', $check[1]);
+        $this->assertSame($assets[2], $check[2]);
+    }
+
+    public function test_the_cash_summary_separates_what_came_in_from_what_went_out(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $enrollment = $this->enrollment();
+        $this->invoiceFor($enrollment, 300);
+        app(ReceivePayment::class)->receive($enrollment, 20_000);
+
+        $rows = app(ReportRegistry::class)->get('cash-and-bank')->rows($this->parameters());
+        $cash = $rows->first(fn (array $row): bool => $row[0] === 'Cash');
+
+        $this->assertSame(0.0, $cash[1]);
+        $this->assertSame(200.0, $cash[2]);
+        $this->assertSame(0.0, $cash[3]);
+        $this->assertSame(200.0, $cash[4]);
+    }
+
+    public function test_the_aging_report_puts_an_old_bill_in_an_old_bucket(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $enrollment = $this->enrollment();
+        $this->invoiceFor($enrollment, 400, now()->subDays(45));
+
+        $rows = app(ReportRegistry::class)->get('student-aging')->rows($this->parameters());
+        $row = $rows->firstWhere(0, $enrollment->admission_number);
+
+        $this->assertNotNull($row, 'The family that owes money is missing from the report.');
+
+        // Columns: admission, name, level, section, then the five buckets.
+        $this->assertSame(0.0, $row[4]);
+        $this->assertSame(0.0, $row[5]);
+        $this->assertSame(400.0, $row[6]);
+        $this->assertSame(400.0, $row[9]);
+    }
+
+    public function test_the_aging_report_leaves_out_a_family_that_owes_nothing(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $enrollment = $this->enrollment();
+        $this->invoiceFor($enrollment, 100, now()->subDays(45));
+        app(ReceivePayment::class)->receive($enrollment, 10_000);
+
+        $rows = app(ReportRegistry::class)->get('student-aging')->rows($this->parameters());
+
+        $this->assertNull($rows->firstWhere(0, $enrollment->admission_number));
+    }
+
+    public function test_a_campus_still_reports_what_a_learner_who_moved_on_owes_it(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $enrollment = $this->enrollment();
+        $this->invoiceFor($enrollment, 300, now()->subDays(45));
+        $newCampus = School::factory()->create(['name' => 'Hilltop']);
+        $enrollment->forceFill(['school_id' => $newCampus->id])->save();
+
+        $balance = app(ReportRegistry::class)->get('student-balances')->rows($this->parameters())
+            ->firstWhere(0, $enrollment->admission_number);
+        $aging = app(ReportRegistry::class)->get('student-aging')->rows($this->parameters())
+            ->firstWhere(0, $enrollment->admission_number);
+        $atTheNewCampus = app(ReportRegistry::class)->get('student-aging')->rows(['school_id' => $newCampus->id] + $this->parameters())
+            ->firstWhere(0, $enrollment->admission_number);
+
+        $this->assertNotNull($balance, 'The learner who moved on is missing from the balances.');
+        $this->assertSame('Moved to Hilltop', $balance[4]);
+        $this->assertSame(300.0, $balance[5]);
+        $this->assertNotNull($aging, 'The learner who moved on is missing from the aging report.');
+        $this->assertSame(300.0, $aging[9]);
+        $this->assertNull($atTheNewCampus, 'The new campus was shown a bill it did not raise.');
+    }
+
+    public function test_income_by_fee_type_says_what_each_fee_raised(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $enrollment = $this->enrollment();
+        $this->invoiceFor($enrollment, 250);
+        app(ReceivePayment::class)->receive($enrollment, 10_000);
+
+        $row = app(ReportRegistry::class)->get('income-by-fee-type')->rows($this->parameters())
+            ->firstWhere(1, 'Tuition');
+
+        $this->assertNotNull($row, 'The fee is missing from the report.');
+
+        $this->assertSame(1, $row[2]);
+        $this->assertSame(250.0, $row[3]);
+        $this->assertSame(100.0, $row[6]);
+        $this->assertSame(150.0, $row[7]);
+    }
+
+    public function test_the_expense_report_keeps_the_fund_beside_the_amount(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $this->spend(120, 'library');
+
+        $row = app(ReportRegistry::class)->get('expenses')->rows($this->parameters())
+            ->firstWhere(4, 'library');
+
+        $this->assertNotNull($row, 'The spending is missing from the report.');
+
+        $this->assertSame('library', $row[4]);
+        $this->assertSame(120.0, $row[5]);
+    }
+
+    public function test_the_general_ledger_lists_both_sides_of_an_entry(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        app(ChargeStudent::class)->charge($this->enrollment(), 500, 'Term one fees');
+
+        $rows = app(ReportRegistry::class)->get('general-ledger')->rows($this->parameters());
+
+        $this->assertCount(2, $rows);
+        $this->assertSame(500.0, $rows->sum(fn (array $row): float => (float) $row[7]));
+        $this->assertSame(500.0, $rows->sum(fn (array $row): float => (float) $row[8]));
+    }
+
+    public function test_the_budget_variance_report_carries_the_plan_and_the_books(): void
+    {
+        $this->authorized_user([]);
+        $cycle = $this->cycle();
+        app(SetBudget::class)->set($cycle, app(ChartOfAccounts::class)->account('tuition_income'), 1_000);
+        app(ChargeStudent::class)->charge($this->enrollment(), 250, 'Term one fees');
+
+        $row = app(ReportRegistry::class)->get('budget-variance')
+            ->rows($this->parameters() + ['academic_year_id' => $cycle->id])
+            ->firstWhere(0, 'Tuition income');
+
+        $this->assertNotNull($row, 'The plan is missing from the report.');
+
+        $this->assertSame(1000.0, $row[3]);
+        $this->assertSame(250.0, $row[4]);
+        $this->assertSame('No', $row[7]);
+    }
+
+    public function test_a_report_only_reads_the_school_that_asked(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        app(ChargeStudent::class)->charge($this->enrollment(), 500, 'Term one fees');
+
+        $elsewhere = School::factory()->create();
+
+        $rows = app(ReportRegistry::class)->get('general-ledger')->rows(['school_id' => $elsewhere->id]);
+
+        $this->assertTrue($rows->isEmpty());
+    }
+
+    /**
+     * A learner who withdrew with money owed is the debt the office most needs to chase.
+     */
+    public function test_a_learner_who_left_this_campus_owing_money_stays_on_the_debtor_reports(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $withdrawn = $this->enrollment();
+        $this->invoiceFor($withdrawn, 250, now()->subDays(45));
+        $withdrawn->forceFill(['status' => EnrollmentStatus::Withdrawn])->save();
+        $graduated = $this->enrollment();
+        $graduated->forceFill(['status' => EnrollmentStatus::Graduated])->save();
+
+        $balances = app(ReportRegistry::class)->get('student-balances')->rows($this->parameters());
+        $aging = app(ReportRegistry::class)->get('student-aging')->rows($this->parameters());
+
+        $balance = $balances->firstWhere(0, $withdrawn->admission_number);
+        $this->assertNotNull($balance, 'The withdrawn learner who owes money is missing from the balances.');
+        $this->assertSame(EnrollmentStatus::Withdrawn->label(), $balance[4]);
+        $this->assertSame(250.0, $balance[5]);
+        $this->assertSame(250.0, $aging->firstWhere(0, $withdrawn->admission_number)[9] ?? null);
+        $this->assertNull($balances->firstWhere(0, $graduated->admission_number), 'A learner who left owing nothing crowds the list.');
+    }
+
+    /**
+     * The worked reconciliation in the finance guide, step by step.
+     */
+    public function test_the_guide_worked_reconciliation_ends_with_the_cash_and_bank_it_promises(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $chart = app(ChartOfAccounts::class);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, 300);
+
+        app(ReceivePayment::class)->receive($enrollment, 35_000);
+        $this->assertSame(0.0, $invoice->fresh()->balance->getAmount()->toFloat());
+        $this->assertSame(50.0, app(StudentLedger::class)->unappliedCredit($enrollment));
+
+        app(RecordExpense::class)->record($chart->account('operating_expenses'), 40, 'Chalk', 'cash', now());
+        app(RecordCashDeposit::class)->record(200, now());
+        app(RefundStudent::class)->refund($enrollment, 5_000, 'Family asked for the extra back');
+
+        $rows = app(ReportRegistry::class)->get('cash-and-bank')->rows($this->parameters());
+        $cash = $rows->first(fn (array $row): bool => $row[0] === 'Cash');
+        $bank = $rows->first(fn (array $row): bool => $row[0] === 'Bank');
+
+        $this->assertSame([350.0, 290.0, 60.0], [$cash[2], $cash[3], $cash[4]]);
+        $this->assertSame([200.0, 0.0, 200.0], [$bank[2], $bank[3], $bank[4]]);
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($enrollment));
+        $this->assertSame(0.0, app(StudentLedger::class)->balance($enrollment));
+    }
+
+    /**
+     * Create a cycle that covers today, so the reports have a window.
+     */
+    private function cycle(): AcademicYear
+    {
+        $year = AcademicYear::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'starts_on' => now()->startOfYear()->toDateString(),
+            'ends_on' => now()->endOfYear()->toDateString(),
+        ]);
+
+        FinancialPeriod::create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Term one',
+            'starts_on' => now()->startOfYear()->toDateString(),
+            'ends_on' => now()->endOfYear()->toDateString(),
+        ]);
+
+        return $year;
+    }
+
+    /**
+     * Get the parameters a worker would pass to a report.
+     *
+     * @return array<string, mixed>
+     */
+    private function parameters(): array
+    {
+        return [
+            'school_id' => $this->workingSchool()->id,
+            'from' => now()->startOfYear()->toDateString(),
+            'to' => now()->endOfYear()->toDateString(),
+        ];
+    }
+
+    /**
+     * Create an enrollment whose person belongs to the working school.
+     */
+    private function enrollment(): StudentRecord
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->memberOf($this->workingSchool(), $enrollment->user);
+
+        return $enrollment->fresh();
+    }
+
+    /**
+     * Raise a real invoice, so the charge reaches the books as well.
+     */
+    private function invoiceFor(StudentRecord $enrollment, int $amount, mixed $dueDate = null): FeeInvoice
+    {
+        $category = FeeCategory::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $fee = Fee::factory()->create(['fee_category_id' => $category->id, 'name' => 'Tuition']);
+
+        app(FeeInvoiceService::class)->storeFeeInvoice([
+            'issue_date' => ($dueDate ?? now())->toDateString(),
+            'due_date' => ($dueDate ?? now())->toDateString(),
+            'student_records' => [$enrollment->id],
+            'records' => [['fee_id' => $fee->id, 'amount' => $amount, 'waiver' => 0, 'fine' => 0]],
+        ]);
+
+        return FeeInvoice::where('user_id', $enrollment->user_id)->latest('id')->firstOrFail();
+    }
+
+    /**
+     * Spend money out of the bank against an optional fund.
+     */
+    private function spend(float $amount, ?string $fund = null): void
+    {
+        $chart = app(ChartOfAccounts::class);
+
+        app(PostLedgerTransaction::class)->post(
+            description: 'Something the school bought',
+            lines: [
+                ['account' => $chart->account('operating_expenses'), 'debit' => $amount, 'fund' => $fund],
+                ['account' => $chart->account('bank'), 'credit' => $amount],
+            ],
+        );
+    }
+}
