@@ -97,15 +97,17 @@ class PortalSummary
             return collect();
         }
 
-        // A guardian also sees what the campus sent to them, so the family has
-        // one notices page instead of a second staff list.
-        $recipientIds = array_unique(array_filter([$enrollment->user_id, $reader?->id]));
+        // The learner keeps notices from earlier campuses. A guardian also sees
+        // what this campus sent to them, so the family has one notices page.
+        $readsAsGuardian = $reader !== null && $reader->id !== $enrollment->user_id;
 
         return NoticeRecipient::query()
-            ->whereIn('user_id', $recipientIds)
-            ->whereHas('notice', fn ($query) => $query
-                ->where('status', NoticeStatus::Published)
-                ->where('school_id', $enrollment->school_id))
+            ->whereHas('notice', fn ($query) => $query->where('status', NoticeStatus::Published))
+            ->where(fn ($query) => $query
+                ->where('user_id', $enrollment->user_id)
+                ->when($readsAsGuardian, fn ($query) => $query->orWhere(fn ($query) => $query
+                    ->where('user_id', $reader->id)
+                    ->whereRelation('notice', 'school_id', $enrollment->school_id))))
             ->with('notice')
             ->orderByDesc('id')
             ->get()
