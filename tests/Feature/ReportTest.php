@@ -259,6 +259,18 @@ class ReportTest extends TestCase
             ->assertHeader('content-type', 'text/csv; charset=utf-8');
     }
 
+    public function test_a_report_whose_file_is_gone_says_so(): void
+    {
+        Storage::fake('local');
+        $actor = $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
+        $run = app(RequestReport::class)->request('class-list')->fresh();
+        Storage::disk('local')->delete($run->file_path);
+
+        $actor->get("/dashboard/reports/$run->id/download")
+            ->assertStatus(410)
+            ->assertSee('This report file is no longer stored. Build the report again.');
+    }
+
     public function test_another_school_cannot_download_the_report(): void
     {
         Storage::fake('local');

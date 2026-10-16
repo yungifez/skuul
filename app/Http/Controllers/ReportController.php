@@ -38,6 +38,11 @@ class ReportController extends Controller
         $this->authorize('download', $reportRun);
 
         abort_unless($reportRun->isReady(), 404, 'This report is not ready yet.');
+        abort_unless(
+            $reportRun->file_path !== null && Storage::disk('local')->exists($reportRun->file_path),
+            410,
+            'This report file is no longer stored. Build the report again.',
+        );
 
         $this->auditor->record(AuditAction::ReportDownloaded, $reportRun, ['type' => $reportRun->type, 'format' => $reportRun->format]);
 
