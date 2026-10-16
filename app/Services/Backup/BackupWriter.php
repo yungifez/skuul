@@ -5,16 +5,14 @@ namespace App\Services\Backup;
 use App\Exceptions\InvalidValueException;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use ZipArchive;
 
 /**
- * Take one backup and put it where the school keeps them.
- *
- * The database is dumped, squeezed, locked, and only then copied to the backup
- * disk. Nothing half-written is ever left there, and the working copies are
- * removed whether the backup worked or not.
+ * Dump, compress, and optionally encrypt backups before storing them.
+ * Remove temporary files on success or failure.
  */
 class BackupWriter
 {
@@ -56,7 +54,7 @@ class BackupWriter
         $squeezed = $this->workingFile('gz');
 
         try {
-            $dumper->dumpTo($plain, (array) config("database.connections.$connection"));
+            $dumper->dumpTo($plain, (array) DB::connection($connection)->getConfig());
             $this->squeeze($plain, $squeezed);
 
             return $this->store($squeezed, "skuul-$stamp.sql.gz");
@@ -115,8 +113,13 @@ class BackupWriter
                 throw new RuntimeException('The backup could not be read back.');
             }
 
-            Storage::disk((string) config('monitoring.backup.disk'))->writeStream($path, $file);
-            fclose($file);
+            try {
+                if (!Storage::disk((string) config('monitoring.backup.disk'))->writeStream($path, $file)) {
+                    throw new RuntimeException('The backup could not be stored.');
+                }
+            } finally {
+                fclose($file);
+            }
 
             return $path;
         } finally {
@@ -135,33 +138,65 @@ class BackupWriter
         $out = gzopen($to, 'wb6');
 
         if ($in === false || $out === false) {
+            if (is_resource($in)) {
+                fclose($in);
+            }
+
+            if (is_resource($out)) {
+                gzclose($out);
+            }
+
             throw new RuntimeException('The backup could not be squeezed.');
         }
 
-        while (!feof($in)) {
-            $piece = fread($in, 1048576);
+        try {
+            while (!feof($in)) {
+                $piece = fread($in, 1048576);
 
-            if ($piece === false || $piece === '') {
-                continue;
+                if ($piece === false) {
+                    throw new RuntimeException('The database dump could not be read.');
+                }
+
+                if ($piece !== '' && gzwrite($out, $piece) !== strlen($piece)) {
+                    throw new RuntimeException('The compressed backup could not be written.');
+                }
             }
-
-            gzwrite($out, $piece);
+        } finally {
+            fclose($in);
+            gzclose($out);
         }
-
-        fclose($in);
-        gzclose($out);
     }
 
     /**
-     * Put the uploaded files into one archive, and say how many went in.
-     *
-     * The files are read through the storage disk, so this works whether the
-     * school keeps them on this machine or in a bucket somewhere else.
+     * Archive uploads through the configured storage disk, including remote disks.
      */
     private function zip(string $archive): int
     {
-        $disk = Storage::disk((string) config('monitoring.backup.files_disk'));
-        $files = $disk->allFiles();
+        $diskName = config('monitoring.backup.files_disk');
+
+        if (!is_string($diskName) || trim($diskName) === '') {
+            throw new InvalidValueException('Set BACKUP_FILES_DISK before requesting a file backup.');
+        }
+
+        $disk = Storage::disk($diskName);
+        $excludedPaths = [
+            trim((string) config('monitoring.backup.path'), '/'),
+            trim((string) config('monitoring.backup.rehearsal.path'), '/'),
+        ];
+
+        if (in_array('', $excludedPaths, true)) {
+            throw new InvalidValueException('Backup and rehearsal paths must be named directories for file backups.');
+        }
+
+        $files = array_values(array_filter($disk->allFiles(), function (string $file) use ($excludedPaths): bool {
+            foreach ($excludedPaths as $path) {
+                if ($file === $path || str_starts_with($file, $path.'/')) {
+                    return false;
+                }
+            }
+
+            return true;
+        }));
 
         if ($files === []) {
             return 0;
@@ -176,21 +211,26 @@ class BackupWriter
         $copies = [];
         $count = 0;
 
-        foreach ($files as $file) {
-            $local = $this->localCopy($disk, $file, $copies);
+        try {
+            foreach ($files as $file) {
+                $local = $this->localCopy($disk, $file, $copies);
 
-            if ($local === null) {
-                continue;
+                if (!$zip->addFile($local, $file)) {
+                    throw new RuntimeException("The uploaded file [$file] could not be archived.");
+                }
+
+                $count++;
             }
-
-            $zip->addFile($local, $file);
-            $count++;
+        } finally {
+            try {
+                $closed = $zip->close();
+            } finally {
+                $this->forget(...$copies);
+            }
         }
 
-        $zip->close();
-
-        foreach ($copies as $copy) {
-            $this->forget($copy);
+        if (!$closed) {
+            throw new RuntimeException('The file archive could not be completed.');
         }
 
         return $count;
@@ -204,7 +244,7 @@ class BackupWriter
      *
      * @param  array<int, string>  $copies
      */
-    private function localCopy(Filesystem $disk, string $file, array &$copies): ?string
+    private function localCopy(Filesystem $disk, string $file, array &$copies): string
     {
         if ($disk instanceof FilesystemAdapter) {
             $path = $disk->path($file);
@@ -216,23 +256,28 @@ class BackupWriter
 
         $stream = $disk->readStream($file);
 
-        if ($stream === null) {
-            return null;
+        if (!is_resource($stream)) {
+            throw new RuntimeException("The uploaded file [$file] could not be read.");
         }
 
         $copy = $this->workingFile('part');
+        $copies[] = $copy;
         $handle = fopen($copy, 'wb');
 
         if ($handle === false) {
             fclose($stream);
 
-            return null;
+            throw new RuntimeException("A working copy of [$file] could not be made.");
         }
 
-        stream_copy_to_stream($stream, $handle);
-        fclose($handle);
-        fclose($stream);
-        $copies[] = $copy;
+        try {
+            if (stream_copy_to_stream($stream, $handle) === false) {
+                throw new RuntimeException("The uploaded file [$file] could not be copied.");
+            }
+        } finally {
+            fclose($handle);
+            fclose($stream);
+        }
 
         return $copy;
     }

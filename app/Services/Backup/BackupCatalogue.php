@@ -9,11 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 /**
- * What is on the backup disk, and what should stay there.
- *
- * Backups that are never removed cost money until somebody notices; backups
- * removed too eagerly are gone when they are wanted. The rule is written here
- * once, so the command and the check agree about it.
+ * Share backup discovery and retention rules between commands and health checks.
  */
 class BackupCatalogue
 {
@@ -29,7 +25,7 @@ class BackupCatalogue
         $backups = [];
 
         foreach ($this->disk()->files($this->path()) as $file) {
-            if (str_contains(basename($file), '.sql.gz')) {
+            if (str_ends_with($file, '.sql.gz') || str_ends_with($file, '.sql.gz.enc')) {
                 $backups[] = $file;
             }
         }
@@ -48,10 +44,7 @@ class BackupCatalogue
     }
 
     /**
-     * Bring one backup down to this machine as a plain dump.
-     *
-     * The file is unlocked and unsqueezed on the way, so what comes back is
-     * something the database tools can read.
+     * Download, decrypt, and decompress a backup for the database restore tools.
      */
     public function pull(string $path, string $to): void
     {

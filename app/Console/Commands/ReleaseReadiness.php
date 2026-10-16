@@ -11,12 +11,13 @@ use Illuminate\Console\Command;
 #[Description('Check the release-readiness gates')]
 class ReleaseReadiness extends Command
 {
-    /**
-     * Execute the console command.
-     */
     public function handle(ReportRegistry $reports): int
     {
         $checks = [
+            'demo mode is disabled' => !config('demo.enabled'),
+            'file backup disk is configured' => is_string(config('monitoring.backup.files_disk'))
+                && config('monitoring.backup.files_disk') !== ''
+                && is_array(config('filesystems.disks.'.config('monitoring.backup.files_disk'))),
             'retention policy has been approved' => (bool) config('release.retention_policy_approved'),
             'retention policy version is recorded' => (string) config('release.retention_policy_version') !== '',
             'RPO is a positive number of hours' => (int) config('release.rpo_hours') > 0,

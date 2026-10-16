@@ -8,10 +8,7 @@ use RuntimeException;
 use Symfony\Component\Process\Process;
 
 /**
- * A dump taken with the tools MySQL ships with.
- *
- * The password is written to a short-lived options file rather than the
- * command line, because anyone on the machine can read a command line.
+ * Use a temporary options file to keep the password out of process arguments.
  */
 class MysqlDumper implements DatabaseDumper
 {

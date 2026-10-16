@@ -6,16 +6,8 @@ use App\Exceptions\InvalidValueException;
 use RuntimeException;
 
 /**
- * Lock and unlock a backup file.
- *
- * A backup holds every mark, every fee, and every safeguarding note the school
- * has. It is kept away from the servers that made it, which means it is kept
- * somewhere the school controls less, so it leaves the machine locked.
- *
- * The file is read and written a piece at a time: a backup is far larger than
- * the memory a worker is given. Each piece is sealed with its own starting
- * value, and the whole file is signed, so a file that was changed on the way
- * is refused rather than half-restored.
+ * Encrypt backups in chunks to limit memory use.
+ * Authenticate the whole file before decrypting it.
  */
 class BackupCipher
 {

@@ -7,22 +7,14 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Keep the rows an upgrade removes.
- *
- * Version 3 replaced the old exam records, grade systems and gradebook. A
- * school that upgrades still owns its old results, so each migration that
- * removes them first writes them to storage/app/legacy-v2, one JSON row per
- * line. A new installation has nothing to keep and gets no files.
+ * Archive removed V2 rows as JSON lines in storage/app/legacy-v2.
+ * These files preserve raw rows; they are not a database backup or a V3 conversion.
  */
 class LegacyDataArchive
 {
     /**
-     * Write the rows of the query to the named file and return its path.
-     *
-     * A table that is gone already has nothing left to keep.
-     *
-     * The file is added to, never replaced, so running a migration again
-     * keeps what the first run wrote.
+     * Append archived rows so migration retries preserve earlier exports.
+     * Skip tables that no longer exist.
      */
     public static function keep(string $name, Builder $rows): ?string
     {

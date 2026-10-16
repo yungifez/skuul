@@ -5,12 +5,10 @@ namespace App\Services\Backup;
 use App\Contracts\DatabaseDumper;
 use App\Exceptions\InvalidValueException;
 use App\Services\Backup\Dumpers\MysqlDumper;
+use Illuminate\Support\Facades\DB;
 
 /**
- * The database engines this application can back up.
- *
- * A new engine is one class and one line here. The backup and rehearsal
- * commands never name an engine themselves.
+ * Resolve registered dumpers by connection driver for backup and restore commands.
  */
 class DatabaseDumperRegistry
 {
@@ -30,7 +28,7 @@ class DatabaseDumperRegistry
      */
     public function forConnection(string $connection): DatabaseDumper
     {
-        $driver = (string) config("database.connections.$connection.driver");
+        $driver = (string) DB::connection($connection)->getConfig('driver');
         $dumper = $this->forDriver($driver);
 
         if (!$dumper->isAvailable()) {

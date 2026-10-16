@@ -132,6 +132,30 @@ class MonitoringTest extends TestCase
         $this->artisan('skuul:check-backup')->assertFailed();
     }
 
+    public function test_an_upload_archive_or_unrelated_file_does_not_count_as_a_database_backup(): void
+    {
+        Storage::fake('backups');
+        config(['monitoring.backup.disk' => 'backups', 'monitoring.backup.path' => 'backups']);
+        Storage::disk('backups')->put('backups/skuul-new.files.zip.enc', 'uploads');
+        Storage::disk('backups')->put('backups/dump.sql.gz.partial', 'unfinished');
+
+        $this->artisan('skuul:check-backup')
+            ->expectsOutput('No backup was found in [backups].')
+            ->assertFailed();
+    }
+
+    public function test_new_uploads_do_not_hide_an_expired_database_backup(): void
+    {
+        Storage::fake('backups');
+        config(['monitoring.backup.disk' => 'backups', 'monitoring.backup.path' => 'backups', 'monitoring.backup.max_age_hours' => 26]);
+        Storage::disk('backups')->put('backups/skuul-old.sql.gz.enc', 'old database');
+        touch(Storage::disk('backups')->path('backups/skuul-old.sql.gz.enc'), now()->subDays(3)->getTimestamp());
+        Storage::disk('backups')->put('backups/skuul-new.files.zip.enc', 'new uploads');
+        Storage::disk('backups')->put('restore-rehearsals/recent.json', '{"restored":true}');
+
+        $this->artisan('skuul:check-backup')->assertFailed();
+    }
+
     /**
      * Build a query event that took the given number of milliseconds.
      */

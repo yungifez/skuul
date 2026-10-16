@@ -11,12 +11,8 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Prove that the backups can be restored.
- *
- * A backup nobody has restored is not a backup. This command takes the newest
- * one, unlocks it, loads it into a separate database, and looks at what came
- * back. It writes down what it found, so a rehearsal that stopped happening is
- * noticed the same way a backup that stopped arriving is.
+ * Restore the newest backup into an isolated database and record verification results.
+ * Without a restore connection, inspect the dump without claiming a completed restore.
  */
 class RehearseRestore extends Command
 {
@@ -38,8 +34,6 @@ class RehearseRestore extends Command
     private const REQUIRED_ROWS = ['migrations'];
 
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:rehearse-restore
@@ -48,15 +42,10 @@ class RehearseRestore extends Command
         {--check-only : Look inside the backup without restoring it}';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'Restore the newest backup into a separate database and check what came back';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(BackupCatalogue $catalogue, DatabaseDumperRegistry $dumpers): int
     {
         $started = microtime(true);
@@ -132,8 +121,25 @@ class RehearseRestore extends Command
             return null;
         }
 
+        $defaultConnection = (string) config('database.default');
+
+        if ($connection === $defaultConnection) {
+            throw new RuntimeException('The restore rehearsal cannot use the application database connection.');
+        }
+
+        $settings = (array) DB::connection($connection)->getConfig();
+        $applicationDatabase = (string) DB::connection($defaultConnection)->getConfig('database');
+        $targetDatabase = $settings['database'] ?? null;
+
+        if (!is_string($targetDatabase) || trim($targetDatabase) === '') {
+            throw new RuntimeException('The restore rehearsal needs a named, isolated database.');
+        }
+
+        if (mb_strtolower($targetDatabase) === mb_strtolower($applicationDatabase)) {
+            throw new RuntimeException('The restore rehearsal database must have a different name from the application database.');
+        }
+
         $dumper = $dumpers->forConnection($connection);
-        $settings = (array) config("database.connections.$connection");
 
         $this->info('Restoring into '.$settings['database'].'.');
         $dumper->restoreFrom($dump, $settings);

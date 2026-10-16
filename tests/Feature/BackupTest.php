@@ -2,14 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Contracts\DatabaseDumper;
 use App\Exceptions\InvalidValueException;
 use App\Services\Backup\BackupCatalogue;
 use App\Services\Backup\BackupCipher;
 use App\Services\Backup\DatabaseDumperRegistry;
+use Illuminate\Database\Connection;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use Tests\TestCase;
+use ZipArchive;
 
 /**
  * A backup leaves the machine locked, is thinned out by a rule, and is
@@ -159,6 +165,73 @@ class BackupTest extends TestCase
         $this->assertCount(1, Storage::disk('backups')->files('backups'));
     }
 
+    public function test_file_backups_include_private_and_public_uploads_and_exclude_backup_artifacts(): void
+    {
+        Storage::fake('local');
+        config(['monitoring.backup.files_disk' => 'local', 'monitoring.backup.disk' => 'local']);
+        $disk = Storage::disk('local');
+        $disk->put('notice-attachments/1/notice.pdf', 'private notice');
+        $disk->put('public/syllabus/lesson.pdf', 'public syllabus');
+        $disk->put('backups/old.sql.gz.enc', 'old backup');
+        $disk->put('restore-rehearsals/old.json', '{"restored":true}');
+
+        $this->artisan('skuul:backup', ['--with-files' => true])->assertSuccessful();
+
+        $archive = collect($disk->files('backups'))->first(fn (string $file): bool => str_ends_with($file, '.files.zip.enc'));
+        $this->assertIsString($archive);
+        [$plain, $locked, $back] = $this->threeWorkingFiles();
+        file_put_contents($locked, $disk->get($archive));
+        app(BackupCipher::class)->decryptFile($locked, $back);
+        $zip = new ZipArchive;
+        $this->assertTrue($zip->open($back));
+
+        try {
+            $this->assertSame(2, $zip->numFiles);
+            $this->assertSame('private notice', $zip->getFromName('notice-attachments/1/notice.pdf'));
+            $this->assertSame('public syllabus', $zip->getFromName('public/syllabus/lesson.pdf'));
+        } finally {
+            $zip->close();
+        }
+    }
+
+    public function test_a_requested_file_backup_requires_a_source_disk(): void
+    {
+        config(['monitoring.backup.files_disk' => null]);
+
+        $this->artisan('skuul:backup', ['--with-files' => true])
+            ->expectsOutputToContain('Set BACKUP_FILES_DISK')
+            ->assertFailed();
+    }
+
+    public function test_a_failed_storage_write_does_not_report_a_successful_backup(): void
+    {
+        $disk = Mockery::mock(FilesystemAdapter::class);
+        $disk->shouldReceive('writeStream')->once()->andReturnFalse();
+        Storage::shouldReceive('disk')->with('backups')->andReturn($disk);
+
+        $this->artisan('skuul:backup')
+            ->expectsOutputToContain('The backup could not be stored.')
+            ->assertFailed();
+    }
+
+    public function test_an_unreadable_upload_fails_the_file_backup(): void
+    {
+        config(['monitoring.backup.files_disk' => 'unreadable']);
+        $destination = Storage::disk('backups');
+        $source = Mockery::mock(FilesystemAdapter::class);
+        $source->shouldReceive('allFiles')->once()->andReturn(['missing.pdf']);
+        $source->shouldReceive('path')->with('missing.pdf')->andReturn('/nonexistent-skuul-upload/missing.pdf');
+        $source->shouldReceive('readStream')->with('missing.pdf')->andReturnNull();
+        Storage::shouldReceive('disk')->with('backups')->andReturn($destination);
+        Storage::shouldReceive('disk')->with('unreadable')->andReturn($source);
+
+        $this->artisan('skuul:backup', ['--with-files' => true])
+            ->expectsOutputToContain('The uploaded file [missing.pdf] could not be read.')
+            ->assertFailed();
+
+        $this->assertCount(1, $destination->files('backups'));
+    }
+
     public function test_recent_backups_stay_and_old_ones_go(): void
     {
         config(['monitoring.backup.keep_days' => 30, 'monitoring.backup.keep_months' => 12]);
@@ -238,19 +311,100 @@ class BackupTest extends TestCase
         }
     }
 
-    public function test_a_backup_is_actually_restored_into_another_database(): void
+    public function test_a_restore_into_an_isolated_database_is_recorded_after_verification(): void
     {
-        config(['database.connections.rehearsal.database' => 'testing_rehearsal']);
-        DB::purge('rehearsal');
-        DB::connection()->statement('create database if not exists testing_rehearsal');
+        $this->putRehearsalBackup();
+        $application = DB::connection();
+        $settings = ['driver' => 'mysql', 'database' => 'skuul_rehearsal'];
+        $target = Mockery::mock(Connection::class);
+        $target->shouldReceive('getConfig')->withNoArgs()->andReturn($settings);
+        $rows = ['migrations' => 12, 'users' => 3, 'schools' => 1];
 
-        $this->artisan('skuul:backup')->assertSuccessful();
+        foreach ($rows as $table => $count) {
+            $query = Mockery::mock(Builder::class);
+            $query->shouldReceive('count')->once()->andReturn($count);
+            $target->shouldReceive('table')->with($table)->once()->andReturn($query);
+        }
+
+        DB::shouldReceive('connection')->with('rehearsal')->andReturn($target);
+        DB::shouldReceive('connection')->with((string) config('database.default'))->andReturn($application);
+        $dumper = Mockery::mock(DatabaseDumper::class);
+        $dumper->shouldReceive('restoreFrom')->once()->withArgs(function (string $dump, array $configuration) use ($settings): bool {
+            return $configuration === $settings && str_contains((string) file_get_contents($dump), 'CREATE TABLE `migrations`');
+        });
+        $registry = Mockery::mock(DatabaseDumperRegistry::class);
+        $registry->shouldReceive('forConnection')->with('rehearsal')->once()->andReturn($dumper);
+        $this->app->instance(DatabaseDumperRegistry::class, $registry);
+
         $this->artisan('skuul:rehearse-restore', ['--into' => 'rehearsal'])->assertSuccessful();
 
-        $this->assertGreaterThan(0, DB::connection('rehearsal')->table('migrations')->count());
-        $this->assertTrue(DB::connection('rehearsal')->getSchemaBuilder()->hasTable('student_records'));
+        $record = json_decode(Storage::disk('backups')->get(Storage::disk('backups')->files('restore-rehearsals')[0]), true);
+        $this->assertTrue($record['restored']);
+        $this->assertSame($rows, $record['rows']);
+    }
 
-        DB::connection()->statement('drop database testing_rehearsal');
+    public function test_a_restore_refuses_the_application_connection(): void
+    {
+        $this->putRehearsalBackup();
+        $this->forbidRestore();
+
+        $this->artisan('skuul:rehearse-restore', ['--into' => config('database.default')])
+            ->expectsOutputToContain('cannot use the application database connection')
+            ->assertFailed();
+
+        $this->assertSame([], Storage::disk('backups')->files('restore-rehearsals'));
+    }
+
+    public function test_a_restore_refuses_an_alias_of_the_application_database(): void
+    {
+        $this->putRehearsalBackup();
+        $this->forbidRestore();
+        config(['database.connections.rehearsal' => DB::connection()->getConfig()]);
+        DB::purge('rehearsal');
+
+        $this->artisan('skuul:rehearse-restore', ['--into' => 'rehearsal'])
+            ->expectsOutputToContain('must have a different name')
+            ->assertFailed();
+    }
+
+    public function test_a_restore_refuses_a_url_that_points_back_to_the_application_database(): void
+    {
+        $this->putRehearsalBackup();
+        $this->forbidRestore();
+        config(['database.connections.rehearsal' => [
+            'driver' => 'mysql',
+            'database' => 'skuul_rehearsal',
+            'url' => 'mysql://someone:password@another-host/'.DB::connection()->getConfig('database'),
+        ]]);
+        DB::purge('rehearsal');
+
+        $this->artisan('skuul:rehearse-restore', ['--into' => 'rehearsal'])
+            ->expectsOutputToContain('must have a different name')
+            ->assertFailed();
+    }
+
+    public function test_a_restore_requires_a_named_target_database(): void
+    {
+        $this->putRehearsalBackup();
+        $this->forbidRestore();
+        config(['database.connections.rehearsal' => ['driver' => 'mysql', 'database' => '']]);
+        DB::purge('rehearsal');
+
+        $this->artisan('skuul:rehearse-restore', ['--into' => 'rehearsal'])
+            ->expectsOutputToContain('needs a named, isolated database')
+            ->assertFailed();
+    }
+
+    public function test_check_only_does_not_restore_even_when_given_the_application_connection(): void
+    {
+        $this->putRehearsalBackup();
+        $this->forbidRestore();
+
+        $this->artisan('skuul:rehearse-restore', ['--into' => config('database.default'), '--check-only' => true])
+            ->assertSuccessful();
+
+        $record = json_decode(Storage::disk('backups')->get(Storage::disk('backups')->files('restore-rehearsals')[0]), true);
+        $this->assertFalse($record['restored']);
     }
 
     public function test_the_mysql_dumper_is_the_one_this_installation_uses(): void
@@ -260,11 +414,74 @@ class BackupTest extends TestCase
         $this->assertSame('mysql', $dumper->driver());
     }
 
+    public function test_the_dumper_uses_the_driver_resolved_from_a_database_url(): void
+    {
+        config(['database.connections.url_backup' => [
+            'driver' => 'sqlite',
+            'url' => 'mysql://backup-user:backup-password@mysql/testing',
+        ]]);
+
+        $dumper = app(DatabaseDumperRegistry::class)->forConnection('url_backup');
+
+        $this->assertSame('mysql', $dumper->driver());
+    }
+
+    public function test_backup_uses_the_database_and_credentials_resolved_from_a_url(): void
+    {
+        $default = config('database.default');
+        config([
+            'database.default' => 'url_backup',
+            'database.connections.url_backup' => [
+                'driver' => 'mysql',
+                'database' => 'ignored-database',
+                'host' => 'ignored-host',
+                'username' => 'ignored-user',
+                'password' => 'ignored-password',
+                'url' => 'mysql://backup-user:backup-password@mysql/testing',
+            ],
+        ]);
+        $dumper = Mockery::mock(DatabaseDumper::class);
+        $dumper->shouldReceive('dumpTo')->once()->withArgs(function (string $path, array $settings): bool {
+            $this->assertSame('testing', $settings['database']);
+            $this->assertSame('mysql', $settings['host']);
+            $this->assertSame('backup-user', $settings['username']);
+            $this->assertSame('backup-password', $settings['password']);
+            file_put_contents($path, 'CREATE TABLE `users` (id int);');
+
+            return true;
+        });
+        $registry = Mockery::mock(DatabaseDumperRegistry::class);
+        $registry->shouldReceive('forConnection')->with('url_backup')->once()->andReturn($dumper);
+        $this->app->instance(DatabaseDumperRegistry::class, $registry);
+
+        try {
+            $this->artisan('skuul:backup')->assertSuccessful();
+            $this->assertCount(1, Storage::disk('backups')->files('backups'));
+        } finally {
+            config(['database.default' => $default]);
+        }
+    }
+
     public function test_an_engine_with_no_dumper_says_so(): void
     {
         $this->expectException(InvalidValueException::class);
 
         app(DatabaseDumperRegistry::class)->forDriver('punch-cards');
+    }
+
+    private function forbidRestore(): void
+    {
+        $registry = Mockery::mock(DatabaseDumperRegistry::class);
+        $registry->shouldNotReceive('forConnection');
+        $this->app->instance(DatabaseDumperRegistry::class, $registry);
+    }
+
+    private function putRehearsalBackup(): void
+    {
+        [$plain, $locked, $back] = $this->threeWorkingFiles();
+        file_put_contents($plain, (string) gzencode('CREATE TABLE `migrations` (id int); CREATE TABLE `users` (id int); CREATE TABLE `schools` (id int);'));
+        app(BackupCipher::class)->encryptFile($plain, $locked);
+        Storage::disk('backups')->put('backups/skuul-2026-01-01-013000.sql.gz.enc', (string) file_get_contents($locked));
     }
 
     /**
