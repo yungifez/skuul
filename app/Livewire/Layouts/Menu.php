@@ -5,6 +5,7 @@ namespace App\Livewire\Layouts;
 use App\Enums\EnrollmentStatus;
 use App\Enums\Feature;
 use App\Enums\PortalArea;
+use App\Models\AccountInvitation;
 use App\Models\CalendarEvent;
 use App\Models\CampusMoveRequest;
 use App\Models\DataSharingRequest;
@@ -226,6 +227,13 @@ class Menu extends Component
                 'icon' => 'shield-check',
                 'route' => 'admins.index',
                 'can' => 'read admin',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Account invitations',
+                'icon' => 'mail',
+                'route' => 'users.invitations.index',
+                'visible' => $user->can('viewAny', AccountInvitation::class),
             ],
             ['header' => 'Teaching'],
             [

@@ -93,6 +93,20 @@ class SidebarStateTest extends TestCase
             ->assertDontSee(route('students.graduations'));
     }
 
+    public function test_the_sidebar_links_to_account_invitations_only_for_account_managers(): void
+    {
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(Menu::class)->assertSee(route('users.invitations.index'));
+    }
+
+    public function test_the_sidebar_hides_account_invitations_without_permission(): void
+    {
+        $this->authorized_user([]);
+
+        Livewire::test(Menu::class)->assertDontSee(route('users.invitations.index'));
+    }
+
     public function test_multi_page_features_are_grouped_in_the_sidebar(): void
     {
         $this->authorized_user(['read boarding', 'read library']);
