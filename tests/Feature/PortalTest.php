@@ -714,6 +714,8 @@ class PortalTest extends TestCase
             ->assertSee('Attendance rate')
             ->assertSee('100%')
             ->assertSee('1 day recorded')
+            ->assertSee('Days in school')
+            ->assertDontSee('your child')
             ->assertSee(route('portal.overview'), false);
     }
 
