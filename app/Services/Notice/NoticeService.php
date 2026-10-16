@@ -35,7 +35,7 @@ class NoticeService
     /**
      * Store the attachment on the private disk and create the draft notice.
      *
-     * @param  array{title: string, content: string, start_date: string, stop_date: string, attachment?: UploadedFile|null, audience?: array<string, mixed>|null}  $data
+     * @param  array{title: string, content: string, start_date: string, stop_date: string, attachment?: UploadedFile|null, send_email?: bool, audience?: array<string, mixed>|null}  $data
      */
     public function storeNotice(array $data): Notice
     {
@@ -60,6 +60,7 @@ class NoticeService
                 'attachment_mime_type' => $attachment?->getMimeType(),
                 'attachment_size' => $attachment?->getSize(),
                 'audience' => $data['audience'] ?? null,
+                'send_email' => $data['send_email'] ?? false,
                 'school_id' => $schoolId,
             ]);
         } catch (\Throwable $exception) {

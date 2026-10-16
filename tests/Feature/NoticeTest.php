@@ -162,6 +162,21 @@ class NoticeTest extends TestCase
         $component->assertRedirect(route('notices.show', $notice));
         $this->assertFalse($notice->isPublished());
         $this->assertEquals(['scope' => 'school', 'academic_level_ids' => [], 'academic_cycle_section_ids' => [], 'include_guardians' => false], $notice->audience);
+        $this->assertFalse($notice->send_email);
+    }
+
+    public function test_a_notice_can_ask_to_be_emailed_when_published(): void
+    {
+        $this->authorized_user(['create notice']);
+
+        Livewire::test(CreateNoticeForm::class)
+            ->set('title', 'Sports day')
+            ->set('content', '<p>Bring water.</p>')
+            ->set('sendEmail', true)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertTrue(Notice::query()->where('title', 'Sports day')->sole()->send_email);
     }
 
     public function test_a_notice_with_an_empty_message_is_refused(): void

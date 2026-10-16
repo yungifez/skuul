@@ -43,6 +43,8 @@ class CreateNoticeForm extends Component
 
     public bool $includeGuardians = false;
 
+    public bool $sendEmail = false;
+
     public function mount(): void
     {
         Gate::authorize('create', Notice::class);
@@ -69,13 +71,14 @@ class CreateNoticeForm extends Component
             'sectionIds' => [Rule::requiredIf($this->audienceScope === NoticeAudienceScope::Section->value), 'array'],
             'sectionIds.*' => ['integer', 'distinct', Rule::exists((new AcademicCycleSection)->getTable(), 'id')->where('school_id', current_school_id())],
             'includeGuardians' => ['boolean'],
+            'sendEmail' => ['boolean'],
         ], [
             'academicLevelIds.required' => 'Choose at least one class or level.',
             'sectionIds.required' => 'Choose at least one section.',
             'content.required' => 'Write the message.',
         ], [
-            'startDate' => 'start date',
-            'stopDate' => 'end date',
+            'startDate' => 'From',
+            'stopDate' => 'Until',
             'audienceScope' => 'audience',
         ]);
 
@@ -92,6 +95,7 @@ class CreateNoticeForm extends Component
             'start_date' => $this->startDate,
             'stop_date' => $this->stopDate,
             'attachment' => $this->attachment,
+            'send_email' => $this->sendEmail,
             'audience' => [
                 'scope' => $this->audienceScope,
                 'academic_level_ids' => $this->audienceScope === NoticeAudienceScope::Classes->value ? array_map('intval', $this->academicLevelIds) : [],

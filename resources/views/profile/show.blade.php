@@ -24,5 +24,15 @@
         @endif
 
         @livewire('profile.logout-other-browser-sessions-form')
+
+        @if (current_school() !== null)
+            <x-partials.action-section>
+                <x-slot name="title">Notice email</x-slot>
+                <x-slot name="description">Choose whether this school emails you its notices.</x-slot>
+                <x-slot name="content">
+                    <april:button-link variant="outline" href="{{ route('notice-preferences.edit') }}">Open notice email settings</april:button-link>
+                </x-slot>
+            </x-partials.action-section>
+        @endif
     </div>
 @endsection

@@ -86,6 +86,7 @@ class ProfileInformationTest extends TestCase
             ->assertSee('name="state"', false)
             ->assertSee('Two Factor Authentication')
             ->assertSee('Browser Sessions')
+            ->assertSee(route('notice-preferences.edit'), false)
             ->assertDontSee('card-body', false)
             ->assertDontSee('form-group', false);
     }

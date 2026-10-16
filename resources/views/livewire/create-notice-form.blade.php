@@ -118,6 +118,14 @@
                     <span class="mt-1 block text-xs text-muted-foreground">The guardians of the learners it reaches get it as well.</span>
                 </span>
             </label>
+
+            <label class="flex min-h-11 cursor-pointer select-none items-start gap-3 text-sm">
+                <input type="checkbox" wire:model="sendEmail" class="mt-0.5 size-4 rounded border-input">
+                <span>
+                    <span class="block font-medium">Email it too</span>
+                    <span class="mt-1 block text-xs text-muted-foreground">When it is published, each reader also gets it by email, unless they turned notice email off.</span>
+                </span>
+            </label>
         </fieldset>
     </aside>
 
