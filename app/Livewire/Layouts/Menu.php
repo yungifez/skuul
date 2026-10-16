@@ -200,6 +200,13 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
+                'text' => 'Promotions',
+                'icon' => 'circle-arrow-up',
+                'route' => 'students.promotions',
+                'can' => 'read promotion',
+            ],
+            [
+                'type' => 'menu-item',
                 'text' => 'Programmes',
                 'icon' => 'sparkles',
                 'route' => 'programs.index',
@@ -277,6 +284,20 @@ class Menu extends Component
                 'icon' => 'graduation-cap',
                 'route' => 'grading-scales.index',
                 'can' => 'manage grading scale',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Report cards',
+                'icon' => 'file-badge',
+                'route' => 'report-cards.index',
+                'can' => 'read report',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Transcripts',
+                'icon' => 'scroll-text',
+                'route' => 'transcripts.index',
+                'can' => 'read report',
             ],
             ['header' => 'Operations'],
             [

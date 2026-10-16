@@ -71,6 +71,26 @@ class SidebarStateTest extends TestCase
         }
     }
 
+    public function test_the_sidebar_links_to_report_cards_transcripts_and_promotions(): void
+    {
+        $this->authorized_user(['read report', 'read promotion']);
+
+        Livewire::test(Menu::class)
+            ->assertSee(route('report-cards.index'))
+            ->assertSee(route('transcripts.index'))
+            ->assertSee(route('students.promotions'));
+    }
+
+    public function test_the_sidebar_hides_report_cards_and_promotions_without_permission(): void
+    {
+        $this->authorized_user([]);
+
+        Livewire::test(Menu::class)
+            ->assertDontSee(route('report-cards.index'))
+            ->assertDontSee(route('transcripts.index'))
+            ->assertDontSee(route('students.promotions'));
+    }
+
     public function test_multi_page_features_are_grouped_in_the_sidebar(): void
     {
         $this->authorized_user(['read boarding', 'read library']);
