@@ -52,11 +52,13 @@ class NoticeTest extends TestCase
         $this->authorized_user(['read notice', 'update notice']);
         Notice::factory()->create([
             'school_id' => $this->workingSchool()->id,
+            'title' => 'Exam week timings',
             'start_date' => '2026-10-12',
             'stop_date' => '2026-10-16',
         ]);
 
         Livewire::test(ListNoticesTable::class)
+            ->set('search', 'Exam week timings')
             ->assertSee('From')
             ->assertSee('Until')
             ->assertSee('12 Oct 2026')
