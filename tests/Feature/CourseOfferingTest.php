@@ -231,6 +231,22 @@ class CourseOfferingTest extends TestCase
         $this->get(route('course-offerings.index'))->assertOk()->assertSee($subject->name);
     }
 
+    public function test_the_create_and_edit_pages_name_the_list_as_the_menu_does(): void
+    {
+        $this->authorized_user(['read subject', 'create subject', 'update subject']);
+        [$subject, $academicYear, $academicPeriod, $academicLevel] = $this->courseContext();
+        $courseOffering = app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $academicLevel, [], RosterMode::AcademicLevel);
+        $crumb = '<a class="transition-colors hover:text-foreground" href="'.route('course-offerings.index').'">'.e(school_terms('course', 'Course').' being taught').'</a>';
+
+        $this->get(route('course-offerings.create', ['academic_year_id' => $academicYear->id]))
+            ->assertOk()
+            ->assertSee($crumb, false);
+
+        $this->get(route('course-offerings.edit', $courseOffering))
+            ->assertOk()
+            ->assertSee($crumb, false);
+    }
+
     public function test_a_draft_subject_is_activated_from_the_list(): void
     {
         $this->authorized_user(['read subject', 'update subject']);

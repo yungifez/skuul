@@ -1,6 +1,6 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('course-offerings.index'), 'text' => 'Course offerings'],
+    ['href' => route('course-offerings.index'), 'text' => school_terms('course', 'Course').' being taught'],
     ['href' => route('course-offerings.create'), 'text' => 'Add subject', 'active'],
 ]])
 

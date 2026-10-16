@@ -6,6 +6,7 @@ use App\Enums\AuditAction;
 use App\Enums\RosterMode;
 use App\Enums\SyllabusStatus;
 use App\Enums\TopicCoverageStatus;
+use App\Livewire\ListSyllabiTable;
 use App\Livewire\SyllabusCoverageTracker;
 use App\Livewire\SyllabusTopicsEditor;
 use App\Livewire\SyllabusWorkflowControl;
@@ -129,6 +130,17 @@ class SyllabusReviewTest extends TestCase
             ->assertOk()
             ->assertSee('Awaiting your review')
             ->assertSee(route('syllabi.show', $syllabus));
+    }
+
+    public function test_the_index_names_the_term_of_each_syllabus(): void
+    {
+        $syllabus = $this->draftWithTopic();
+        $period = $syllabus->courseOffering->academicPeriod;
+        $period->update(['label' => null]);
+        $this->authorized_user(['read syllabus']);
+
+        Livewire::test(ListSyllabiTable::class)
+            ->assertViewHas('data', fn (array $rows): bool => collect($rows)->contains('academic_period_label', $period->name));
     }
 
     public function test_the_review_queue_is_hidden_from_staff_who_do_not_review(): void

@@ -7,19 +7,19 @@
 
     <div class="flex items-center justify-between gap-3">
         <h2 id="assessments-heading" class="text-base font-semibold">Assessments</h2>
-        @if ($items->isNotEmpty() || $categories->isNotEmpty())
-            <april:dropdown-menu>
-                <slot:trigger>
-                    <april:button type="button" variant="ghost" size="icon" class="size-11 select-none" aria-label="More for the assessments">
-                        <x-lucide-ellipsis class="size-4" />
-                    </april:button>
-                </slot:trigger>
-                <slot:content align="end">
-                    <april:dropdown-menu-item wire:click="$set('isAddingCategory', true)"><x-lucide-folder-plus class="mr-2 size-4" />Add a category</april:dropdown-menu-item>
+        <april:dropdown-menu>
+            <slot:trigger>
+                <april:button type="button" variant="ghost" size="icon" class="size-11 select-none" aria-label="More for the assessments">
+                    <x-lucide-ellipsis class="size-4" />
+                </april:button>
+            </slot:trigger>
+            <slot:content align="end">
+                <april:dropdown-menu-item wire:click="$set('isAddingCategory', true)"><x-lucide-folder-plus class="mr-2 size-4" />Add a category</april:dropdown-menu-item>
+                @if ($items->isNotEmpty() || $categories->isNotEmpty())
                     <april:dropdown-menu-item wire:click="$set('isSavingTemplate', true)"><x-lucide-copy class="mr-2 size-4" />Save as a template</april:dropdown-menu-item>
-                </slot:content>
-            </april:dropdown-menu>
-        @endif
+                @endif
+            </slot:content>
+        </april:dropdown-menu>
     </div>
 
     @if ($templates->isNotEmpty())

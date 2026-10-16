@@ -80,7 +80,7 @@ class ListSyllabiTable extends DataTableComponent
             $row = $syllabus->toArray();
             $row['subject_name'] = $syllabus->courseOffering->subject->name;
             $row['academic_level_label'] = $syllabus->courseOffering->academicLevel->name;
-            $row['academic_period_label'] = $syllabus->courseOffering->academicPeriod->label;
+            $row['academic_period_label'] = $syllabus->courseOffering->academicPeriod->displayName;
             $row['status_label'] = $syllabus->status->label();
             $row['can_delete'] = Gate::allows('delete', $syllabus);
             $row['view_url'] = route('syllabi.show', $syllabus);

@@ -117,6 +117,17 @@ class GradebookSetupTest extends TestCase
             ->assertSee('Save marks');
     }
 
+    public function test_an_empty_gradebook_can_add_a_category_but_not_save_a_template(): void
+    {
+        $this->authorized_user(self::TEACHER);
+
+        Livewire::test(GradebookSetup::class, ['courseOffering' => $this->courseOffering()])
+            ->assertSee('Add a category')
+            ->assertDontSee('Save as a template')
+            ->call('$set', 'isAddingCategory', true)
+            ->assertSet('isAddingCategory', true);
+    }
+
     public function test_another_courses_category_and_another_schools_scale_are_refused(): void
     {
         $this->authorized_user(self::TEACHER);

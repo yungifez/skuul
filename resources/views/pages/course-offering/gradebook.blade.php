@@ -8,7 +8,7 @@
 @section('page_heading', 'Gradebook')
 
 @section('page_actions')
-    <april:button-link href="{{ route('course-offerings.index') }}" variant="outline">Back to {{ school_terms('course', 'courses') }}</april:button-link>
+    <april:button-link href="{{ route('course-offerings.index') }}" variant="outline">Back to {{ strtolower(school_terms('course', 'courses')) }} being taught</april:button-link>
 @endsection
 
 @section('content')

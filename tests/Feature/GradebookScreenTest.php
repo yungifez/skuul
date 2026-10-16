@@ -80,6 +80,7 @@ class GradebookScreenTest extends TestCase
             ->assertSeeLivewire(GradebookSetup::class)
             ->assertSee('Add assessment')
             ->assertSee('Editing open')
+            ->assertSee('Back to '.strtolower(school_terms('course', 'courses')).' being taught')
             ->assertSeeLivewire(GradebookMarkSheet::class);
 
         $setup = Livewire::test(GradebookSetup::class, ['courseOffering' => $courseOffering])
