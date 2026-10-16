@@ -21,7 +21,8 @@ class AcademicLevelFactory extends Factory
 
         return [
             'school_id' => $school->id,
-            'name' => fake()->unique()->words(2, true),
+            // Words alone repeat often enough to break the per-campus unique name.
+            'name' => fake()->words(2, true).' '.fake()->unique()->numerify('####'),
             'code' => fake()->unique()->bothify('LVL-######'),
             'position' => fake()->numberBetween(1, 20),
         ];
