@@ -9,6 +9,7 @@ use App\Actions\Library\IssueLoan;
 use App\Actions\Library\ReserveTitle;
 use App\Actions\Portal\SubmitPortalRequest;
 use App\Enums\AcademicStructureStatus;
+use App\Enums\AccountStatus;
 use App\Enums\AttendanceStatus;
 use App\Enums\EnrollmentStatus;
 use App\Enums\Feature;
@@ -18,6 +19,7 @@ use App\Enums\PortalArea;
 use App\Enums\PortalRequestStatus;
 use App\Enums\PortalRequestType;
 use App\Enums\ResultApprovalStatus;
+use App\Enums\Role;
 use App\Enums\TimetableStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
@@ -47,9 +49,11 @@ use App\Models\TranscriptSnapshot;
 use App\Models\User;
 use App\Services\Portal\PortalAccess;
 use App\Services\Portal\PortalSummary;
+use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -70,6 +74,111 @@ class PortalTest extends TestCase
         $enrollment = $this->enrollment();
 
         $this->assertTrue(app(PortalAccess::class)->canRead($enrollment->user, $enrollment));
+    }
+
+    public function test_a_graduate_can_open_the_portal_and_download_their_official_documents(): void
+    {
+        $enrollment = $this->graduatedEnrollment();
+        $reportCard = ReportCardSnapshot::factory()->create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
+        ]);
+
+        $this->get(route('portal.overview'))->assertOk()->assertSee('Graduated');
+        $this->get(route('portal.notification-preferences.edit'))->assertOk();
+        $this->get(route('portal.documents.index', $enrollment))
+            ->assertOk()->assertSee(route('portal.documents.report-cards.download', [$enrollment, $reportCard]));
+        $this->get(route('portal.documents.report-cards.download', [$enrollment, $reportCard]))
+            ->assertOk()->assertDownload("report-card-{$reportCard->id}.html");
+        $this->get(route('portal.invoices.index', $enrollment))->assertOk();
+    }
+
+    public function test_a_graduate_keeps_portal_access_without_a_staff_campus_membership(): void
+    {
+        $enrollment = $this->graduatedEnrollment();
+        $enrollment->user->schoolMemberships()->delete();
+
+        $this->get(route('portal.overview'))->assertOk();
+        $this->get(route('portal.documents.index', $enrollment))->assertOk();
+    }
+
+    public function test_a_graduate_cannot_read_another_familys_documents(): void
+    {
+        $other = $this->enrollment();
+        $graduate = $this->graduatedEnrollment();
+        $reportCard = ReportCardSnapshot::factory()->create([
+            'school_id' => $other->school_id,
+            'student_record_id' => $other->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
+        ]);
+
+        $this->get(route('portal.documents.index', $other))->assertForbidden();
+        $this->get(route('portal.documents.report-cards.download', [$other, $reportCard]))->assertForbidden();
+        $this->get(route('portal.documents.report-cards.download', [$graduate, $reportCard]))->assertNotFound();
+    }
+
+    public function test_a_graduate_is_still_blocked_from_staff_routes(): void
+    {
+        $this->graduatedEnrollment();
+
+        $this->get(route('students.index'))->assertRedirect(route('dashboard'));
+    }
+
+    public function test_a_graduates_suspended_account_cannot_use_the_portal(): void
+    {
+        $enrollment = $this->graduatedEnrollment();
+        $enrollment->user->forceFill(['account_status' => AccountStatus::Suspended])->save();
+
+        $this->get(route('portal.documents.index', $enrollment))->assertForbidden();
+        $this->assertGuest();
+    }
+
+    public function test_a_graduate_cannot_open_a_closed_portal_or_documents_area(): void
+    {
+        $enrollment = $this->graduatedEnrollment();
+        features()->disable(Feature::Portal);
+
+        $this->get(route('portal.documents.index', $enrollment))->assertForbidden();
+
+        features()->enable(Feature::Portal, config: [PortalArea::Documents->value => false]);
+
+        $this->get(route('portal.documents.index', $enrollment))->assertNotFound();
+    }
+
+    public function test_a_graduate_can_download_only_notice_attachments_addressed_to_them(): void
+    {
+        Storage::fake('local');
+        $enrollment = $this->graduatedEnrollment();
+        $path = 'notice-attachments/'.$enrollment->school_id.'/graduate-guide.pdf';
+        Storage::disk('local')->put($path, 'Graduate guide');
+        $notice = Notice::create([
+            'school_id' => $enrollment->school_id,
+            'title' => 'Graduate guide',
+            'content' => 'Keep your official records.',
+            'start_date' => now()->toDateString(),
+            'stop_date' => now()->addWeek()->toDateString(),
+            'status' => NoticeStatus::Published,
+            'active' => true,
+            'attachment' => $path,
+            'attachment_disk' => 'local',
+            'attachment_name' => 'graduate-guide.pdf',
+            'attachment_mime_type' => 'application/pdf',
+            'attachment_size' => Storage::disk('local')->size($path),
+        ]);
+
+        $this->get(route('notices.attachments.download', $notice))->assertForbidden();
+
+        NoticeRecipient::create([
+            'notice_id' => $notice->id,
+            'user_id' => $enrollment->user_id,
+            'state' => NoticeRecipientState::Delivered,
+            'delivered_at' => now(),
+        ]);
+
+        $this->get(route('notices.attachments.download', $notice))->assertOk()->assertDownload('graduate-guide.pdf');
     }
 
     public function test_an_enrollment_the_upgrade_could_not_place_stays_out_of_the_portal(): void
@@ -767,6 +876,21 @@ class PortalTest extends TestCase
     private function enrollment(): StudentRecord
     {
         return StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+    }
+
+    private function graduatedEnrollment(): StudentRecord
+    {
+        $school = $this->workingSchool();
+        $enrollment = StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'status' => EnrollmentStatus::Graduated,
+        ]);
+        $user = $this->memberOf($school, $enrollment->user);
+        $this->actingAs($user)->withSession([SchoolContext::SESSION_KEY => $school->id]);
+        $this->assertTrue($user->hasRole(Role::Student));
+        $this->assertTrue($user->studentRecord->isGraduated());
+
+        return $enrollment;
     }
 
     /**

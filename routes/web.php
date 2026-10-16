@@ -38,10 +38,10 @@ use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\OvernightLeaveController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\PortalGraduationController;
-use App\Http\Controllers\PortalResultController;
-use App\Http\Controllers\PortalTimetableController;
 use App\Http\Controllers\PortalInvoicesController;
 use App\Http\Controllers\PortalProgramController;
+use App\Http\Controllers\PortalResultController;
+use App\Http\Controllers\PortalTimetableController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolSetupController;
 use App\Http\Controllers\StudentAccountController;
@@ -61,21 +61,6 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the application bootstrap within a group which
-| contains the "web" middleware group. Now create something great!
-|
-| Edit: haha we built something great
-| Should I add easter eggs?
-|
-*/
-
-// The load balancer and the operations dashboard read this.
 Route::get('/health', HealthController::class)->name('health');
 
 Route::get('/install', [InstallationController::class, 'index'])->name('install.index');
@@ -112,27 +97,28 @@ Route::middleware(['guest'])->group(function () {
     Route::post('/invitations/{token}', ['App\Http\Controllers\AccountInvitationController', 'accept'])->name('invitations.accept');
 });
 
-// user must be authenticated
 Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive', 'App\Http\Middleware\EnsurePasswordChange', 'App\Http\Middleware\PreventGraduatedStudent')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
     // Families use portal authorization, not a staff working-school membership.
-    Route::get('portal/overview', ['App\Http\Controllers\PortalOverviewController', 'index'])->name('portal.overview');
-    Route::get('portal/notification-preferences', [NoticeNotificationPreferenceController::class, 'portalEdit'])->name('portal.notification-preferences.edit');
-    Route::get('portal/enrollments/{studentRecord}/results', [PortalResultController::class, 'index'])->name('portal.results.index');
-    Route::get('portal/enrollments/{studentRecord}/timetable', [PortalTimetableController::class, 'show'])->name('portal.timetable.show');
-    Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
-    Route::get('portal/enrollments/{studentRecord}/calendar', ['App\Http\Controllers\PortalCalendarController', 'index'])->name('portal.calendar.index');
-    Route::get('portal/enrollments/{studentRecord}/invoices', [PortalInvoicesController::class, 'index'])->name('portal.invoices.index');
-    Route::get('portal/enrollments/{studentRecord}/documents', ['App\Http\Controllers\PortalDocumentsController', 'index'])->name('portal.documents.index');
-    Route::get('portal/enrollments/{studentRecord}/documents/report-cards/{reportCardSnapshot}', ['App\Http\Controllers\PortalDocumentsController', 'downloadReportCard'])->name('portal.documents.report-cards.download');
-    Route::get('portal/enrollments/{studentRecord}/documents/transcripts/{transcriptSnapshot}', ['App\Http\Controllers\PortalDocumentsController', 'downloadTranscript'])->name('portal.documents.transcripts.download');
-    Route::get('portal/enrollments/{studentRecord}/boarding', ['App\Http\Controllers\PortalBoardingController', 'index'])->name('portal.boarding.index');
-    Route::get('portal/enrollments/{studentRecord}/notices', ['App\Http\Controllers\PortalNoticeController', 'index'])->name('portal.notices.index');
-    Route::get('portal/enrollments/{studentRecord}/library', ['App\Http\Controllers\PortalLibraryController', 'index'])->name('portal.library.index');
-    Route::get('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'index'])->name('portal.requests.index');
-    Route::get('portal/enrollments/{studentRecord}/graduation', [PortalGraduationController::class, 'show'])->name('portal.graduation.show');
-    Route::get('portal/enrollments/{studentRecord}/programmes', [PortalProgramController::class, 'index'])->name('portal.programmes.index');
-    Route::get('portal/enrollments/{studentRecord}/syllabi', ['App\Http\Controllers\PortalSyllabusController', 'index'])->name('portal.syllabi.index');
-    Route::get('notices/{notice}/attachment', NoticeAttachmentController::class)->name('notices.attachments.download');
+    Route::withoutMiddleware(['App\Http\Middleware\PreventGraduatedStudent'])->group(function (): void {
+        Route::get('portal/overview', ['App\Http\Controllers\PortalOverviewController', 'index'])->name('portal.overview');
+        Route::get('portal/notification-preferences', [NoticeNotificationPreferenceController::class, 'portalEdit'])->name('portal.notification-preferences.edit');
+        Route::get('portal/enrollments/{studentRecord}/results', [PortalResultController::class, 'index'])->name('portal.results.index');
+        Route::get('portal/enrollments/{studentRecord}/timetable', [PortalTimetableController::class, 'show'])->name('portal.timetable.show');
+        Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
+        Route::get('portal/enrollments/{studentRecord}/calendar', ['App\Http\Controllers\PortalCalendarController', 'index'])->name('portal.calendar.index');
+        Route::get('portal/enrollments/{studentRecord}/invoices', [PortalInvoicesController::class, 'index'])->name('portal.invoices.index');
+        Route::get('portal/enrollments/{studentRecord}/documents', ['App\Http\Controllers\PortalDocumentsController', 'index'])->name('portal.documents.index');
+        Route::get('portal/enrollments/{studentRecord}/documents/report-cards/{reportCardSnapshot}', ['App\Http\Controllers\PortalDocumentsController', 'downloadReportCard'])->name('portal.documents.report-cards.download');
+        Route::get('portal/enrollments/{studentRecord}/documents/transcripts/{transcriptSnapshot}', ['App\Http\Controllers\PortalDocumentsController', 'downloadTranscript'])->name('portal.documents.transcripts.download');
+        Route::get('portal/enrollments/{studentRecord}/boarding', ['App\Http\Controllers\PortalBoardingController', 'index'])->name('portal.boarding.index');
+        Route::get('portal/enrollments/{studentRecord}/notices', ['App\Http\Controllers\PortalNoticeController', 'index'])->name('portal.notices.index');
+        Route::get('portal/enrollments/{studentRecord}/library', ['App\Http\Controllers\PortalLibraryController', 'index'])->name('portal.library.index');
+        Route::get('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'index'])->name('portal.requests.index');
+        Route::get('portal/enrollments/{studentRecord}/graduation', [PortalGraduationController::class, 'show'])->name('portal.graduation.show');
+        Route::get('portal/enrollments/{studentRecord}/programmes', [PortalProgramController::class, 'index'])->name('portal.programmes.index');
+        Route::get('portal/enrollments/{studentRecord}/syllabi', ['App\Http\Controllers\PortalSyllabusController', 'index'])->name('portal.syllabi.index');
+        Route::get('notices/{notice}/attachment', NoticeAttachmentController::class)->name('notices.attachments.download');
+    });
     Route::get('notice-preferences', [NoticeNotificationPreferenceController::class, 'edit'])->middleware('App\Http\Middleware\RequireActiveSchool')->name('notice-preferences.edit');
     // Organization administration is separate from working-school access.
     Route::get('organizations/{organization}/members', ['App\Http\Controllers\OrganizationMemberController', 'index'])->name('organizations.members.index');
@@ -145,42 +131,35 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         ->parameters(['calendar-templates' => 'calendarTemplate'])
         ->only(['index', 'create', 'edit']);
 
-    // roles a campus writes for itself. Role work is campus work, so it needs
-    // a working school like any other campus screen.
+    // Campus role management requires a working school.
     Route::middleware('App\Http\Middleware\RequireActiveSchool')->group(function () {
         Route::get('roles', ['App\Http\Controllers\CampusRoleController', 'index'])->name('roles.index');
         Route::get('roles/create', ['App\Http\Controllers\CampusRoleController', 'create'])->name('roles.create');
         Route::get('roles/{role}/edit', ['App\Http\Controllers\CampusRoleController', 'edit'])->name('roles.edit');
     });
 
-    // manage school settings
     Route::get('schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings')->middleware('App\Http\Middleware\RequireActiveSchool');
     Route::view('schools/operating-profile', 'pages.school.operating-profile')->name('schools.operating-profile.edit')->middleware('App\Http\Middleware\RequireActiveSchool');
     Route::view('schools/features', 'pages.school.features')->name('schools.features.edit')->middleware('App\Http\Middleware\RequireActiveSchool');
 
-    // School routes
     Route::get('schools/{school}/setup/{step?}', [SchoolSetupController::class, 'show'])->name('schools.setup');
     Route::resource('schools', SchoolController::class);
 
-    // super admin must have school id set
+    // Operational routes require a working school, including for platform administrators.
     Route::middleware(['App\Http\Middleware\RequireActiveSchool'])->group(function () {
         Route::resource('grading-scales', GradingScaleController::class)
             ->parameters(['grading-scales' => 'gradingScale'])
             ->only(['index']);
 
-        // dashboard route
         Route::get('/', function () {
             return view('dashboard');
         })->name('dashboard')->withoutMiddleware(['App\Http\Middleware\PreventGraduatedStudent']);
 
-        // Academic structure. Levels are reusable; cycle sections belong to
-        // one academic cycle and one level.
         Route::resource('academic-levels', AcademicLevelController::class)
             ->parameters(['academic-levels' => 'academicLevel'])
             ->only(['index', 'create', 'show', 'edit']);
 
-        // The roll-forward review page is registered before the resource so
-        // "roll-forward" is not read as a cycle section key.
+        // Register the literal path before the resource wildcard.
         Route::get('academic-cycle-sections/roll-forward', [AcademicCycleSectionController::class, 'rollForwardForm'])
             ->name('academic-cycle-sections.roll-forward.show');
         Route::resource('academic-cycle-sections', AcademicCycleSectionController::class)
@@ -193,32 +172,26 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::post('admissions/waitlist/{admissionWaitlistEntry}/accept', [AdmissionWaitlistController::class, 'accept'])->name('admissions.waitlist.accept');
         Route::post('admissions/waitlist/{admissionWaitlistEntry}/decline', [AdmissionWaitlistController::class, 'decline'])->name('admissions.waitlist.decline');
 
-        // report routes. A report reads whatever period it is given, so it
-        // does not need one to be set first.
+        // Reports select their own period and do not require a working period.
         Route::get('reports', ['App\Http\Controllers\ReportController', 'index'])->name('reports.index');
         Route::get('report-cards', ['App\Http\Controllers\ReportCardController', 'index'])->name('report-cards.index');
         Route::get('report-cards/{reportCardSnapshot}', ['App\Http\Controllers\ReportCardController', 'show'])->name('report-cards.show');
         Route::get('transcripts', ['App\Http\Controllers\TranscriptController', 'index'])->name('transcripts.index');
-        // Attendance is a school-level tool. Turning it off closes both the
-        // register screen and its write endpoint without deleting history.
+
         Route::middleware(['feature:attendance'])->group(function () {
             Route::get('attendance/register', ['App\Http\Controllers\AttendanceRegisterController', 'index'])->name('attendance.register');
             Route::post('attendance/register', ['App\Http\Controllers\AttendanceRegisterController', 'store'])->name('attendance.register.store');
         });
         Route::get('reports/{reportRun}/download', ['App\Http\Controllers\ReportController', 'download'])->name('reports.download');
 
-        // discipline routes. A case is written against the day it happened, so
-        // it does not need a period to be set first. A school that turned
-        // discipline off closes the way in without losing the cases it holds.
+        // Incidents use occurrence dates rather than the working academic period.
         Route::middleware(['feature:discipline'])->group(function () {
             Route::get('incidents', ['App\Http\Controllers\IncidentController', 'index'])->name('incidents.index');
             Route::get('incidents/create', ['App\Http\Controllers\IncidentController', 'create'])->name('incidents.create');
             Route::get('incidents/{incident}', ['App\Http\Controllers\IncidentController', 'show'])->name('incidents.show');
         });
 
-        // wellbeing routes. A plan of help runs across periods, so it does not
-        // need a period to be set first. Health facts are kept apart from the
-        // student profile, because reading a profile must not open them.
+        // Support plans span periods. Health records require separate access from student profiles.
         Route::middleware(['feature:wellbeing'])->group(function () {
             Route::get('support-plans', ['App\Http\Controllers\SupportPlanController', 'index'])->name('support-plans.index');
             Route::get('support-plans/create', ['App\Http\Controllers\SupportPlanController', 'create'])->name('support-plans.create');
@@ -228,9 +201,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('health-records/{studentRecord}', ['App\Http\Controllers\StudentHealthRecordController', 'edit'])->name('health-records.edit');
         });
 
-        // staff routes. Employment is not teaching, so these routes do not need
-        // an academic period. A school that turned staff operations off closes
-        // the way in without losing the records it holds.
+        // Employment records do not depend on an academic period.
         Route::middleware(['feature:staff_operations'])->group(function () {
             Route::get('staff-profiles', ['App\Http\Controllers\StaffProfileController', 'index'])->name('staff-profiles.index');
             Route::get('staff-profiles/create', ['App\Http\Controllers\StaffProfileController', 'create'])->name('staff-profiles.create');
@@ -239,45 +210,32 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('staff-leave', ['App\Http\Controllers\StaffLeaveRequestController', 'index'])->name('staff-leave.index');
         });
 
-        // data sharing routes. Asking, approving, and handing over are three
-        // decisions, and the receiving school still has to take the package in.
-        // Both schools read the request, so these routes are not scoped to one.
+        // Both participating schools can read sharing requests; policies scope access.
         Route::get('data-sharing-requests', ['App\Http\Controllers\DataSharingRequestController', 'index'])->name('data-sharing-requests.index');
         Route::get('data-sharing-requests/create', ['App\Http\Controllers\DataSharingRequestController', 'create'])->name('data-sharing-requests.create');
         Route::get('data-sharing-requests/{dataSharingRequest}', ['App\Http\Controllers\DataSharingRequestController', 'show'])->name('data-sharing-requests.show');
 
-        // portal request routes. A family asks through the portal; the school
-        // reads and answers here. The portal feature gates the family side of
-        // this, not the school's inbox, so a school that closes the portal can
-        // still finish what it was already asked.
+        // Keep the staff inbox available after the family portal closes.
         Route::get('portal-requests', ['App\Http\Controllers\PortalRequestController', 'inbox'])->name('portal-requests.index');
 
-        // Graduation plans remain available when results are published, and
-        // families may read progress only when both school controls are open.
         Route::middleware(['feature:graduation_plans'])->group(function (): void {
             Route::get('graduation-plans', ['App\Http\Controllers\GraduationPlanController', 'index'])->name('graduation-plans.index');
             Route::get('graduation-plans/create', ['App\Http\Controllers\GraduationPlanController', 'create'])->name('graduation-plans.create');
             Route::get('graduation-plans/{graduationPlan}', ['App\Http\Controllers\GraduationPlanController', 'show'])->name('graduation-plans.show');
         });
 
-        // ranking routes. A position is worked out when it is asked for, so
-        // there is nothing to write and nothing to store. A school that does
-        // not rank children closes the screen entirely.
         Route::middleware(['feature:ranking'])->group(function () {
             Route::get('rankings', ['App\Http\Controllers\RankingController', 'index'])->name('rankings.index');
         });
 
-        // calendar routes. An event names its own days, so it does not need a
-        // period to be set first. A school that turned events off closes the
-        // way in without losing the calendar it holds.
+        // Calendar events select their own dates rather than the working academic period.
         Route::middleware(['feature:events'])->group(function () {
             Route::get('calendar-events', ['App\Http\Controllers\CalendarEventController', 'index'])->name('calendar-events.index');
             Route::get('calendar-events/create', ['App\Http\Controllers\CalendarEventController', 'create'])->name('calendar-events.create');
             Route::get('calendar-events/{calendarEvent}', ['App\Http\Controllers\CalendarEventController', 'edit'])->name('calendar-events.edit');
         });
 
-        // cohort and programme routes. A group of people is not a class, so
-        // these routes do not need an academic period.
+        // Cohorts and programmes can span academic periods.
         Route::get('cohorts', ['App\Http\Controllers\CohortController', 'index'])->name('cohorts.index');
         Route::get('cohorts/create', ['App\Http\Controllers\CohortController', 'create'])->name('cohorts.create');
         Route::get('cohorts/{cohort}', ['App\Http\Controllers\CohortController', 'show'])->name('cohorts.show');
@@ -288,16 +246,13 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('programs/{program}', ['App\Http\Controllers\ProgramController', 'show'])->name('programs.show');
         });
 
-        // import routes. An import reads the school, not the period, so it
-        // does not need a period to be set first. A school that turned imports
-        // off closes the way in without losing what it already imported.
+        // Imports use the working school and select their own academic context.
         Route::middleware(['feature:imports'])->group(function () {
             Route::get('imports', ['App\Http\Controllers\ImportController', 'index'])->name('imports.index');
             Route::get('imports/{importBatch}', ['App\Http\Controllers\ImportController', 'show'])->name('imports.show');
         });
 
-        // Exam planning names its own calendar, so it can be prepared for a
-        // draft year before that year becomes the working calendar.
+        // Exam planning selects its own calendar, including draft years.
         Route::post('exams/{exam}/set--active-status', ['App\Http\Controllers\ExamController', 'setExamActiveStatus'])->name('exams.set-active-status');
         Route::resource('exams', ExamController::class)->except(['show', 'store', 'update', 'destroy']);
 
@@ -313,28 +268,22 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 ->parameters(['course-offerings' => 'courseOffering']);
             Route::get('course-offerings/{courseOffering}/gradebook', [GradebookController::class, 'show'])->name('course-offerings.gradebook.show');
 
-            // promotion routes
             Route::get('students/promotions', ['App\Http\Controllers\PromotionController', 'index'])->name('students.promotions');
             Route::get('students/promote', ['App\Http\Controllers\PromotionController', 'promoteView'])->name('students.promote');
             Route::get('students/promotions/{promotion}', ['App\Http\Controllers\PromotionController', 'show'])->name('students.promotions.show');
 
-            // campus move routes. A campus decides the moves arriving at it.
             Route::get('students/campus-moves', ['App\Http\Controllers\CampusMoveRequestController', 'index'])->name('campus-moves.index');
 
-            // graduation routes
             Route::get('students/graduations', ['App\Http\Controllers\GraduationController', 'index'])->name('students.graduations');
             Route::get('students/graduate', ['App\Http\Controllers\GraduationController', 'graduateView'])->name('students.graduate');
 
-            // academic period routes
             Route::get('academic-periods', [AcademicPeriodController::class, 'index'])->name('academic-periods.index');
             Route::get('academic-periods/create', [AcademicPeriodController::class, 'create'])->name('academic-periods.create');
             Route::post('academic-periods', [AcademicPeriodController::class, 'store'])->name('academic-periods.store');
             Route::get('academic-periods/{academicPeriod}/edit', [AcademicPeriodController::class, 'edit'])->name('academic-periods.edit');
             Route::put('academic-periods/{academicPeriod}', [AcademicPeriodController::class, 'update'])->name('academic-periods.update');
 
-            // Finance records use financial periods, not the staff member's
-            // current teaching term. A school can read and post finance while
-            // the academic period is being prepared or changed.
+            // Finance uses financial periods independently of the working teaching term.
             Route::resource('fees/fee-categories', FeeCategoryController::class)->except(['store', 'update', 'destroy']);
             Route::resource('fees/expenses', ExpenseController::class)->only(['index', 'create']);
             Route::resource('fees/cash-deposits', CashDepositController::class)->only(['index', 'create']);
@@ -347,10 +296,9 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::resource('fees', FeeController::class)->except(['store', 'update', 'destroy']);
 
             Route::middleware(['App\Http\Middleware\EnsureAcademicPeriodIsSet'])->group(function () {
-                // shared facility routes
+
                 Route::get('facilities', [FacilityController::class, 'index'])->name('facilities.index');
 
-                // boarding routes
                 Route::middleware('feature:boarding')->group(function (): void {
                     Route::resource('boarding/houses', DormitoryController::class)
                         ->only(['index', 'create', 'show', 'edit'])
@@ -361,7 +309,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                     Route::get('boarding/rolls/{boardingRoll}', [BoardingRollController::class, 'show'])->name('boarding-rolls.show');
                 });
 
-                // library routes
                 Route::middleware('feature:library')->group(function (): void {
                     Route::get('library', [LibraryCopyController::class, 'index'])->name('library-copies.index');
                     Route::get('library/desk', [LibraryLoanController::class, 'index'])->name('library-loans.index');
@@ -375,45 +322,33 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 Route::get('syllabi/{syllabus}/print', [SyllabusController::class, 'print'])->name('syllabi.print');
                 Route::resource('syllabi', SyllabusController::class);
 
-                // timetable route
                 Route::resource('timetables', TimetableController::class)->except(['store', 'update']);
                 Route::resource('custom-timetable-items', CustomTimetableItemController::class)->except(['store', 'update', 'destroy']);
 
-                // manage timetable
                 Route::get('timetables/{timetable}/manage', ['App\Http\Controllers\TimetableController', 'manage'])->name('timetables.manage');
                 Route::get('timetables/{timetable}/print', ['App\Http\Controllers\TimetableController', 'print'])->name('timetables.print');
-
-                // timetable-timeslot route
 
             });
         });
 
-        // student routes
         Route::resource('students', StudentController::class)->except(['store', 'update', 'destroy']);
         Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile')->withoutMiddleware(['App\Http\Middleware\PreventGraduatedStudent']);
 
-        // admin routes
         Route::resource('admins', AdminController::class)->except(['store', 'update', 'destroy']);
 
-        // teacher routes
         Route::resource('teachers', TeacherController::class)->except(['store', 'update', 'destroy']);
 
-        // parent routes
         Route::resource('parents', ParentController::class)->except(['store', 'update', 'destroy']);
         Route::get('parents/{parent}/assign-student-to-parent', ['App\Http\Controllers\ParentController', 'assignStudentsView'])->name('parents.assign-student');
 
-        // account access routes
         Route::get('users/invitations', ['App\Http\Controllers\AccountInvitationController', 'index'])->name('users.invitations.index');
 
-        // academic year routes
         Route::get('academic-years/{academic_year}/setup/{step?}', [AcademicYearSetupController::class, 'show'])->name('academic-years.setup');
         Route::resource('academic-years', AcademicYearController::class)->except(['store', 'update']);
         Route::get('academic-years/{academic_year}/instructional-model', ['App\Http\Controllers\InstructionalModelController', 'edit'])->name('academic-years.instructional-model.edit');
 
-        // subject routes
         Route::resource('subjects', SubjectController::class)->except(['store', 'update', 'destroy']);
 
-        // notice routes
         Route::resource('notices', NoticeController::class)->only(['index', 'create', 'show']);
     });
 });
