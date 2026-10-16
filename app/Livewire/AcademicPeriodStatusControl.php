@@ -105,7 +105,7 @@ class AcademicPeriodStatusControl extends Component
             'periodName' => $this->period instanceof AcademicYear ? $this->period->name : $this->period->displayName,
             'canBeginClosing' => $status === AcademicPeriodStatus::Open && Gate::allows('close', $this->period),
             'canClose' => $status === AcademicPeriodStatus::Closing && Gate::allows('close', $this->period),
-            'canReopen' => $status === AcademicPeriodStatus::Closed && Gate::allows('reopen', $this->period),
+            'canReopen' => in_array($status, [AcademicPeriodStatus::Closing, AcademicPeriodStatus::Closed], true) && Gate::allows('reopen', $this->period),
         ]);
     }
 

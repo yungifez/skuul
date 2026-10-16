@@ -205,6 +205,41 @@ class AcademicPeriodLifecycleTest extends TestCase
         $this->assertSame(2, $year->fresh()->statusChanges()->count());
     }
 
+    public function test_a_closing_period_reopens_without_closing_first(): void
+    {
+        $academicPeriod = $this->openAcademicPeriod();
+        $academicPeriod->update(['status' => AcademicPeriodStatus::Closing]);
+        $this->leaveAnAssessmentUnrecorded($academicPeriod);
+        $this->authorized_user(['close academic period', 'reopen academic period']);
+
+        Livewire::test(AcademicPeriodStatusControl::class, ['period' => $academicPeriod->fresh()])
+            ->assertSee('Reopen')
+            ->call('open', 'reopen')
+            ->call('reopen')
+            ->assertHasErrors(['reason' => 'required'])
+            ->set('reason', 'started closing too early')
+            ->call('reopen')
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertTrue($academicPeriod->fresh()->isOpen());
+    }
+
+    public function test_a_closing_period_offers_no_reopen_without_the_permission(): void
+    {
+        $academicPeriod = $this->openAcademicPeriod();
+        $academicPeriod->update(['status' => AcademicPeriodStatus::Closing]);
+        $this->authorized_user(['close academic period']);
+
+        Livewire::test(AcademicPeriodStatusControl::class, ['period' => $academicPeriod->fresh()])
+            ->assertSee('Close')
+            ->assertDontSee('Reopen')
+            ->call('reopen')
+            ->assertForbidden();
+
+        $this->assertSame(AcademicPeriodStatus::Closing, $academicPeriod->fresh()->status);
+    }
+
     public function test_an_open_year_starts_closing_from_its_screen(): void
     {
         $year = AcademicYear::factory()->create(['school_id' => current_school_id()]);
