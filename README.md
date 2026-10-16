@@ -7,15 +7,16 @@ programmes, facilities, boarding, and library records.
 
 ## Documentation
 
-The documentation site is [yungifez.github.io/skuul.org](https://yungifez.github.io/skuul.org/).
+The documentation site is [skuul.org](https://skuul.org/).
 Its source is [yungifez/skuul.org](https://github.com/yungifez/skuul.org).
+A live demo runs at [demo.skuul.org](https://demo.skuul.org/).
 The guides cover installation, campus setup, user workflows, family access,
 operations, and developer reference.
 
 V3 is being prepared for release. This branch uses Laravel 13 and Livewire 4. Use the **V3**
 guides for this branch. V2 is deprecated. V3 intentionally replaces its application structure and data model.
 The V2 guides describe older releases. Read
-[What's new in V3](https://yungifez.github.io/skuul.org/current/whats-new) and the
+[What's new in V3](https://skuul.org/current/whats-new) and the
 [release notes](https://github.com/yungifez/skuul/releases) before installing
 or updating a released version.
 
@@ -24,7 +25,7 @@ or updating a released version.
 > They do not automatically convert all V2 history. Selected JSON archives do not replace a full database backup.
 > Do not run this as a routine in-place V2 update. Test a specific migration and recovery plan first.
 > The destructive migrations cannot restore deleted data through rollback.
-> Read [Updating](https://yungifez.github.io/skuul.org/current/getting-started/updating#breaking-upgrade-effects) before migrating an existing installation.
+> Read [Updating](https://skuul.org/current/getting-started/updating#breaking-upgrade-effects) before migrating an existing installation.
 
 ## Requirements
 
@@ -94,8 +95,8 @@ vendor/bin/sail artisan queue:work --tries=3
 vendor/bin/sail artisan schedule:work
 ```
 
-See [Deployment](https://yungifez.github.io/skuul.org/current/getting-started/deployment), [Updating](https://yungifez.github.io/skuul.org/current/getting-started/updating),
-and [Backups and monitoring](https://yungifez.github.io/skuul.org/current/operations) for production setup, updates, backups,
+See [Deployment](https://skuul.org/current/getting-started/deployment), [Updating](https://skuul.org/current/getting-started/updating),
+and [Backups and monitoring](https://skuul.org/current/operations) for production setup, updates, backups,
 restore checks, and monitoring.
 
 ## Development checks
@@ -130,7 +131,7 @@ Follow the project instructions in
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for test requirements, bug reports, documentation changes, and release preparation.
 Open-source publication requires passing quality checks and clear breaking-change notes.
-Each operator must complete the deployment and recovery checks in [Backups and monitoring](https://yungifez.github.io/skuul.org/current/operations) for their installation.
+Each operator must complete the deployment and recovery checks in [Backups and monitoring](https://skuul.org/current/operations) for their installation.
 
 ## License
 
