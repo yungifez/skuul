@@ -265,21 +265,13 @@ class TransferPackageBuilder
      */
     private function finance(StudentRecord $enrollment): array
     {
+        /*
+         * Only the sharing campus's own books go out. A sibling campus that is
+         * owed money did not agree to share it with the receiving school.
+         */
         return [
-            'balance' => $this->ledger->balance($enrollment),
-            'unapplied_credit' => $this->ledger->unappliedCredit($enrollment),
-
-            /*
-             * The receiving school reads this as a notice of what is owed, and
-             * to whom. It raises no invoice of its own: money owed to one
-             * organization is not owed to another.
-             */
-            'owed_by_campus' => $this->ledger->balancesByCampus($enrollment)
-                ->map(fn (array $row): array => [
-                    'campus' => $row['school']->name,
-                    'balance' => $row['balance'],
-                ])
-                ->all(),
+            'balance' => $this->ledger->balance($enrollment, $enrollment->school_id),
+            'unapplied_credit' => $this->ledger->unappliedCredit($enrollment, $enrollment->school_id),
         ];
     }
 }

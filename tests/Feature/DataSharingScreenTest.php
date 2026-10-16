@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Finance\PostLedgerTransaction;
 use App\Actions\Sharing\FulfilDataSharingRequest;
 use App\Actions\Sharing\RequestDataSharing;
 use App\Enums\DataCategory;
@@ -9,11 +10,14 @@ use App\Enums\DataSharingStatus;
 use App\Livewire\CreateDataSharingRequestForm;
 use App\Livewire\ShowDataSharingRequest;
 use App\Models\DataSharingRequest;
+use App\Models\FinancialPeriod;
 use App\Models\School;
 use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
 use App\Models\TransferPackage;
 use App\Models\User;
+use App\Services\Finance\ChartOfAccounts;
+use App\Services\Sharing\TransferPackageBuilder;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -495,6 +499,28 @@ class DataSharingScreenTest extends TestCase
      *
      * @param  array<int, DataCategory>  $categories
      */
+    public function test_a_finance_copy_holds_only_the_sharing_campus_books(): void
+    {
+        $sibling = School::factory()->create();
+        $request = $this->requestForThisSchool([DataCategory::Finance]);
+        $enrollment = $request->studentRecord;
+        $chart = app(ChartOfAccounts::class);
+
+        foreach ([$this->workingSchool()->id => 120.0, $sibling->id => 300.0] as $schoolId => $amount) {
+            FinancialPeriod::create(['school_id' => $schoolId, 'name' => 'This year', 'starts_on' => school_today()->subMonth(), 'ends_on' => school_today()->addMonth()]);
+            app(PostLedgerTransaction::class)->post('Fees', [
+                ['account' => $chart->account('fees_receivable', $schoolId), 'debit' => $amount, 'student_record_id' => $enrollment->id],
+                ['account' => $chart->account('tuition_income', $schoolId), 'credit' => $amount],
+            ]);
+        }
+
+        $payload = app(TransferPackageBuilder::class)->build($request);
+
+        $this->assertSame(120.0, $payload['finance']['balance']);
+        $this->assertArrayNotHasKey('owed_by_campus', $payload['finance']);
+        $this->assertStringNotContainsString($sibling->name, json_encode($payload));
+    }
+
     private function requestForThisSchool(array $categories = [DataCategory::Enrollment, DataCategory::AcademicResults]): DataSharingRequest
     {
         $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
