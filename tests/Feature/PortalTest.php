@@ -733,6 +733,58 @@ class PortalTest extends TestCase
             ->assertDontSee('Attendance rate');
     }
 
+    public function test_the_sidebar_lists_each_open_page_of_the_students_own_record(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal, config: [PortalArea::Invoices->value => false]);
+        $enrollment = $this->enrollment();
+        $student = User::query()->findOrFail($enrollment->user_id);
+
+        $this->actingAs($student)
+            ->get(route('portal.attendance.show', $enrollment))
+            ->assertOk()
+            ->assertSee('My school')
+            ->assertSee(route('portal.results.index', $enrollment), false)
+            ->assertSee(route('portal.timetable.show', $enrollment), false)
+            ->assertSee(route('portal.documents.index', $enrollment), false)
+            ->assertDontSee(route('portal.invoices.index', $enrollment), false)
+            ->assertDontSee('Everything of mine');
+    }
+
+    public function test_the_sidebar_follows_the_child_a_guardian_opened(): void
+    {
+        features()->enable(Feature::Portal);
+        $first = $this->enrollment();
+        $second = $this->enrollment();
+        $guardian = $this->guardianOf($first);
+        $guardian->parentRecord->students()->syncWithoutDetaching($second->user);
+        $secondName = User::query()->findOrFail($second->user_id)->name;
+
+        $this->actingAs($guardian)
+            ->get(route('portal.results.index', $second))
+            ->assertOk()
+            ->assertSee($secondName)
+            ->assertSee(route('portal.attendance.show', $second), false)
+            ->assertDontSee(route('portal.attendance.show', $first), false)
+            ->assertSee('Everything of mine');
+
+        $this->actingAs($guardian)
+            ->get(route('portal.overview'))
+            ->assertOk()
+            ->assertSee(route('portal.attendance.show', $second), false);
+    }
+
+    public function test_staff_without_an_enrollment_get_no_school_pages_in_the_sidebar(): void
+    {
+        features()->enable(Feature::Portal);
+        $this->authorized_user(['read school']);
+
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('My school')
+            ->assertDontSee('portal/enrollments/', false);
+    }
+
     public function test_only_a_published_timetable_reaches_the_family(): void
     {
         $this->unauthorized_user();
