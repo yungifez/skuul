@@ -207,6 +207,13 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
+                'text' => 'Graduations',
+                'icon' => 'award',
+                'route' => 'students.graduations',
+                'can' => 'view graduations',
+            ],
+            [
+                'type' => 'menu-item',
                 'text' => 'Programmes',
                 'icon' => 'sparkles',
                 'route' => 'programs.index',

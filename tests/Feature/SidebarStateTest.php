@@ -73,12 +73,13 @@ class SidebarStateTest extends TestCase
 
     public function test_the_sidebar_links_to_report_cards_transcripts_and_promotions(): void
     {
-        $this->authorized_user(['read report', 'read promotion']);
+        $this->authorized_user(['read report', 'read promotion', 'view graduations']);
 
         Livewire::test(Menu::class)
             ->assertSee(route('report-cards.index'))
             ->assertSee(route('transcripts.index'))
-            ->assertSee(route('students.promotions'));
+            ->assertSee(route('students.promotions'))
+            ->assertSee(route('students.graduations'));
     }
 
     public function test_the_sidebar_hides_report_cards_and_promotions_without_permission(): void
@@ -88,7 +89,8 @@ class SidebarStateTest extends TestCase
         Livewire::test(Menu::class)
             ->assertDontSee(route('report-cards.index'))
             ->assertDontSee(route('transcripts.index'))
-            ->assertDontSee(route('students.promotions'));
+            ->assertDontSee(route('students.promotions'))
+            ->assertDontSee(route('students.graduations'));
     }
 
     public function test_multi_page_features_are_grouped_in_the_sidebar(): void
