@@ -33,12 +33,6 @@
             {{ $timetable->academicPeriod?->displayName ?? 'Academic period' }} ·
             recurring events follow the term dates automatically. Select a date to add a one-time slot, or select a slot to place an item.
         </slot:description>
-        <slot:actions>
-            <button type="button" wire:click="openTimeSlotDialog" class="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-                <x-lucide-plus class="mr-2 size-4" />
-                Add time slot
-            </button>
-        </slot:actions>
         <slot:content>
             <div class="space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/20 p-3">
@@ -48,10 +42,16 @@
                         <button type="button" wire:click="nextCalendarPeriod" class="inline-flex size-9 items-center justify-center rounded-md border bg-background hover:bg-muted" aria-label="Next period">›</button>
                         <span class="ml-1 text-sm font-semibold">{{ $this->calendarHeading() }}</span>
                     </div>
-                    <div class="flex rounded-md border bg-background p-1">
-                        @foreach (['day' => 'Day', 'week' => 'Week', 'month' => 'Month'] as $view => $label)
-                            <button type="button" wire:click="setCalendarView('{{ $view }}')" class="rounded px-3 py-1.5 text-sm {{ $calendarView === $view ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted' }}">{{ $label }}</button>
-                        @endforeach
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex rounded-md border bg-background p-1">
+                            @foreach (['day' => 'Day', 'week' => 'Week', 'month' => 'Month'] as $view => $label)
+                                <button type="button" wire:click="setCalendarView('{{ $view }}')" class="rounded px-3 py-1.5 text-sm {{ $calendarView === $view ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted' }}">{{ $label }}</button>
+                            @endforeach
+                        </div>
+                        <button type="button" wire:click="openTimeSlotDialog" class="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                            <x-lucide-plus class="mr-2 size-4" />
+                            Add time slot
+                        </button>
                     </div>
                 </div>
 

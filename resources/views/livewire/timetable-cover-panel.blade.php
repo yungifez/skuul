@@ -37,7 +37,7 @@
                             <select id="lesson" wire:model="lesson" required class="{{ $controlClasses }}" {{ field_error_bindings('lesson') }}>
                                 <option value="">Choose a lesson</option>
                                 @foreach ($lessons as $entry)
-                                    <option value="{{ $entry->timetable_time_slot_id }}:{{ $entry->weekday_id }}">{{ $entry->weekday_name }} · {{ $entry->start_time }}–{{ $entry->stop_time }}</option>
+                                    <option value="{{ $entry->timetable_time_slot_id }}:{{ $entry->weekday_id }}">{{ $entry->weekday_name }} · {{ \Illuminate\Support\Carbon::parse($entry->start_time)->format('H:i') }}–{{ \Illuminate\Support\Carbon::parse($entry->stop_time)->format('H:i') }}{{ $entry->timetableRecordable ? ' · '.$entry->timetableRecordable->name : '' }}</option>
                                 @endforeach
                             </select>
                             <x-field-error name="lesson" class="mt-1" />

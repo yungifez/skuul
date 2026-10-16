@@ -190,9 +190,12 @@ class TimetableCoverPanel extends Component
             ->where('timetable_time_slots.timetable_id', $this->timetable->id)
             ->orderBy('timetable_time_slot_weekday.weekday_id')
             ->orderBy('timetable_time_slots.start_time')
+            ->with('timetableRecordable:id,name')
             ->get([
                 'timetable_time_slot_weekday.timetable_time_slot_id',
                 'timetable_time_slot_weekday.weekday_id',
+                'timetable_time_slot_weekday.timetable_time_slot_weekdayable_id',
+                'timetable_time_slot_weekday.timetable_time_slot_weekdayable_type',
                 'timetable_time_slots.start_time',
                 'timetable_time_slots.stop_time',
                 'weekdays.name as weekday_name',

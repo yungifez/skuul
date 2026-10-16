@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class TimetableRecord extends Pivot
@@ -70,9 +72,11 @@ class TimetableRecord extends Pivot
 
     /**
      * Get the parent timetableRecordable model (subject or custom).
+     *
+     * @return MorphTo<Model, $this>
      */
-    public function timetableRecordable()
+    public function timetableRecordable(): MorphTo
     {
-        return $this->morphTo('timetable_time_slot_weekdayable');
+        return $this->morphTo(__FUNCTION__, 'timetable_time_slot_weekdayable_type', 'timetable_time_slot_weekdayable_id');
     }
 }

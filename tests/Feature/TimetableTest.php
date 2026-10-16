@@ -232,6 +232,19 @@ class TimetableTest extends TestCase
             ->assertSet('newEvent.occurs_on', '2030-09-11');
     }
 
+    public function test_the_create_form_shows_the_add_event_button_and_readable_term_dates(): void
+    {
+        $this->authorized_user(['create timetable']);
+        $period = AcademicPeriod::query()->findOrFail(current_academic_period_id());
+        $period->update(['starts_on' => '2030-09-02', 'ends_on' => '2030-12-20']);
+
+        Livewire::test(CreateTimetableForm::class)
+            ->assertSeeHtml('wire:click="openEventDialog"')
+            ->assertSee('Add event')
+            ->assertSee('2 Sep 2030 to 20 Dec 2030')
+            ->assertDontSee('2030-09-02 to');
+    }
+
     public function test_user_can_create_a_schoolwide_recurring_timetable_with_a_role_event(): void
     {
         $this->authorized_user(['create timetable', 'create schoolwide timetable']);
@@ -864,6 +877,16 @@ class TimetableTest extends TestCase
 
         $this->assertModelMissing($slot);
         $this->assertModelExists($otherSlot);
+    }
+
+    public function test_the_builder_shows_the_add_time_slot_button(): void
+    {
+        [$timetable] = $this->timetableWithOneSlot();
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->assertSeeHtml('wire:click="openTimeSlotDialog"')
+            ->call('openTimeSlotDialog')
+            ->assertSet('showTimeSlotDialog', true);
     }
 
     public function test_the_classic_timetable_write_routes_are_gone(): void

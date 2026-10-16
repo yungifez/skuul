@@ -97,7 +97,7 @@ class CreateTimetableForm extends Component
         $this->calendarDate = $this->selectedPeriod()['starts_on'] ?? school_today()->toDateString();
         $this->cycleSections = AcademicCycleSection::inSchool()
             ->with('academicLevel')->where('academic_year_id', current_academic_year_id())
-            ->where('status', AcademicStructureStatus::Active)->orderBy('position')->orderBy('name')->get()
+            ->where('status', AcademicStructureStatus::Active)->orderedByLevel()->get()
             ->map(fn (AcademicCycleSection $section): array => [
                 'id' => $section->id,
                 'label' => $section->academicLevel->name.' · '.($section->label ?? $section->name),

@@ -29,7 +29,7 @@
                         <label for="academic-period" class="text-sm font-medium">Academic period *</label>
                         <select id="academic-period" wire:model.live="academicPeriodId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                             @foreach ($periods as $period)
-                                <option value="{{ $period['id'] }}">{{ $period['name'] }}{{ $period['starts_on'] ? ' · '.$period['starts_on'].' to '.$period['ends_on'] : '' }}</option>
+                                <option value="{{ $period['id'] }}">{{ $period['name'] }}{{ $period['starts_on'] && $period['ends_on'] ? ' · '.\Illuminate\Support\Carbon::parse($period['starts_on'])->format('j M Y').' to '.\Illuminate\Support\Carbon::parse($period['ends_on'])->format('j M Y') : '' }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -115,12 +115,6 @@
         <april:card>
             <slot:title>Calendar preview</slot:title>
             <slot:description>{{ count($events) }} {{ Str::plural('event', count($events)) }} staged. Click a date to open the event popup.</slot:description>
-            <slot:actions>
-                <button type="button" wire:click="openEventDialog" class="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-                    <x-lucide-plus class="mr-2 size-4" />
-                    Add event
-                </button>
-            </slot:actions>
             <slot:content>
                 <div class="space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/20 p-3">
@@ -130,10 +124,16 @@
                             <button type="button" wire:click="goToCalendarToday" class="inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">Today</button>
                             <span class="ml-1 text-sm font-semibold">{{ $calendarView === 'month' ? $calendarAnchor->format('F Y') : $weekStart->format('j M').' – '.$weekStart->copy()->addDays(6)->format('j M Y') }}</span>
                         </div>
-                        <div class="flex rounded-md border bg-background p-1">
-                            @foreach (['week' => 'Week', 'month' => 'Month'] as $view => $label)
-                                <button type="button" wire:click="setCalendarView('{{ $view }}')" class="rounded px-3 py-1.5 text-sm {{ $calendarView === $view ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted' }}">{{ $label }}</button>
-                            @endforeach
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex rounded-md border bg-background p-1">
+                                @foreach (['week' => 'Week', 'month' => 'Month'] as $view => $label)
+                                    <button type="button" wire:click="setCalendarView('{{ $view }}')" class="rounded px-3 py-1.5 text-sm {{ $calendarView === $view ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted' }}">{{ $label }}</button>
+                                @endforeach
+                            </div>
+                            <button type="button" wire:click="openEventDialog" class="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                                <x-lucide-plus class="mr-2 size-4" />
+                                Add event
+                            </button>
                         </div>
                     </div>
 

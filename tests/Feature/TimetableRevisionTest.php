@@ -298,6 +298,18 @@ class TimetableRevisionTest extends TestCase
         ]);
     }
 
+    public function test_the_cover_form_names_each_lesson_by_its_day_time_and_subject(): void
+    {
+        $this->authorized_user(['read timetable', 'update timetable']);
+        $timetable = $this->timetableWithLesson($this->teacher(), '08:00', '08:50');
+        $subject = TimetableRecord::query()->where('timetable_time_slot_id', $timetable->timeSlots()->firstOrFail()->id)->firstOrFail()->timetableRecordable;
+        app(PublishTimetable::class)->publish($timetable);
+
+        Livewire::test(TimetableCoverPanel::class, ['timetable' => $timetable->fresh()])
+            ->assertSee(Weekday::firstOrFail()->name.' · 08:00–08:50 · '.$subject->name)
+            ->assertDontSee('08:00:00');
+    }
+
     public function test_one_teacher_cannot_cover_two_lessons_at_once(): void
     {
         $this->authorized_user([]);
