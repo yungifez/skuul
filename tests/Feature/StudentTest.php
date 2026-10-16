@@ -612,6 +612,36 @@ class StudentTest extends TestCase
         $this->authorized_user(['view graduations'])->get('dashboard/students/graduations')->assertOk();
     }
 
+    public function test_the_graduation_list_hides_the_graduate_link_from_viewers(): void
+    {
+        $this->authorized_user(['view graduations'])->get('dashboard/students/graduations')
+            ->assertOk()
+            ->assertDontSee('Graduate learners');
+    }
+
+    public function test_the_graduation_list_links_to_the_graduate_form_for_graduators(): void
+    {
+        $this->authorized_user(['view graduations', 'graduate student'])->get('dashboard/students/graduations')
+            ->assertOk()
+            ->assertSee('Graduate learners')
+            ->assertSee(route('students.graduate'), false);
+    }
+
+    public function test_the_promotion_list_hides_the_promote_link_from_viewers(): void
+    {
+        $this->authorized_user(['read promotion'])->get('dashboard/students/promotions')
+            ->assertOk()
+            ->assertDontSee('Promote learners');
+    }
+
+    public function test_the_promotion_list_links_to_the_promote_form_for_promoters(): void
+    {
+        $this->authorized_user(['read promotion', 'promote student'])->get('dashboard/students/promotions')
+            ->assertOk()
+            ->assertSee('Promote learners')
+            ->assertSee(route('students.promote'), false);
+    }
+
     public function test_unauthorized_user_cannot_graduate_student(): void
     {
         $this->unauthorized_user();
