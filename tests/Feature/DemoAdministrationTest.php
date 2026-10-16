@@ -100,7 +100,8 @@ class DemoAdministrationTest extends TestCase
             ->assertSee('Maple Grove Middle School');
         $office->get(route('organizations.index'))
             ->assertOk()
-            ->assertSee('Riverside Unified School District');
+            ->assertSee('Riverside Unified School District')
+            ->assertSee('2 campuses');
     }
 
     public function test_the_demo_parent_reads_an_open_and_an_answered_request(): void

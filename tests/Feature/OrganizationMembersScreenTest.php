@@ -31,7 +31,8 @@ class OrganizationMembersScreenTest extends TestCase
             ->get(route('organizations.members.index', $organization))
             ->assertOk()
             ->assertSee($member->name)
-            ->assertSee($member->email);
+            ->assertSee($member->email)
+            ->assertSee('2 people administer '.$organization->name.'.');
     }
 
     public function test_a_member_without_member_management_cannot_open_the_screen(): void
@@ -124,7 +125,9 @@ class OrganizationMembersScreenTest extends TestCase
         Livewire::actingAs($onlyManager)
             ->test(OrganizationMembers::class, ['organization' => $organization])
             ->call('revoke', $onlyManager->id)
-            ->assertHasErrors('members');
+            ->assertHasErrors('members')
+            ->assertSee('would be left with nobody who can manage its members')
+            ->assertSee('1 person administers '.$organization->name.'.');
 
         $this->assertTrue($onlyManager->fresh()->administersOrganization($organization));
     }

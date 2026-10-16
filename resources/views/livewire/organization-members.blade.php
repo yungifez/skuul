@@ -27,10 +27,14 @@
 
     <april:card>
         <slot:title>Organization administrators</slot:title>
-        <slot:description>{{ $activeMemberships->count() }} people administer {{ $organization->name }}.</slot:description>
+        <slot:description>{{ trans_choice('{1} :count person administers|[2,*] :count people administer', $activeMemberships->count()) }} {{ $organization->name }}.</slot:description>
         <slot:content class="space-y-4">
             @error('members')
-                <april:alert variant="destructive">{{ $message }}</april:alert>
+                <april:alert variant="destructive">
+                    <slot:icon><x-lucide-ban class="size-4" /></slot:icon>
+                    <slot:title>Not done</slot:title>
+                    <slot:description>{{ $message }}</slot:description>
+                </april:alert>
             @enderror
 
             @forelse ($activeMemberships as $membership)

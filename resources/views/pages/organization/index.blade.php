@@ -20,7 +20,7 @@
                 @forelse ($organizations as $organization)
                     <a href="{{ route('organizations.show', $organization) }}" class="rounded-lg border p-5 transition hover:bg-muted/50">
                         <p class="font-semibold">{{ $organization->name }}</p>
-                        <p class="text-sm text-muted-foreground">{{ $organization->schools_count }} campuses</p>
+                        <p class="text-sm text-muted-foreground">{{ trans_choice('{1} :count campus|[0,*] :count campuses', $organization->schools_count) }}</p>
                     </a>
                 @empty
                     <div class="flex flex-col items-start gap-3 text-muted-foreground">
