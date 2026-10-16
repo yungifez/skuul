@@ -610,7 +610,7 @@ class TeachingRecords implements DemoPart
             $syllabuses->saveTopic($syllabus, [
                 'title' => $title,
                 'week' => 1 + intdiv($index * $weeks, count($topics)),
-                'objectives' => 'Students can explain the key ideas of '.lcfirst($title).' and use them in class work.',
+                'objectives' => 'Students can explain the key ideas of the topic "'.$title.'" and use them in class work.',
                 'content' => 'Direct instruction, guided practice in small groups, and an exit ticket at the end of each lesson.',
             ]);
         }
