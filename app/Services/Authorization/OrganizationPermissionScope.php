@@ -9,15 +9,8 @@ use App\Models\OrganizationMembership;
 use App\Models\User;
 
 /**
- * Answer "may this person do this in this organization?".
- *
- * An organization permission needs two things at once: the global Spatie role
- * must carry it, and the person must hold an active membership in that one
- * organization that also carries it. The role says what the profile may ever
- * do; the membership says where, and how much of it was delegated.
- *
- * None of this opens campus records. Operational access still needs an active
- * school membership and a school-scoped permission.
+ * Require both the global role permission and an active organization membership scope.
+ * Campus records still require school membership and school-scoped permissions.
  */
 class OrganizationPermissionScope
 {

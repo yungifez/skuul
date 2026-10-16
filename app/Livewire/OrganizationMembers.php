@@ -20,11 +20,7 @@ use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 /**
- * Manage who administers one organization, and how much of it.
- *
- * Organization scope is not campus access. Granting it here opens the
- * organization screens only; the campus count in each row is the school
- * access the person already had, and revoking scope leaves it alone.
+ * Manage organization scope independently of campus memberships.
  */
 class OrganizationMembers extends Component
 {

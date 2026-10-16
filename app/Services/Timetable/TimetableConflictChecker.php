@@ -19,11 +19,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * Find the clashes that stop a timetable from being published.
- *
- * Two lessons in one room, one teacher in two rooms, or one section in two
- * lessons at the same time are all mistakes that only show up when the whole
- * period is read together.
+ * Check room, teacher, and section conflicts across the whole academic period.
  */
 class TimetableConflictChecker
 {

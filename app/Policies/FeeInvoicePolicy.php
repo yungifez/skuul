@@ -7,9 +7,6 @@ use App\Models\User;
 
 class FeeInvoicePolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user)
     {
         if ($user->can('read fee invoice') && !$this->isPortalOnly($user)) {
@@ -17,9 +14,6 @@ class FeeInvoicePolicy
         }
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, FeeInvoice $feeInvoice)
     {
         if (!$user->can('read fee invoice') || $feeInvoice->school_id !== current_school_id()) {
@@ -43,9 +37,6 @@ class FeeInvoicePolicy
         return false;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user)
     {
         if ($user->can('create fee invoice')) {
@@ -53,9 +44,6 @@ class FeeInvoicePolicy
         }
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, FeeInvoice $feeInvoice)
     {
         if ($user->can('update fee invoice') && $feeInvoice->school_id === current_school_id()) {
@@ -63,9 +51,6 @@ class FeeInvoicePolicy
         }
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, FeeInvoice $feeInvoice)
     {
         if ($user->can('delete fee invoice') && $feeInvoice->school_id === current_school_id()) {
@@ -73,17 +58,11 @@ class FeeInvoicePolicy
         }
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, FeeInvoice $feeInvoice)
     {
         //
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, FeeInvoice $feeInvoice)
     {
         //

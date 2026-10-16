@@ -16,8 +16,6 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureFeatureIsEnabled
 {
     /**
-     * Handle an incoming request.
-     *
      * @param  Closure(Request): Response  $next
      */
     public function handle(Request $request, Closure $next, string $feature): Response

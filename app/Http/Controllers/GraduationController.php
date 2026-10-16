@@ -7,9 +7,6 @@ use Illuminate\Contracts\View\View;
 
 class GraduationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         $this->authorize('ViewAny', Graduation::class);

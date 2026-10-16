@@ -13,11 +13,8 @@ class ListStudentFeeInvoices extends Component
     public $feeInvoices;
 
     /**
-     * List the bills this campus holds for the learner.
-     *
-     * A learner who moved to a campus that bills separately leaves their
-     * unpaid bills behind. The old campus must still see them, so the list
-     * covers every enrollment of the learner, not only the one here.
+     * Read this campus's invoices across the learner's enrollments.
+     * Separate billing preserves debts at the former campus after a move.
      */
     public function mount(): void
     {

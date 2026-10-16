@@ -18,22 +18,15 @@ use Illuminate\Console\Command;
 class ProcessLibraryHolds extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:process-library-holds';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'End library holds nobody collected and pass the copy on';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(CloseReservation $close): int
     {
         $ended = 0;

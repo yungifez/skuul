@@ -47,11 +47,7 @@ class DeclineWaitlistEntry
     }
 
     /**
-     * Withdraw what a learner still waits for at the school they now attend.
-     *
-     * An offer holds its seat. Once the learner sits somewhere in the school,
-     * that seat goes back to the next family instead of waiting for an answer
-     * that can only be a refusal.
+     * Release held seats when the learner enrolls elsewhere in the same school.
      */
     public function withdrawForEnrolled(StudentRecord $enrollment, ?User $actor = null): void
     {

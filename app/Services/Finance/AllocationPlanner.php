@@ -10,11 +10,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
- * Decide which invoice lines a payment settles.
- *
- * A family that hands over part of what it owes expects the oldest bill to
- * clear first. An office that names the lines itself expects the application
- * to obey, and to refuse anything that would overpay a line.
+ * Settle the oldest invoice lines first unless the office supplies allocations.
+ * Reject allocations that overpay a line.
  */
 class AllocationPlanner
 {

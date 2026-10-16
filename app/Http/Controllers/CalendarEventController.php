@@ -6,14 +6,8 @@ use App\Models\CalendarEvent;
 use Illuminate\Contracts\View\View;
 
 /**
- * The school calendar: what is on, and whether the school is open.
- *
- * Adding, changing, publishing and removing a day happen in the Livewire
- * editor.
- *
- * A draft is not a promise. Only a published event reaches the people it
- * names, and only a published holiday or closure shuts the school for
- * attendance and the timetable.
+ * Only published events reach audiences or affect attendance and timetable closures.
+ * Livewire handles calendar edits.
  */
 class CalendarEventController extends Controller
 {

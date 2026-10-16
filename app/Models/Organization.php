@@ -90,12 +90,8 @@ class Organization extends Model
     }
 
     /**
-     * Check whether somebody other than this person can still manage members.
-     *
-     * The last person who can manage members must not be removed, and must not
-     * delegate that permission away, or nobody inside the organization could
-     * grant it back. A suspended or archived account cannot sign in, so it
-     * does not count.
+     * Preserve another active account with authority to manage organization members.
+     * Suspended and archived accounts do not count.
      */
     public function hasAnotherMemberManager(User $except): bool
     {

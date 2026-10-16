@@ -12,14 +12,8 @@ use Illuminate\Support\Arr;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Answer who may move a student between campuses, and who may only ask.
- *
- * Moving a student is tiered. A person with organization authority moves them
- * straight away, because the organization owns both campuses. A campus
- * administrator only asks: the campus that receives the student decides.
- *
- * A campus permission is held per school through Spatie's team scope, so a
- * check against another campus has to name that campus first.
+ * Organization authority permits direct moves; campus authority permits requests.
+ * Check each campus permission in its Spatie team scope.
  */
 class CampusMoveAuthority
 {

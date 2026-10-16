@@ -35,8 +35,6 @@ class User extends Authenticatable implements MustVerifyEmail
     use TwoFactorAuthenticatable;
 
     /**
-     * The attributes that are mass assignable.
-     *
      * @var string[]
      */
     protected $fillable = [
@@ -56,8 +54,6 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
      * @var array<int, string>
      */
     protected $hidden = [
@@ -68,8 +64,6 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * The attributes that should be cast.
-     *
      * @var array<string, string>
      */
     protected $casts = [
@@ -246,11 +240,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Check whether the organization already holds this person's record.
-     *
-     * A past or present place at one of its campuses, or past or present
-     * organization scope, counts. Anybody else is a stranger to it, and their
-     * profile is not the organization's to read or reuse.
+     * Allow profile reuse for past or present campus members and organization administrators.
      */
     public function isKnownToOrganization(Organization|int $organization): bool
     {
@@ -294,12 +284,8 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Check if this person is a learner who no longer attends the given school.
-     *
-     * A learner keeps their membership of a campus they moved away from, so
-     * its staff can still read what they did there. That membership does not
-     * make them a learner of the campus any more. A person with a staff role
-     * is not judged by their enrollments.
+     * Retained membership after a move does not imply current enrollment.
+     * Staff roles take precedence over enrollment status for this check.
      */
     public function isLearnerWhoNoLongerAttends(School|int $school): bool
     {
@@ -363,13 +349,8 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Check whether the account carries power this campus does not own.
-     *
-     * One account signs in everywhere. Whoever controls its password or its
-     * state also controls its roles at other schools, its platform or
-     * organization authority, and its children at schools of another
-     * organization. Learners and families of sibling campuses stay inside
-     * the organization, so their accounts stay manageable here.
+     * Protect accounts whose authority or family links extend beyond this organization.
+     * Changing their password or status affects access across those boundaries.
      */
     public function holdsPowerBeyond(School|int $school): bool
     {
@@ -600,8 +581,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return 'https://www.gravatar.com/avatar/'.$email.'?d=https%3A%2F%2Fui-avatars.com%2Fapi%2F/'.urlencode($name).'/300/EBF4FF/7F9CF5';
     }
-
-    // accessor for birthday
 
     public function getBirthdayAttribute($value): ?string
     {

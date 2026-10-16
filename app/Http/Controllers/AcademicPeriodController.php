@@ -15,9 +15,6 @@ class AcademicPeriodController extends Controller
         private AcademicPeriodService $academicPeriod,
     ) {}
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): RedirectResponse
     {
         $this->authorize('viewAny', AcademicPeriod::class);

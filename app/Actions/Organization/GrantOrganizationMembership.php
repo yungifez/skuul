@@ -23,13 +23,8 @@ class GrantOrganizationMembership
     ) {}
 
     /**
-     * Grant or reactivate organization scope without granting campus access.
-     *
-     * A new membership starts with every organization permission. Reactivating
-     * an ended membership keeps the permissions it was last given, so a
-     * delegated member does not quietly widen on the way back in. Either way,
-     * the member gets no permission the actor lacks. Change the delegation
-     * with `SetOrganizationMemberPermissions`.
+     * Default new memberships to full scope and preserve delegation on reactivation.
+     * Limit both to the actor's authority without granting campus access.
      */
     public function grant(
         User $user,

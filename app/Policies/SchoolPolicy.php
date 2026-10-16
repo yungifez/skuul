@@ -20,9 +20,6 @@ class SchoolPolicy
         private OrganizationPermissionScope $organizationPermissionScope,
     ) {}
 
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user)
     {
         if ($user->can('read school')) {
@@ -30,9 +27,6 @@ class SchoolPolicy
         }
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, School $school)
     {
         if ($this->organizationAllows($user, $school->organization, OrganizationPermission::Read)) {
@@ -50,9 +44,6 @@ class SchoolPolicy
         return null;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user)
     {
         if ($this->systemPermissionScope->allows($user, PlatformPermission::AccessAllSchools)
@@ -63,9 +54,6 @@ class SchoolPolicy
         }
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, School $school)
     {
         if ($this->organizationAllows($user, $school->organization, OrganizationPermission::ManageCampuses)) {
@@ -81,9 +69,6 @@ class SchoolPolicy
         }
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, School $school)
     {
         if ($user->can('delete school')
@@ -93,17 +78,11 @@ class SchoolPolicy
         }
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, School $school)
     {
         //
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, School $school)
     {
         //

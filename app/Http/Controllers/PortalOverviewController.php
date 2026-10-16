@@ -11,12 +11,8 @@ use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 /**
- * Everything one family may read, across every campus at once.
- *
- * A guardian with children at two campuses, or a learner enrolled at two,
- * should not have to know which campus a record lives in before they can find
- * it. This screen reads only: every campus record names its campus, and
- * anything that changes a record happens on that campus's own screens.
+ * Read authorized family records across campuses.
+ * Each record retains its source campus; changes use campus-specific screens.
  */
 class PortalOverviewController extends Controller
 {

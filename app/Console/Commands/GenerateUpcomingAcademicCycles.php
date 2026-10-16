@@ -11,31 +11,20 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
 /**
- * Build next year's calendar before this one runs out.
- *
- * A campus that reaches the last week of its cycle with nothing after it has
- * nowhere to put next term's timetable. The generated cycle is a draft, so
- * staff still read the dates before anybody teaches to them.
+ * Generate upcoming cycles as drafts for staff to review before use.
  */
 class GenerateUpcomingAcademicCycles extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:generate-upcoming-cycles {--dry-run : List what would be generated without writing it}';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'Draft the next academic cycle for campuses whose current one is ending';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(GenerateAcademicCycle $generator): int
     {
         $dryRun = (bool) $this->option('dry-run');
@@ -76,11 +65,8 @@ class GenerateUpcomingAcademicCycles extends Command
     }
 
     /**
-     * Work out when the next cycle should start, or null when it is too early.
-     *
-     * The next cycle starts the day after the current one ends. It is drafted
-     * once the campus is inside the window the organization asked for, and
-     * only when nothing already covers that day.
+     * Draft the next cycle within the configured lead window, starting after the current cycle.
+     * Skip dates already covered by another cycle.
      */
     private function nextCycleStart(School $school, CalendarTemplate $template): ?Carbon
     {

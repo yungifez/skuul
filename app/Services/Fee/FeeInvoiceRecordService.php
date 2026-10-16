@@ -71,11 +71,7 @@ class FeeInvoiceRecordService
     }
 
     /**
-     * Delete a fee invoice record.
-     *
-     * A line that has money against it cannot go. Its allocations say what
-     * that money paid for, and the database removes them with the line, so
-     * the payment would keep its amount while nothing said where it went.
+     * Refuse deletion of paid lines because cascading allocation deletion would erase payment attribution.
      */
     public function deleteFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord): void
     {

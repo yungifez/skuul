@@ -8,20 +8,14 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Read the address the request came in on, before anything else runs.
- *
- * The address is looked up for signed-in people and visitors alike, because
- * the sign-in page itself needs to know whose school it is showing. What the
- * address never does is grant anything: `SetActiveSchool` still checks
- * membership before it opens a campus.
+ * Resolve domain branding for guests and signed-in users before school selection.
+ * SetActiveSchool still checks campus membership.
  */
 class ResolveDomainContext
 {
     public function __construct(private DomainContext $domainContext) {}
 
     /**
-     * Handle an incoming request.
-     *
      * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response

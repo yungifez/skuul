@@ -183,11 +183,7 @@ class UserService
     }
 
     /**
-     * Delete a user, or only remove them from the working school.
-     *
-     * One account serves every school the person belongs to. When another
-     * school still has them, only this school's access ends, so that school
-     * keeps its teacher, parent or learner.
+     * End only working-school access when another school still holds the account.
      */
     public function deleteUser(User $user): void
     {

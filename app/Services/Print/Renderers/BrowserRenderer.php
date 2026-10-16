@@ -8,16 +8,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Printing done by a real browser, running as a separate service.
- *
- * A browser lays a page out the way the staff who wrote the print styles saw
- * it, and it is the only renderer that keeps a document and the screen in
- * step. The service is spoken to over HTTP, so it can be scaled, replaced, or
- * turned off without the application changing.
- *
- * This class expects a Gotenberg-style service: an HTML file posted as
- * `index.html`, PDF bytes returned. Another service is another class beside
- * this one.
+ * Post index.html to a Gotenberg-compatible service and receive PDF bytes.
  */
 class BrowserRenderer implements DocumentRenderer
 {
@@ -29,9 +20,6 @@ class BrowserRenderer implements DocumentRenderer
         return 'browser';
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return 'Browser renderer';

@@ -12,8 +12,6 @@ use Illuminate\Http\Response;
 class PreventGraduatedStudent
 {
     /**
-     * Handle an incoming request.
-     *
      * @param  Closure(Request): (Response|RedirectResponse)  $next
      * @return Response|RedirectResponse
      */

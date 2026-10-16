@@ -5,11 +5,7 @@ namespace App\Services\Finance\Channels;
 use App\Contracts\PaymentChannel;
 
 /**
- * A way to pay that the office records by hand.
- *
- * The money has already arrived by the time anyone opens the application, so
- * there is nothing to confirm with anybody. Cash, cheques, and transfers read
- * off a bank statement all work this way.
+ * Record payments received outside the application without provider confirmation.
  */
 abstract class OfficeChannel implements PaymentChannel
 {

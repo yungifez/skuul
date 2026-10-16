@@ -31,25 +31,16 @@ class SchoolController extends Controller
         $this->authorizeResource(School::class, 'school');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         return view('pages.school.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
         return view('pages.school.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(SchoolStoreRequest $request): RedirectResponse
     {
         $attributes = $request->validated();
@@ -64,17 +55,11 @@ class SchoolController extends Controller
             ->with('success', __('School created successfully. Let’s set up the essentials.'));
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(School $school): View
     {
         return view('pages.school.show', compact('school'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(School $school): View
     {
         return view('pages.school.edit', [
@@ -83,9 +68,6 @@ class SchoolController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(SchoolUpdateRequest $request, School $school): RedirectResponse
     {
         $this->schoolService->updateSchool($school, $request->validated());
@@ -98,9 +80,6 @@ class SchoolController extends Controller
         return back()->with('success', __('School updated successfully'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(School $school): RedirectResponse
     {
         $this->schoolService->deleteSchool($school);

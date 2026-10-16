@@ -18,12 +18,8 @@ use Illuminate\View\View;
 use Livewire\Component;
 
 /**
- * Record money the school has already spent.
- *
- * The form shows what the account the money came from holds in the books. An
- * expense above that needs a second, explicit yes, because it is usually a
- * typing mistake. A transfer, card or cheque needs its reference, so the
- * payment can be found on the bank statement later.
+ * Require confirmation for expenses above the recorded account balance.
+ * Require references for transfer, card, and cheque payments.
  */
 class RecordExpenseForm extends Component
 {

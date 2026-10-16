@@ -1,5 +1,4 @@
-{{-- A report printed as a document. This page stands on its own: it is
-     rendered by a worker, which has no signed-in user to read a school from. --}}
+{{-- Report workers have no signed-in user, so this view receives its school context explicitly. --}}
 <!DOCTYPE html>
 <html lang="en">
 <head>

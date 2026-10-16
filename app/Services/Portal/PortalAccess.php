@@ -13,11 +13,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
 
 /**
- * Say whose records a person may read in the portal, and which areas are open.
- *
- * A student reads their own enrollments. A guardian reads the enrollments of
- * the children they are recorded against. Nobody reads anything else, and no
- * portal read ever depends on a staff permission.
+ * Authorize students through their enrollments and guardians through recorded child links.
+ * Portal access is independent of staff permissions.
  */
 class PortalAccess
 {
@@ -36,14 +33,8 @@ class PortalAccess
     ];
 
     /**
-     * The enrollments a family keeps reading.
-     *
-     * A learner who graduated, transferred, or was withdrawn still has report
-     * cards, transcripts, and perhaps a debt at that school. The family needs
-     * them to enrol elsewhere and to settle up, and has a right to see them.
-     * A suspended learner is still enrolled, and the family needs the
-     * school's notices most then. An archived enrollment was put away by the
-     * school, and stays out.
+     * Keep graduated, transferred, withdrawn, and suspended enrollments available to families.
+     * Exclude archived enrollments.
      */
     private const ReadableStatuses = [
         EnrollmentStatus::Active,

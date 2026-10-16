@@ -1,7 +1,6 @@
 @props(['grantable', 'model' => 'permissions'])
 
-{{-- The permissions of one campus, grouped by the word they end with, which is
-     the thing they are about. --}}
+
 @php
     $groups = collect($grantable)->groupBy(function (string $permission): string {
         $words = explode(' ', $permission);

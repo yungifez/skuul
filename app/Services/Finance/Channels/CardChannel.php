@@ -15,9 +15,6 @@ class CardChannel extends OfficeChannel
         return 'card';
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return 'Card machine';

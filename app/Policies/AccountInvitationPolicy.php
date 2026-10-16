@@ -8,13 +8,8 @@ use App\Services\Authorization\RoleAuthority;
 use App\Services\Identity\AccountInvitationVisibility;
 
 /**
- * Who may read and act on account invitations.
- *
- * Reading is limited by school reach: see
- * App\Services\Identity\AccountInvitationVisibility. Acting adds two rules on
- * top. Nobody may work on their own invitation, and an invitation that was
- * accepted, revoked, or that expired is finished, so it cannot be resent or
- * revoked again.
+ * Scope invitation reads through AccountInvitationVisibility.
+ * Reject self-management and changes to accepted, revoked, or expired invitations.
  */
 class AccountInvitationPolicy
 {

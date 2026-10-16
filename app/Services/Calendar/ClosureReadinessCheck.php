@@ -13,14 +13,8 @@ use App\Services\Gradebook\CourseOfferingRoster;
 use Illuminate\Support\Collection;
 
 /**
- * Work out what is still outstanding before a period can close.
- *
- * The check is read-only and it never closes anything. A person reads the
- * findings, finishes the work or decides to accept it, and confirms the close.
- * That confirmation is the step this application refuses to automate.
- *
- * Finance is deliberately absent. An unpaid invoice does not stop a term from
- * ending, and closing a term must not stop a school from collecting the fee.
+ * Report outstanding work without closing the period. A person confirms closure.
+ * Finance balances do not block academic closure.
  */
 class ClosureReadinessCheck
 {

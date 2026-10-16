@@ -13,12 +13,7 @@ use App\Services\Curriculum\InstructionalModelResolver;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Choose the way a campus teaches an academic cycle.
- *
- * The choice is only a setting before the cycle starts. Once learners,
- * timetables, and results exist against it, changing the model would rewrite
- * what already happened, so this action refuses. A cycle that is running
- * needs the audited migration workflow instead.
+ * Configure future cycles directly. Running cycles require MigrateInstructionalModel.
  */
 class SetInstructionalModel
 {

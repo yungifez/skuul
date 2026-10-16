@@ -1,4 +1,4 @@
-{{-- What one cell of the week holds. --}}
+
 @if ($cell['kind'] === null)
     @if ($cell['active'] ?? true)
         <span class="block max-w-full truncate text-xs text-muted-foreground">Open time slot</span>

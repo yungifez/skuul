@@ -23,14 +23,8 @@ class AssignSchoolToOrganization
     ) {}
 
     /**
-     * Assign a campus to an organization without changing school memberships.
-     *
-     * The billing group, calendar template and shared residences belong to the
-     * organization the campus leaves, so the campus stops using them. It then
-     * bills on its own, follows the new organization's default calendar, and
-     * keeps its houses as houses of its own. An address the old organization
-     * proved no longer opens it. A move still waiting between it and a campus
-     * of another organization can never be made, so it is cancelled.
+     * Detach the former organization's billing group, calendar, residences, and domains.
+     * Cancel pending moves that would cross organizations after the reassignment.
      */
     public function assign(School $school, Organization $organization, ?User $actor = null): School
     {

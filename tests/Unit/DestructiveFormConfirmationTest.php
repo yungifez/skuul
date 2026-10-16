@@ -7,15 +7,8 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
 /**
- * A form that undoes something must say what it undoes.
- *
- * `resources/js/app.js` asks the reader to confirm every form that carries
- * the DELETE method. Without a message of its own that question reads
- * "Delete this item? This action cannot be undone." Several of these forms
- * do not delete anything at all, so the default is both vague and wrong.
- *
- * A form on a screen that already asks the question itself carries
- * `data-confirm="false"`, so the reader is not asked twice.
+ * Require DELETE forms to name the action in data-confirm.
+ * Forms with their own confirmation dialog use data-confirm="false".
  */
 class DestructiveFormConfirmationTest extends TestCase
 {

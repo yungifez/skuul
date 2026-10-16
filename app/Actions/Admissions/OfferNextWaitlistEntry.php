@@ -56,13 +56,8 @@ class OfferNextWaitlistEntry
     }
 
     /**
-     * Get the first waiting candidate who is not enrolled here yet.
-     *
-     * A candidate the school enrolled another way while they waited, say
-     * straight into another section, already has their place. Their entry is
-     * withdrawn, so the offer goes to the next family. A candidate enrolled at
-     * another school keeps waiting, because they join through a move or a
-     * transfer.
+     * Withdraw candidates already enrolled here before offering the next seat.
+     * Candidates enrolled at another school remain eligible for a move or transfer.
      */
     private function nextCandidateNotEnrolledHere(AcademicCycleSection $section, ?User $actor): ?AdmissionWaitlistEntry
     {

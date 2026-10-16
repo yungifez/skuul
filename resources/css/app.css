@@ -4,9 +4,7 @@
 @source "../../resources/**/*.blade.php";
 @source "../../app/**/*.php";
 
-/* Alpine ships the x-cloak directive but no CSS. April UI declares this rule
-   too; keeping it here means the app's own x-cloak markup never depends on a
-   particular April UI version to stay hidden before Alpine starts. */
+/* Keep x-cloak hidden before Alpine starts, independently of April UI. */
 [x-cloak] {
     display: none !important;
 }
@@ -25,14 +23,8 @@
     min-width: 0;
 }
 
-/* April UI paints the "link" button variant and rich-text links with
-   --primary. That token is a surface colour in both themes: a light tan on
-   the light background, a dark brown on the dark one. As text it lands at
-   1.59:1 and 1.73:1, far below the 4.5:1 the WCAG AA minimum asks for.
-   --primary-foreground is the readable half of the same pair, and it holds
-   the same brown hue, so these links keep their look and become legible:
-   12.32:1 on the light background and 8.11:1 on the dark one. Both rules sit
-   outside every layer so they beat the Tailwind utility. */
+/* Use the readable foreground token for links; --primary is a surface color.
+   Keep these rules outside layers to override Tailwind utilities. */
 [data-slot="button"].text-primary,
 [data-slot="editor-content"] .tiptap a {
     color: hsl(var(--primary-foreground));
@@ -119,14 +111,8 @@
     border-top: 1px solid hsl(var(--border));
 }
 
-/* April UI paints destructive text with --destructive. On the dark theme that
-   red measures 4.3:1 on a card and 3.61:1 on an accent surface, under the
-   4.5:1 WCAG AA minimum. --destructive doubles as a button background there,
-   so lightening the token itself would repaint those buttons. This second
-   token is for text only. At 68% lightness the red clears 4.5:1 on every dark
-   surface the app uses, the worst being 5.00:1 on bg-accent. The light theme
-   already passes, so it keeps the token it has. Both rules sit outside every
-   layer so they beat the Tailwind utility. */
+/* Use a separate dark-theme text token to meet 4.5:1 contrast without changing button backgrounds.
+   Keep these rules outside layers to override Tailwind utilities. */
 :root {
     --destructive-text: var(--destructive);
 }
@@ -139,14 +125,8 @@
     color: hsl(var(--destructive-text));
 }
 
-/* April UI binds --ring to --primary, which is a surface colour, so the focus
-   ring it paints is nearly the colour of the page. It measures 1.59:1 on the
-   light theme and 1.73:1 on the dark one, against the 3:1 WCAG 2.2 asks of a
-   focus indicator. A reader moving by keyboard could not see where the focus
-   had gone. --primary-foreground is the readable half of the same pair and
-   holds the same brown hue, so the ring keeps its look. It clears 3:1 on every
-   surface in both themes, the worst being 6.37:1 on a dark accent. Both rules
-   sit outside every layer so they beat the Tailwind utility. */
+/* Use the foreground token for focus rings to meet 3:1 contrast in both themes.
+   Keep these rules outside layers to override Tailwind utilities. */
 :root {
     --ring: var(--primary-foreground);
 }
@@ -155,17 +135,8 @@
     --ring: var(--primary-foreground);
 }
 
-/* Five checkboxes across four screens carry no class of their own, so the
-   browser paints them itself. Chrome draws them 13px wide in the operating
-   system accent colour, which is blue, on a page whose every other accent is
-   warm brown. They also sit beside hand-painted checkboxes of the same
-   meaning, 16px wide and brown, so one screen shows two kinds of the same
-   control. accent-color repaints the ones the browser still draws; the
-   hand-painted ones set appearance to none, and a browser ignores accent-color
-   once it does, so they are untouched. Every sized checkbox in the app is 1rem
-   already, so the size rule only grows the unstyled ones to match. Both rules
-   sit outside every layer so they beat the Tailwind utility. A switch draws
-   its own track, so it keeps the size its classes give it. */
+/* Match native checkbox size and color to custom controls.
+   Exclude switches, which draw their own tracks. Override utilities outside layers. */
 input[type="checkbox"]:not([role="switch"]),
 input[type="radio"] {
     accent-color: hsl(var(--primary-foreground));

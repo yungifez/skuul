@@ -16,11 +16,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Give a teacher a course offering to teach, and record when it started.
- *
- * Several teachers can share an offering, each in their own part, so an
- * assignment is a record instead of a row in a pivot table. An assignment
- * ends by taking an end date, which keeps last year's timetable readable.
+ * Keep dated assignments for co-teaching and historical timetable reads.
  */
 class AssignTeacher
 {

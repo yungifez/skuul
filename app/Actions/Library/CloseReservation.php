@@ -11,12 +11,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * End a reservation, and pass the copy to the next person waiting.
- *
- * A reservation ends when it is collected, when the person gives it up, or
- * when nobody came for it in time. In every case the copy it was holding goes
- * straight to whoever is next, so a book is never left behind the desk for
- * somebody who is not coming.
+ * Keep the borrowed copy on collected reservations.
+ * Release cancelled or expired holds and serve the next reservation.
  */
 class CloseReservation
 {

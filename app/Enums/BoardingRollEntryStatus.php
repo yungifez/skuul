@@ -14,9 +14,6 @@ enum BoardingRollEntryStatus: string
     case Unaccounted = 'unaccounted';
     case NotRecorded = 'not_recorded';
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {

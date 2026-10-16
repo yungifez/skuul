@@ -30,11 +30,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Enter the marks for one assessment, then send each learner's result on.
- *
- * The sheet remembers every mark as it read it. When somebody else changed a
- * mark in the meantime, saving over it needs a second press, so two teachers
- * of one class never overwrite each other without knowing.
+ * Detect marks changed since the sheet loaded. Require confirmation before overwriting them.
  */
 class GradebookMarkSheet extends Component
 {

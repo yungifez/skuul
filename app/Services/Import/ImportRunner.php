@@ -18,11 +18,8 @@ use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /**
- * Check an import, show what it will do, then write it.
- *
- * Nothing is written until the school asks for it, and a row that fails never
- * stops the rows around it. A row that names an outside identifier writes the
- * same record every time, so the same file can be imported twice.
+ * Validate and preview before applying imports; isolate row failures.
+ * Reuse source identifiers to make repeated imports update the same records.
  */
 class ImportRunner
 {

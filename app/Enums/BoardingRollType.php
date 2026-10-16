@@ -11,9 +11,6 @@ enum BoardingRollType: string
     case Evening = 'evening';
     case Curfew = 'curfew';
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {

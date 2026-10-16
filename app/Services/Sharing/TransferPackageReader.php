@@ -8,11 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
- * Lay a received package out for the school that asked for it.
- *
- * The package is a copy another school built from its own records, so its
- * internal ids mean nothing here and are left out. Each category the request
- * named becomes one section, in the order the request named them.
+ * Present requested categories without treating source-school IDs as local IDs.
  */
 class TransferPackageReader
 {

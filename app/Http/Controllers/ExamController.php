@@ -18,25 +18,16 @@ class ExamController extends Controller
         $this->authorizeResource(Exam::class, 'exam');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         return view('pages.exam.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
         return view('pages.exam.create');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Exam $exam): View
     {
         return view('pages.exam.edit', compact('exam'));
@@ -48,7 +39,6 @@ class ExamController extends Controller
     public function setExamActiveStatus(Exam $exam, UpdateExamStatusRequest $request): RedirectResponse
     {
         $this->authorize('update', $exam);
-        // get status from request
         $status = $request->status;
         $this->examService->setExamActiveStatus($exam, $status);
 

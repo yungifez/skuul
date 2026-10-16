@@ -19,9 +19,6 @@ class SendAcademicCalendarReminders extends Command
 
     protected $description = 'Send staff calendar reminders before periods start or need closure';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(): int
     {
         $sent = 0;

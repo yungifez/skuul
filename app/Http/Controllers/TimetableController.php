@@ -18,25 +18,16 @@ class TimetableController extends Controller
         $this->authorizeResource(Timetable::class, 'timetable');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         return view('pages.timetable.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
         return view('pages.timetable.create');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Timetable $timetable): View
     {
         return view('pages.timetable.show', compact('timetable'));
@@ -54,17 +45,11 @@ class TimetableController extends Controller
         return $this->timetableService->printTimetable($data['timetable']->name, 'pages.timetable.print', $data);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Timetable $timetable): View
     {
         return view('pages.timetable.edit', compact('timetable'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Timetable $timetable): RedirectResponse
     {
         $this->timetableService->deleteTimetable($timetable);

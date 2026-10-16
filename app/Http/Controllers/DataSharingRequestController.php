@@ -7,11 +7,7 @@ use App\Models\DataSharingRequest;
 use Illuminate\Contracts\View\View;
 
 /**
- * Ask another school for a learner's records, and answer such a request.
- *
- * Asking, approving, and handing over are three separate decisions, and the
- * receiving school still has to take the package in. Nothing crosses a school
- * boundary because one person clicked once.
+ * Keep sharing request, approval, fulfilment, and receipt as separate workflow steps.
  */
 class DataSharingRequestController extends Controller
 {

@@ -112,13 +112,8 @@ class ApplyStudentCredit
     }
 
     /**
-     * Get the money the school holds for this student, in minor units.
-     *
-     * The campus's own books say what it holds. A campus with separate books
-     * never counts money another campus took, and credit carried inside a
-     * billing group stays where the move carried it, even after the group
-     * changes. The learner's unused payments cap the figure, so the books
-     * and the receipts can never disagree upwards.
+     * Return credit in minor units, scoped to the campus ledger.
+     * Cap it at unused payment amounts, including credit carried through a billing group.
      */
     public function creditHeld(StudentRecord $enrollment, ?int $schoolId = null): int
     {

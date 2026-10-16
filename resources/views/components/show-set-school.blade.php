@@ -12,9 +12,7 @@
             <span class="hidden truncate lg:inline">{{ $school->address }}</span>
         </span>
     @else
-        {{-- Permissions are school-scoped, so a person with no working school
-             cannot pass a `can()` check. Anyone who sees this chip already holds
-             access to more than one school, so always offer the way to choose. --}}
+        {{-- School permissions need a working school. Offer the selector before checking them. --}}
         <a href="{{ route('schools.index') }}"
             class="flex shrink-0 items-center gap-1.5 rounded-md bg-amber-500/10 px-2 py-1 text-sm font-medium text-amber-600 transition-colors hover:bg-amber-500/20 dark:text-amber-400">
             <x-lucide-map-pin class="size-3.5 shrink-0" />

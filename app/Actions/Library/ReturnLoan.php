@@ -106,13 +106,7 @@ class ReturnLoan
     }
 
     /**
-     * Put the fine on the borrower's account.
-     *
-     * Only a learner has a fee account. A member of staff who keeps a book
-     * too long is a conversation, not a charge.
-     *
-     * The library that lent the book is owed the fine, even when the learner
-     * has since moved to another campus of the organization.
+     * Bill fines only to learner accounts at the lending campus, including after a campus move.
      */
     private function chargeTheFine(LibraryLoan $loan, int $fine, ?User $actor): void
     {

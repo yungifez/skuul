@@ -23,9 +23,6 @@ class SyllabusController extends Controller
         $this->authorizeResource(Syllabus::class, 'syllabus');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         $isReviewer = auth()->user()?->can('approve syllabus') ?? false;
@@ -42,17 +39,11 @@ class SyllabusController extends Controller
         return view('pages.syllabus.index', compact('awaitingReview', 'lessonNotesAwaitingReview'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
         return view('pages.syllabus.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreSyllabusRequest $request): RedirectResponse
     {
         $syllabus = $this->syllabus->createSyllabus($request->validated());
@@ -60,9 +51,6 @@ class SyllabusController extends Controller
         return redirect()->route('syllabi.edit', $syllabus)->with('success', 'Syllabus draft created. Add the weekly topics, then send it for review.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Syllabus $syllabus): View
     {
         $syllabus->load('courseOffering.subject', 'courseOffering.academicPeriod', 'courseOffering.academicLevel', 'topics', 'revisionOf', 'publishedBy', 'submittedBy');
@@ -81,9 +69,6 @@ class SyllabusController extends Controller
         return PrintService::page('pages.syllabus.print', compact('syllabus'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Syllabus $syllabus): View|RedirectResponse
     {
         if ($syllabus->status !== SyllabusStatus::Draft) {
@@ -95,9 +80,6 @@ class SyllabusController extends Controller
         return view('pages.syllabus.edit', compact('syllabus'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateSyllabusRequest $request, Syllabus $syllabus): RedirectResponse
     {
         $this->syllabus->updateDraft($syllabus, [
@@ -108,9 +90,6 @@ class SyllabusController extends Controller
         return redirect()->route('syllabi.edit', $syllabus)->with('success', 'Syllabus details saved.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Syllabus $syllabus): RedirectResponse
     {
         $this->syllabus->deleteSyllabus($syllabus);

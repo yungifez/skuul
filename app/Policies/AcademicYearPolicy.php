@@ -19,9 +19,6 @@ class AcademicYearPolicy
         private OrganizationPermissionScope $organizationPermissionScope,
     ) {}
 
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user)
     {
         if ($user->can('read academic year') || $user->can('read academic period')) {
@@ -29,9 +26,6 @@ class AcademicYearPolicy
         }
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, AcademicYear $academicYear)
     {
         if (($user->can('read academic year') || $user->can('read academic period')) && current_school_id() === $academicYear->school_id) {
@@ -39,9 +33,6 @@ class AcademicYearPolicy
         }
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user)
     {
         if ($user->can('create academic year')) {
@@ -49,9 +40,6 @@ class AcademicYearPolicy
         }
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, AcademicYear $academicYear)
     {
         if ($user->can('update academic year') && current_school_id() == $academicYear->school_id) {
@@ -59,9 +47,6 @@ class AcademicYearPolicy
         }
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, AcademicYear $academicYear)
     {
         if ($user->can('delete academic year') && current_school_id() == $academicYear->school_id) {
@@ -69,17 +54,11 @@ class AcademicYearPolicy
         }
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, AcademicYear $academicYear)
     {
         //
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, AcademicYear $academicYear)
     {
         //
@@ -137,11 +116,7 @@ class AcademicYearPolicy
     }
 
     /**
-     * Determine whether the user can choose how the campus teaches the cycle.
-     *
-     * A campus administrator holds `manage school settings` in the campus
-     * being worked in. An organization administrator who manages campuses may
-     * set it up before anybody works there.
+     * Allow campus settings authority or organization authority to configure a future cycle.
      */
     public function setInstructionalModel(User $user, AcademicYear $academicYear): ?bool
     {
@@ -157,11 +132,7 @@ class AcademicYearPolicy
     }
 
     /**
-     * Determine whether the user can move a running cycle to another model.
-     *
-     * This is deliberately not the settings permission. Choosing the model of
-     * a cycle that has not started is setup; moving one learners already work
-     * in changes what staff are asked for mid-year, so it is held separately.
+     * Require separate migration authority for model changes to a running cycle.
      */
     public function migrateInstructionalModel(User $user, AcademicYear $academicYear): ?bool
     {

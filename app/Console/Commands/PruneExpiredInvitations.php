@@ -14,22 +14,15 @@ use Illuminate\Console\Command;
 class PruneExpiredInvitations extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:prune-expired-invitations';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'Revoke account invitations that expired';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(): int
     {
         $revoked = AccountInvitation::query()

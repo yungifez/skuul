@@ -1,8 +1,4 @@
-{{--
-    Pagination for pages the server renders. The datatable view next to this one
-    posts back with `wire:click`, which does nothing outside a Livewire
-    component, so a plain Blade page needs links instead.
---}}
+{{-- Use links on controller-rendered pages; wire:click pagination requires Livewire. --}}
 <div>
     @if ($paginator->hasPages())
         <nav role="navigation" aria-label="Pagination Navigation" class="flex flex-wrap items-center justify-between gap-3">

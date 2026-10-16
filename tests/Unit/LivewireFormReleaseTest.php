@@ -5,17 +5,13 @@ namespace Tests\Unit;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The bundle disables a form's buttons on submit to stop a double submit.
- * A wire:submit form is answered over AJAX, so the page never navigates and
- * neither pageshow nor livewire:navigated ever fires. Something has to hand
- * those buttons back, or the form dies after its first submit.
+ * Livewire submits without navigation. Release disabled buttons after each request.
  */
 class LivewireFormReleaseTest extends TestCase
 {
     public function test_the_submit_guard_still_disables_the_buttons_it_must_release(): void
     {
-        // If this guard goes away the release below has nothing to undo, and
-        // the rest of this test would pass while protecting nothing.
+        // Verify the submit guard exists so release assertions cannot pass without it.
         $bundle = $this->bundle();
 
         $this->assertStringContainsString('form.dataset.submitting = "true";', $bundle);
@@ -35,8 +31,7 @@ class LivewireFormReleaseTest extends TestCase
 
     public function test_the_release_only_touches_forms_livewire_answers_itself(): void
     {
-        // A plain form submits by navigating. Freeing its buttons mid-flight
-        // would let the reader send the same request twice.
+        // Native forms stay disabled until navigation completes to prevent duplicate submits.
         $release = $this->body('function releaseLivewireForms()');
 
         $this->assertStringContainsString('if (isLivewireForm(form))', $release);
@@ -45,8 +40,7 @@ class LivewireFormReleaseTest extends TestCase
 
     public function test_the_hook_is_registered_before_livewire_starts(): void
     {
-        // Livewire.start() fires livewire:init. A listener added after the
-        // call never hears it, and the hook is never registered.
+        // Livewire.start() fires livewire:init, so register the listener first.
         $bundle = $this->bundle();
         $listener = strpos($bundle, 'document.addEventListener("livewire:init"');
 
@@ -60,8 +54,7 @@ class LivewireFormReleaseTest extends TestCase
 
     public function test_every_livewire_form_in_the_views_is_covered_by_the_release(): void
     {
-        // The release matches on the attribute name. A form written any other
-        // way, such as wire:submit.prevent, still has to be caught.
+        // Attribute modifiers such as wire:submit.prevent must also match.
         foreach ($this->livewireFormAttributes() as $attribute) {
             $this->assertStringStartsWith(
                 'wire:submit',

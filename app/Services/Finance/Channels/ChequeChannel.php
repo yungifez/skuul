@@ -15,9 +15,6 @@ class ChequeChannel extends OfficeChannel
         return 'cheque';
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return 'Cheque';

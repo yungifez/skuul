@@ -14,11 +14,7 @@ use App\Models\LibraryTitle;
 use App\Models\User;
 
 /**
- * Keep a copy behind the desk for whoever is next in the queue.
- *
- * This runs when a copy comes back and when somebody joins a queue for a title
- * that has a copy on the shelf. Either way the rule is the same: the copy goes
- * to the person who has waited longest, and it waits for them for a few days.
+ * Hold an available copy for the oldest reservation until its collection deadline.
  */
 class HoldCopyForNextInQueue
 {

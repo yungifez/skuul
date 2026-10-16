@@ -15,15 +15,8 @@ use App\Services\Student\StudentService;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Move a student to another school without losing the first school's records.
- *
- * A transfer closes the enrollment in the old school and opens a new one in
- * the new school. The old enrollment keeps its history and stays readable; the
- * new enrollment names the one it continues.
- *
- * A transfer crosses organizations. Two schools of one organization are two
- * campuses, and moving between them keeps a single enrollment, which is what
- * `MoveEnrollmentBetweenCampuses` does.
+ * Cross-organization transfers close the old enrollment and link a new one to it.
+ * Use MoveEnrollmentBetweenCampuses for moves within one organization.
  */
 class TransferEnrollment
 {

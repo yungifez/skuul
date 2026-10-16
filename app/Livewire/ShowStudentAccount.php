@@ -22,14 +22,8 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * One student's money: what they owe, what they paid, what is held for them.
- *
- * Every figure is worked out from the payments and the books. Nothing on this
- * screen edits a payment; a mistake is taken back with a reversal.
- *
- * The screen reads the books of the campus it is opened at. A campus with its
- * own books keeps a learner's account after they move on, so it can still
- * collect what it is owed and give back what it holds.
+ * Read the learner's balances from this campus's ledger, including after a move.
+ * Correct payments through reversals.
  */
 class ShowStudentAccount extends Component
 {

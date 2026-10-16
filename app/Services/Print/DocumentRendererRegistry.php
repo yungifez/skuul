@@ -8,11 +8,7 @@ use App\Services\Print\Renderers\BrowserRenderer;
 use App\Services\Print\Renderers\DomPdfRenderer;
 
 /**
- * The renderers this application can print with.
- *
- * The installation names the one it wants. An installation that names nothing,
- * or names a renderer that is not set up, still prints: the built-in renderer
- * is the last one on the list and is always available.
+ * Fall back to Dompdf when the configured renderer is unavailable.
  */
 class DocumentRendererRegistry
 {

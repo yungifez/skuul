@@ -133,12 +133,8 @@ if (!function_exists('feature_enabled')) {
 
 if (!function_exists('sidebar_open')) {
     /**
-     * Check if the sidebar should render open.
-     *
-     * April UI stores the choice in a plain cookie, which bootstrap/app.php
-     * keeps out of cookie encryption. Pass the result to the sidebar as
-     * defaultOpen so the first paint matches the last choice. The sidebar
-     * opens when nothing is stored yet.
+     * Read April UI's unencrypted sidebar cookie to match the initial open state.
+     * Default to open when no choice is stored.
      */
     function sidebar_open(): bool
     {
@@ -235,11 +231,7 @@ if (!function_exists('field_error_id')) {
 
 if (!function_exists('field_error_key')) {
     /**
-     * Read the validation key a form control is bound to.
-     *
-     * A control names its field with name="..." or with wire:model. HTML array
-     * syntax and Livewire dot syntax name the same field two ways, so reduce
-     * both to the key the validator uses.
+     * Normalize HTML array names and Livewire bindings to validation keys.
      */
     function field_error_key(?string $name): ?string
     {
@@ -311,15 +303,8 @@ if (!function_exists('april_field_error_attributes')) {
 
 if (!function_exists('money_text')) {
     /**
-     * Write an amount in the school's currency.
-     *
-     * Every money figure on a screen has to name its currency. A model that
-     * casts to `Money` formats itself, but a figure that arrives as a plain
-     * number, such as a sum or a decimal column, has nothing to format it.
-     * Both routes must read the same, so this uses the same locale format.
-     *
-     * Pass a major amount: 250000 means two hundred and fifty thousand, not
-     * two thousand five hundred.
+     * Format major currency units with the locale used by Money casts.
+     * For example, 250000 means 250,000 currency units, not 2,500.
      */
     function money_text(BrickMoney|float|int|string|null $amount): string
     {
@@ -370,12 +355,8 @@ if (!function_exists('school_now')) {
 
 if (!function_exists('school_today')) {
     /**
-     * Get the date it is now at a school.
-     *
-     * Near midnight the server's date and the school's date differ. Bills,
-     * receipts and registers carry the school's date. The date comes back at
-     * midnight in the application's zone, the way date columns are kept, so
-     * it compares and saves like `today()`.
+     * Use the school's local date, represented at midnight in the application timezone.
+     * This keeps date-only storage and comparisons consistent with today().
      */
     function school_today(School|int|null $school = null): Carbon
     {

@@ -8,15 +8,8 @@ use App\Models\InstructionalModelSetting;
 use App\Models\School;
 
 /**
- * Say how a campus teaches one academic cycle.
- *
- * A campus that never chose reads as `InstructionalModel::default()`, so
- * every cycle recorded before the setting existed keeps working. Nothing here
- * writes: `App\Actions\Curriculum\SetInstructionalModel` is the way in.
- *
- * Answers are kept for the request. A screen that lists cycles calls
- * `preloadForSchool()` first and then reads every row without a query of its
- * own.
+ * Default unset cycles to InstructionalModel::default() and cache answers per request.
+ * Preload listed cycles to avoid per-row queries. Write through SetInstructionalModel.
  */
 class InstructionalModelResolver
 {

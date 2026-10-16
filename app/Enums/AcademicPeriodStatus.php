@@ -3,15 +3,8 @@
 namespace App\Enums;
 
 /**
- * The states of an academic period.
- *
- * A period is the reporting boundary for placements, timetables, and results.
- * Closing it freezes those records; reopening it needs permission and leaves
- * an audit record.
- *
- * Finance is deliberately outside this lifecycle. Closing a period must never
- * close an invoice, a payment, or a ledger transaction: a school still collects
- * last term's fees after the term ends.
+ * Frozen academic periods block academic writes. Reopening requires an audit record.
+ * Finance periods follow a separate lifecycle.
  */
 enum AcademicPeriodStatus: string
 {
@@ -46,9 +39,6 @@ enum AcademicPeriodStatus: string
      */
     case Archived = 'archived';
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {

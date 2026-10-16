@@ -17,9 +17,6 @@ enum DormitoryBedStatus: string
 
     case Retired = 'retired';
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {

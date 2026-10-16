@@ -18,11 +18,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Give a learner a bed, or take their boarding place away.
- *
- * Two people admitting boarders at once must never put two children in one
- * bed, so the bed is locked while the place is written. Giving the same bed
- * to the same learner again changes nothing, so a retry is safe.
+ * Lock beds to prevent duplicate occupancy. Repeating the same assignment changes nothing.
  */
 class AssignBoardingPlace
 {
@@ -136,11 +132,7 @@ class AssignBoardingPlace
     }
 
     /**
-     * Cancel the nights away a learner who left the house had not begun.
-     *
-     * A night away is leave from the house. Without a bed there is nothing to
-     * leave, so a request still waiting, or a night not yet begun, would only
-     * sit on the house's list.
+     * Cancel pending and future overnight leave when the learner no longer has a boarding place.
      */
     private function cancelNightsAwayStillAhead(StudentRecord $enrollment, int $schoolId, string $reason, ?User $actor): void
     {

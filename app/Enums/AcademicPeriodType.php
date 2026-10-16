@@ -3,11 +3,7 @@
 namespace App\Enums;
 
 /**
- * The kind of period inside an academic cycle.
- *
- * A school divides its year the way its calendar requires. The application
- * stores the choice instead of assuming academic periods. The type says what a period
- * is for; the local label on the period says what the school calls it.
+ * Identify a period's purpose independently of its local display label.
  */
 enum AcademicPeriodType: string
 {
@@ -51,9 +47,6 @@ enum AcademicPeriodType: string
      */
     case Other = 'other';
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {

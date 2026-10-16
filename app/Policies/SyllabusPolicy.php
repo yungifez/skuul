@@ -16,17 +16,11 @@ class SyllabusPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
         return $user->can('read syllabus') && !$user->isParentPortalOnly();
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Syllabus $syllabus): bool
     {
         if (!$user->can('read syllabus')
@@ -48,9 +42,6 @@ class SyllabusPolicy
             && app(CourseOfferingRoster::class)->includes($syllabus->courseOffering, $enrollment);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
         return $user->can('create syllabus') && !$user->isPortalOnly();
@@ -178,17 +169,11 @@ class SyllabusPolicy
             ->exists();
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Syllabus $syllabus)
     {
         //
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Syllabus $syllabus)
     {
         //

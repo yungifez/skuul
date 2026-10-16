@@ -17,11 +17,7 @@ use Livewire\WithPagination;
 use RuntimeException;
 
 /**
- * Manage the invitation links issued for people's sign-in accounts.
- *
- * The screen reads only the invitations the administrator is responsible for.
- * The token, the email, and the expiry stay in the identity actions; this
- * component asks them to work and reports what happened.
+ * Scope invitation lists to the administrator's authority; delegate changes to identity actions.
  */
 class ListAccountInvitations extends Component
 {

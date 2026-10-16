@@ -24,11 +24,8 @@ use Illuminate\View\View;
 use Livewire\Component;
 
 /**
- * Answer how a campus teaches one school year, and record where a subject differs.
- *
- * A year that has not started takes the answer directly. A running year moves
- * only through a recorded mid-year move, and an exception lets one subject
- * teach outside the answer without moving it.
+ * Configure future cycles directly and migrate running cycles with an audit record.
+ * Offering exceptions leave the cycle's model unchanged.
  */
 class ManageInstructionalModel extends Component
 {

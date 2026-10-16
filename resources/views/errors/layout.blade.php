@@ -1,10 +1,4 @@
-{{--
-    The page a person sees when a request fails.
-
-    It uses only the app's stylesheet and plain markup, with no Livewire and no
-    database, so it still renders when the error came from one of them. Each
-    page names what happened in plain words and offers a way back.
---}}
+{{-- Use plain markup and CSS so error pages do not depend on Livewire or database access. --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>

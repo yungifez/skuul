@@ -166,11 +166,8 @@ class ManageStaffProfile
     }
 
     /**
-     * End the campus access of a person whose last day has passed.
-     *
-     * Their roles hold only while they belong to the campus, so ending the
-     * membership stops them signing in to it. A leaver whose last day is ahead
-     * keeps access until the daily run after that day.
+     * End campus membership after the leaving date.
+     * Future leavers retain access until the daily expiry run.
      */
     public function endAccessOfALeaver(StaffProfile $profile): void
     {

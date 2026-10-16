@@ -70,8 +70,6 @@ class StudentRecord extends Model
     ];
 
     /**
-     * The attributes that should be cast.
-     *
      * @var array<string, string>
      */
     protected $casts = [
@@ -151,12 +149,7 @@ class StudentRecord extends Model
     }
 
     /**
-     * Check whether the working school keeps a money account for this enrollment.
-     *
-     * The campus the learner attends always does. A campus with its own books
-     * keeps the account after the learner moves on, while it billed them,
-     * took money from them, or charged them in its books, so it can still
-     * collect and give money back.
+     * Keep former-campus accounts accessible when that campus retains billing or ledger records.
      */
     public function hasAccountInSchool(): bool
     {
@@ -224,11 +217,8 @@ class StudentRecord extends Model
     }
 
     /**
-     * Get the section the student sat in on one day.
-     *
-     * The placement history answers this. An enrollment with no history yet
-     * sits where its pointer says. A day before the first placement is
-     * answered with that first placement, since nothing earlier is known.
+     * Resolve dated sections from placement history. Fall back to the pointer without history.
+     * Use the first known placement for earlier dates.
      */
     public function sectionOn(DateTimeInterface $day): ?AcademicCycleSection
     {

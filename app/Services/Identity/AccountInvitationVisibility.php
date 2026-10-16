@@ -13,16 +13,8 @@ use App\Services\Authorization\SystemPermissionScope;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Answer "which invitations may this person see and act on?".
- *
- * An invitation belongs to a person, and a person can hold membership in
- * several schools. The answer is therefore a set of schools: an administrator
- * sees an invitation when the invited person can work in a school that the
- * administrator is responsible for.
- *
- * A platform administrator sees every school. An organization administrator
- * sees the campuses of the organizations they may manage members in. A school
- * administrator sees the school being worked in, and nothing else.
+ * Scope invitations through the invited account's school memberships.
+ * Platform, organization, and campus authority determine which schools the actor can manage.
  */
 class AccountInvitationVisibility
 {

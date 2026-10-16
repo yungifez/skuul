@@ -57,8 +57,6 @@ class Notice extends Model
     ];
 
     /**
-     * The attributes that should be cast.
-     *
      * @var array<string, string>
      */
     protected $casts = [
@@ -167,13 +165,11 @@ class Notice extends Model
             ->where('active', 1);
     }
 
-    // used in view for displaying time on datatable
     public function getStartDateForHumansAttribute()
     {
         return Carbon::parse($this->start_date)->diffForHumans();
     }
 
-    // used in view for displaying time on datatable
     public function getStopDateForHumansAttribute()
     {
         return Carbon::parse($this->stop_date)->diffForHumans();

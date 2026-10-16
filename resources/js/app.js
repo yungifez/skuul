@@ -226,31 +226,20 @@ function releaseForm(form) {
     });
 }
 
-/**
- * Does Livewire answer this form's submit itself?
- */
 function isLivewireForm(form) {
     return form.getAttributeNames().some((name) => name.startsWith("wire:submit"));
 }
 
 /**
- * Let a form work again after the browser restores the page it was on.
- *
- * The submit handler disables the buttons to stop a double submit. A back
- * button, or a wire:navigate restore, brings that dead form back exactly as
- * it was, so the reader cannot submit it again. Clear the flag on restore.
+ * Page restores retain disabled submit buttons. Release them so the form can submit again.
  */
 function releaseSubmittedForms() {
     document.querySelectorAll('form[data-submitting="true"]').forEach(releaseForm);
 }
 
 /**
- * Let a Livewire form work again once its request comes back.
- *
- * A wire:submit form cancels the native submit and sends the work over AJAX,
- * so the page never navigates. Neither pageshow nor livewire:navigated fires,
- * and the buttons the submit handler disabled stayed disabled until the reader
- * reloaded the page. Livewire answers every commit, so release the form there.
+ * Livewire submissions do not trigger page navigation events.
+ * Release their buttons when the request succeeds or fails.
  */
 function releaseLivewireForms() {
     document.querySelectorAll('form[data-submitting="true"]').forEach((form) => {

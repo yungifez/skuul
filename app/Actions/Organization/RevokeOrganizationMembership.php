@@ -16,13 +16,8 @@ use App\Services\Authorization\OrganizationPermissionScope;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Take away one person's scope in one organization.
- *
- * Three things are deliberately left alone. School memberships stay, so the
- * person keeps the campus work they already do. The membership row stays, so
- * the history remains readable. The global organization-admin role stays while
- * the person still administers another organization, so ending one scope never
- * locks them out of the rest.
+ * End organization scope while preserving the membership history and campus access.
+ * Keep the global role while another active organization membership needs it.
  */
 class RevokeOrganizationMembership
 {

@@ -18,12 +18,8 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * What a person may put inside a role they are writing.
- *
- * Nobody can hand out authority they do not hold themselves: a campus
- * administrator writing a Registrar role can only fill it with permissions
- * they already have at that campus. Permissions that belong above a campus
- * are never on the list at all.
+ * Limit campus role changes to permissions the actor holds at that campus.
+ * Exclude organization and platform permissions.
  */
 class RoleAuthority
 {
@@ -133,11 +129,8 @@ class RoleAuthority
     }
 
     /**
-     * Check whether anybody at the campus can still manage its roles.
-     *
-     * Read straight from the tables, so a change made inside the same
-     * transaction counts before any cache catches up. Pass $besides to ask
-     * whether somebody other than that person could.
+     * Read membership tables directly so uncommitted changes count before cache refresh.
+     * Use $besides to exclude a person from the remaining-manager check.
      */
     public function campusHasARoleManager(School $school, ?User $besides = null): bool
     {
@@ -214,11 +207,8 @@ class RoleAuthority
     }
 
     /**
-     * Check whether the person holds staff power at the campus the actor could not give.
-     *
-     * Whoever can lock a person out should not reach somebody who holds more
-     * than they do. What a learner or a family reads through the portal is
-     * not power over the campus, so it is left out.
+     * Prevent access changes to staff whose authority exceeds the actor's.
+     * Family portal access is excluded from campus staff authority.
      */
     public function holdsMoreThan(User $person, User $actor, School $school): bool
     {

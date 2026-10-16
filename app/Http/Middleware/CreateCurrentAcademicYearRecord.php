@@ -19,8 +19,6 @@ class CreateCurrentAcademicYearRecord
     public function __construct(private ChangeEnrollmentPlacement $changeEnrollmentPlacement) {}
 
     /**
-     * Handle an incoming request.
-     *
      * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response

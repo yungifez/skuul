@@ -43,8 +43,7 @@
                     <span class="flex size-4 items-center justify-center rounded-full border text-xs font-bold" x-text="notification.type === 'danger' ? '!' : '✓'"></span>
                 </div>
                 <div class="w-full">
-                    {{-- role="alert" reads the whole toast out. A heading in
-                    a message that disappears only clutters heading navigation. --}}
+                    {{-- role="alert" announces the toast without adding a temporary heading. --}}
                     <p class="mb-1 font-medium leading-none tracking-tight" x-text="notification.title"></p>
                     <div class="text-sm" x-text="notification.message"></div>
                 </div>

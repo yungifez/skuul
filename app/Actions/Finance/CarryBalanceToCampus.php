@@ -17,15 +17,8 @@ use App\Services\Finance\FinancialPeriodResolver;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Move what a learner owes, or is owed, to the campus they now attend.
- *
- * Campuses that keep one purse bill a family as one school, so a learner who
- * moves must not leave a debt behind at a campus that will never see them
- * again. Each campus's own books still balance: the two campuses settle with
- * each other through the "due from" and "due to" accounts.
- *
- * Campuses that keep separate books carry nothing. Money never moves between
- * organizations by itself.
+ * Carry balances only within a shared billing group, using inter-campus ledger accounts.
+ * Campuses with separate books retain their balances.
  */
 class CarryBalanceToCampus
 {
@@ -197,11 +190,8 @@ class CarryBalanceToCampus
     }
 
     /**
-     * Post the pair of entries that move one balance.
-     *
-     * At the campus the learner is leaving the balance is cleared. At the
-     * campus they are joining the same balance is written again. Each campus
-     * balances its own entry against the other campus.
+     * Clear the source balance and post it at the destination.
+     * Balance each entry through inter-campus accounts.
      */
     private function moveOne(
         string $purpose,
@@ -255,11 +245,7 @@ class CarryBalanceToCampus
     }
 
     /**
-     * Send the posted bills still owed along with the debt.
-     *
-     * The debt now sits in the new campus's books, so its bills must be paid
-     * there. Left behind, a payment at the new campus finds nothing to settle,
-     * and a payment at the old campus clears a debt its books no longer hold.
+     * Move outstanding invoices with their ledger debt so destination payments can settle them.
      */
     private function moveOpenInvoices(StudentRecord $enrollment, School $from, School $to): void
     {

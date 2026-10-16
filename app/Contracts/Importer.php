@@ -5,11 +5,7 @@ namespace App\Contracts;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One kind of import: what it accepts and what it writes.
- *
- * An importer never reads a file and never writes an import record. It says
- * what a good row looks like and turns one good row into one saved record, so
- * the same engine can check, preview, and apply every kind of import.
+ * Validate and save import rows. ImportRunner handles file reading and import history.
  */
 interface Importer
 {

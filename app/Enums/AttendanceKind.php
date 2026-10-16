@@ -20,9 +20,6 @@ enum AttendanceKind: string
      */
     case Period = 'period';
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {

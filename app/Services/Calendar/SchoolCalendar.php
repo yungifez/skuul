@@ -122,16 +122,8 @@ class SchoolCalendar
     }
 
     /**
-     * Keep only the events a reader of this shape is part of.
-     *
-     * An event with no audience is for the whole school. An event that names
-     * an audience reaches the reader only when it names them or their home
-     * group.
-     *
-     * The names are grouped inside their own closure on purpose. An `or`
-     * written straight into a `whereHas` closure sits beside the relation's
-     * own join condition, and `and` binds tighter than `or`, so the name
-     * escapes the join and matches audience rows of every other event.
+     * Include school-wide events or audiences matching the person or home section.
+     * Laravel groups conditions added inside whereHas() with the relation constraint.
      *
      * @param  Builder<CalendarEvent>  $query
      */

@@ -14,20 +14,9 @@ use App\Services\Calendar\ClosureReadinessCheck;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Move an academic period between states and record who did it.
- *
- * The rules a school depends on live here:
- *
- * - Closing a cycle closes the periods inside it, because a period cannot
- *   accept work its cycle no longer accepts.
- * - Reopening needs an open parent, for the same reason in reverse.
- * - Undoing a close needs a stated reason. Nothing else does.
- * - A final close records what the readiness check found at that moment.
- *
- * Repeating a request changes nothing and adds no second history record.
- *
- * Finance is untouched. Closing a period never closes an invoice, a payment,
- * or a ledger transaction.
+ * Cascade cycle closure to child periods; require an open parent to reopen.
+ * Reopening requires a reason. Final closure records readiness findings.
+ * Repeated requests add no history. Finance periods remain independent.
  */
 class ChangeAcademicPeriodStatus
 {

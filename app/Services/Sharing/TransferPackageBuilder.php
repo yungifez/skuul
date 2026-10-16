@@ -15,11 +15,7 @@ use App\Services\Finance\StudentLedger;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
- * Build the copy of a student's records that one school hands to another.
- *
- * The package holds exactly the categories that were approved, and nothing
- * else. Every part is labelled with the school it came from, so the receiving
- * school reads a snapshot rather than a record of its own.
+ * Export only approved categories as snapshots labelled with their source school.
  */
 class TransferPackageBuilder
 {

@@ -18,8 +18,7 @@
 </head>
 
 <body class="font-sans" data-ui="april">
-    {{-- The link stays out of the way until it takes focus. A sighted reader
-    who tabs to an invisible link cannot tell where the focus went. --}}
+    {{-- Show the skip link on focus so keyboard users can locate it. --}}
     <a href="#main"
         class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring">
         Skip to content
@@ -50,9 +49,7 @@
                         </div>
                     </div>
                 </div>
-                {{-- april:sidebar-inset is already a <main>, and a <main>
-                cannot hold another one. This is the skip link's target, so it
-                needs tabindex to accept focus. --}}
+                {{-- april:sidebar-inset already renders a main element. Use tabindex here for skip-link focus. --}}
                 <div class="mx-auto w-full max-w-screen-2xl p-4 md:p-8" id="main" tabindex="-1">
                     @yield('content')
                 </div>

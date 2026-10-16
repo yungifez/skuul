@@ -11,12 +11,8 @@ use Illuminate\View\View;
 use Livewire\Component;
 
 /**
- * Record cash that has been taken from the cash box to the bank.
- *
- * The form shows what the cash box holds in the books. A deposit above that
- * is usually a typing mistake, so it needs a second, explicit yes. It is not
- * refused, because a school may hold cash it never entered as an opening
- * balance.
+ * Require confirmation when a cash deposit exceeds the recorded cash balance.
+ * Allow it because opening cash balances may be incomplete.
  */
 class RecordCashDepositForm extends Component
 {

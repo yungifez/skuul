@@ -16,9 +16,6 @@ class AdminController extends Controller
         $this->admin = $admin;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         $this->authorize('viewAny', [User::class, 'admin']);
@@ -26,9 +23,6 @@ class AdminController extends Controller
         return view('pages.admin.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
         $this->authorize('create', [User::class, 'admin']);

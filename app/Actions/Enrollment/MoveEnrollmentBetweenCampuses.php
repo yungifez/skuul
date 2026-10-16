@@ -20,13 +20,8 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Move one enrollment to another campus of the same organization.
- *
- * A campus is a school inside an organization. Moving between two campuses of
- * one organization is an internal move, not a transfer: the person keeps the
- * same enrollment, the same admission number, and the whole placement history.
- * Only a move to another organization closes an enrollment and opens a new
- * one, which is what `TransferEnrollment` does.
+ * Keep the enrollment, admission number, and placement history during an internal move.
+ * Use TransferEnrollment when crossing organizations.
  */
 class MoveEnrollmentBetweenCampuses
 {

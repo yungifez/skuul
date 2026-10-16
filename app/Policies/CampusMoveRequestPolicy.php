@@ -7,12 +7,8 @@ use App\Models\User;
 use App\Services\Authorization\CampusMoveAuthority;
 
 /**
- * Who may read and decide campus move requests.
- *
- * A request names two campuses, so neither the working school nor a single
- * permission decides on its own. `CampusMoveAuthority` holds the whole rule:
- * the receiving campus decides, the asking campus may take its request back,
- * and a person with organization authority may do either.
+ * Delegate cross-campus access to CampusMoveAuthority.
+ * The destination decides, the source cancels, and organization authority permits either.
  */
 class CampusMoveRequestPolicy
 {

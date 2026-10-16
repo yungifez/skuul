@@ -11,12 +11,7 @@ use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Put the demo school back to its seeded state.
- *
- * The schema stays as the last deployment left it. Only the rows go, so the
- * reset is quick and never replays a migration. The country, state and city
- * reference tables are kept: they never change, and loading them again takes
- * more memory than a small server has.
+ * Reset demo rows without replaying migrations. Preserve world reference tables.
  */
 class DemoDataRefresher
 {

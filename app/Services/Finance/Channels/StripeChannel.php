@@ -10,13 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Card payments taken through Stripe.
- *
- * The school never handles a card number. Stripe collects it, and the
- * application records a payment only after Stripe says the money settled.
- *
- * This class is the worked example of `App\Contracts\OnlinePaymentGateway`.
- * Another provider is another class beside this one.
+ * Use Stripe-hosted checkout and record payments only after confirmed settlement.
  */
 class StripeChannel implements OnlinePaymentGateway
 {
@@ -33,9 +27,6 @@ class StripeChannel implements OnlinePaymentGateway
         return 'stripe';
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return 'Card payment (Stripe)';
@@ -158,11 +149,7 @@ class StripeChannel implements OnlinePaymentGateway
     }
 
     /**
-     * Check the signature Stripe sends beside every message.
-     *
-     * Stripe signs the timestamp and the body together. A message that is old
-     * or signed with another key is refused, so nobody can claim a payment
-     * arrived by posting to the address themselves.
+     * Verify Stripe's signature over the timestamp and body; reject stale messages.
      */
     private function signatureIsGenuine(string $payload, string $header): bool
     {

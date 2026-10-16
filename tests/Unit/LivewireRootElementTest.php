@@ -5,16 +5,8 @@ namespace Tests\Unit;
 use PHPUnit\Framework\TestCase;
 
 /**
- * A Livewire view must open with the component's root element.
- *
- * Livewire finds the root by reading the first `<` in the rendered HTML and
- * taking the tag name after it. A directive placed before that element writes
- * `<!--[if BLOCK]><![endif]-->` first, so Livewire reads an empty tag name and
- * stores it against the component. The next request from a parent component
- * then throws "Invalid Livewire child tag name" and the screen returns a 500.
- *
- * `@php` is safe because it writes nothing. Every other directive is not, so
- * put the condition inside the root element rather than around it.
+ * Leading directive markers break Livewire's root-tag detection on later requests.
+ * Allow @php blocks, which produce no output, before the root element.
  */
 class LivewireRootElementTest extends TestCase
 {

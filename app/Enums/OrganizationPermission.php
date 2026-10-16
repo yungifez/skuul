@@ -3,12 +3,8 @@
 namespace App\Enums;
 
 /**
- * The things a person may do inside an organization.
- *
- * An organization administrator holds all of these by default. A membership
- * can name a smaller set, so one person keeps campus setup while another only
- * reads the overview. None of these permissions open campus records: those
- * still need an active school membership and a school-scoped permission.
+ * Organization membership may narrow these permissions.
+ * Campus data access still requires school membership and school-scoped permissions.
  */
 enum OrganizationPermission: string
 {
@@ -67,9 +63,6 @@ enum OrganizationPermission: string
         ));
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {

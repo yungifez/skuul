@@ -8,12 +8,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 
 /**
- * Answer whether a member of staff can be given work at a time.
- *
- * Three things stop them: they do not work here any more, they are away, or
- * the time falls outside the hours they said they can work. A person who
- * lists no hours is treated as free, because a school should not have to fill
- * in a timetable of hours before it can plan.
+ * Exclude ended employment, leave, and times outside configured working hours.
+ * Treat staff without configured hours as available.
  */
 class StaffAvailability
 {

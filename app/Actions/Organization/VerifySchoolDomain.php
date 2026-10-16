@@ -11,12 +11,7 @@ use App\Services\School\DnsTextRecords;
 use Illuminate\Database\UniqueConstraintViolationException;
 
 /**
- * Prove that an organization owns a web address.
- *
- * Only the owner of an address can write a record inside it. The application
- * hands out a value, looks for it, and follows the address only once it is
- * there. Until then the address is ignored, so pointing a name at this
- * application does not make it answer as somebody else's school.
+ * Require the verification value in DNS before accepting an organization's domain claim.
  */
 class VerifySchoolDomain
 {

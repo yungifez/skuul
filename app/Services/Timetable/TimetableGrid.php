@@ -16,12 +16,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * Read one timetable as the week people picture.
- *
- * Every screen that draws a timetable wants the same shape: a row for each
- * time slot, a column for each weekday, and a cell that already knows what
- * it holds and who takes it. Building that here keeps the grid, the builder,
- * and the printed sheet from drifting apart.
+ * Share the weekly grid data between timetable screens and printed schedules.
  */
 class TimetableGrid
 {

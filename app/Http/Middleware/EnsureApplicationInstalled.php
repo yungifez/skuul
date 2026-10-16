@@ -16,8 +16,6 @@ class EnsureApplicationInstalled
     public function __construct(private CompleteExistingInstallation $completeExistingInstallation) {}
 
     /**
-     * Handle an incoming request.
-     *
      * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response|RedirectResponse

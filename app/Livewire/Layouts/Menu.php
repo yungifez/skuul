@@ -563,13 +563,8 @@ class Menu extends Component
     }
 
     /**
-     * Get the enrollment whose portal this person reads.
-     *
-     * A staff member holds no enrollment and no children, so the family
-     * entries stay hidden for them. A guardian of more than one child reads
-     * the first, and every family screen names the child it is showing.
-     * An enrollment the child still attends comes before one they left, so
-     * a child who changed school opens the new school's calendar.
+     * Prefer current enrollments when choosing the initial family portal link.
+     * Staff without an enrollment or guardian link receive no family links.
      */
     private function portalEnrollment(User $user): ?StudentRecord
     {

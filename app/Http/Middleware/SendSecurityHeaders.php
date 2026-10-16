@@ -7,11 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Tell the browser how to guard the pages that hold school records.
- *
- * No other site may frame a page, so a click cannot be stolen. The browser
- * trusts the declared content type, sends no full address to other sites,
- * and over HTTPS it keeps to HTTPS. A header a response already set wins.
+ * Set framing, content-type, referrer, and HTTPS protections. Preserve explicit response headers.
  */
 class SendSecurityHeaders
 {

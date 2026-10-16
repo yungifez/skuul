@@ -22,11 +22,9 @@ trait EnvEditorTrait
                 $endOfLinePosition = strpos($str, "\n", $keyPosition);
                 $oldLine = substr($str, $keyPosition, $endOfLinePosition - $keyPosition);
 
-                // If environment variable does not exist, add it
                 if ($keyPosition === false || !$endOfLinePosition || !$oldLine) {
                     $str .= "{$envKey}=\"{$envValue}\"\n";
                 } else {
-                    // else replace it
                     $str = str_replace($oldLine, "{$envKey}=\"{$envValue}\"", $str);
                 }
             }

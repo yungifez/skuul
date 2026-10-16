@@ -7,9 +7,6 @@ use App\Models\User;
 
 class CourseOfferingPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
         return $user->can('read subject');
@@ -23,49 +20,31 @@ class CourseOfferingPolicy
         return $user->can('read gradebook');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, CourseOffering $courseOffering): bool
     {
         return $user->can('read subject') && current_school_id() === $courseOffering->school_id;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
         return $user->can('create subject');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, CourseOffering $courseOffering): bool
     {
         return $user->can('update subject') && current_school_id() === $courseOffering->school_id;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, CourseOffering $courseOffering): bool
     {
         return $user->can('delete subject') && current_school_id() === $courseOffering->school_id;
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, CourseOffering $courseOffering): bool
     {
         return false;
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, CourseOffering $courseOffering): bool
     {
         return false;
@@ -105,12 +84,7 @@ class CourseOfferingPolicy
     }
 
     /**
-     * Check the permission, the campus, and the teacher's link to the offering.
-     *
-     * A teacher reads the marks of any offering they ever taught. Only a
-     * teacher whose assignment has not ended may still change them, so a
-     * teacher who handed a subject over, or left and came back, cannot edit
-     * the marks of the one who took it on.
+     * Past teaching assignments permit reads; only current assignments permit edits.
      */
     private function canWorkInGradebook(User $user, CourseOffering $courseOffering, string $permission, bool $stillTeaching = false): bool
     {

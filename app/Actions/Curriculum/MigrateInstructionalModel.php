@@ -16,17 +16,8 @@ use App\Services\Curriculum\InstructionalModelResolver;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Move a running cycle to another instructional model.
- *
- * `SetInstructionalModel` refuses a cycle that has started, because the answer
- * decides what staff are asked for and a quiet change would make the screens
- * disagree with the work already done. A campus that must change anyway comes
- * here: the move needs its own permission, a written reason, and it keeps a
- * record of what the cycle held at that moment.
- *
- * Nothing already recorded is rewritten. An offering whose roster the new
- * model would not offer stays exactly as it is and is counted in the record as
- * an exception the campus now carries.
+ * Change a running cycle through a permissioned, audited migration with a reason.
+ * Preserve existing offerings and record incompatible rosters as exceptions.
  */
 class MigrateInstructionalModel
 {

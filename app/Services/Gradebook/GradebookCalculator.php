@@ -12,11 +12,8 @@ use App\Models\StudentRecord;
 use Illuminate\Support\Collection;
 
 /**
- * Work out what a student scored in one exact course offering.
- *
- * Items can have different maximums, so every item is first turned into a
- * share of its own maximum. Categories are then put together the way each one
- * says. Excused work leaves the total alone; missing work counts as nothing.
+ * Normalize marks by item maximum, then combine category weights.
+ * Exclude excused work; count missing work as zero.
  */
 class GradebookCalculator
 {

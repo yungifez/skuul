@@ -83,8 +83,7 @@
             </div>
 
             <div class="sm:col-span-2">
-                {{-- This form draws its own nationality field above, so the
-                component draws only the country and the state. --}}
+                {{-- Nationality is rendered above; this component supplies country and state only. --}}
                 @livewire('nationality-and-state-input-fields', ['country' => ucfirst($this->user->country),
                 'state' => ucfirst($this->user->state), 'showNationality' => false])
             </div>

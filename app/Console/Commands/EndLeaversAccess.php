@@ -19,22 +19,15 @@ use Illuminate\Console\Command;
 class EndLeaversAccess extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:end-leavers-access';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'End the campus membership of staff whose last day has passed';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(ManageStaffProfile $staffProfiles): int
     {
         $ended = 0;

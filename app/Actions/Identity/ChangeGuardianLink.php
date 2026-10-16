@@ -14,11 +14,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Link a guardian to a learner of the working school, or take the link away.
- *
- * A link lets the guardian read the learner's records in the portal, so each
- * change is audited. One guardian can have children at several schools, and a
- * school only changes the links to its own learners.
+ * Audit guardian links because they grant portal access.
+ * Limit changes to learners of the working school.
  */
 class ChangeGuardianLink
 {

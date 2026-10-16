@@ -5,29 +5,13 @@ namespace Tests\Unit;
 use PHPUnit\Framework\TestCase;
 
 /**
- * A published april view wins over the package for good.
- *
- * It keeps every fix the package makes after the copy was taken, and it
- * says nothing while it does so: the screen still renders, it just renders
- * last year's component. `resources/views/vendor/april/components/steps.blade.php`
- * sat here for that reason and froze the component before it could stand
- * upright.
- *
- * This app overrides three controls for one stated reason: an april tag
- * cannot carry a blade directive, so these three work their own refusal
- * wiring out. See `.ai/rules/views.md`. Strip that one change and what is
- * left must be the packaged view, word for word.
+ * Published views override package updates. Keep only the field-error customization
+ * and require the remaining source to match the installed package.
  */
 class PublishedAprilViewTest extends TestCase
 {
-    /**
-     * The one change this app makes to a packaged view.
-     */
     private const CUSTOMISATION = '->merge(april_field_error_attributes($attributes))';
 
-    /**
-     * The line that says why the file is here at all.
-     */
     private const REASON = '{{-- Overrides april-ui so a refused field says so. See app/helpers.php. --}}';
 
     public function test_every_published_view_says_why_it_overrides_the_package(): void

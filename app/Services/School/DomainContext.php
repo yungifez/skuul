@@ -8,12 +8,8 @@ use App\Models\SchoolDomain;
 use Illuminate\Http\Request;
 
 /**
- * Which organization, and perhaps which campus, this address belongs to.
- *
- * A school on its own address should open on its own campus without anybody
- * choosing one from a list. The address is a hint about what the visitor
- * meant, nothing more: membership still decides what they may see, and an
- * address nobody has proved ownership of is ignored.
+ * Resolve verified organization and campus domains.
+ * The domain selects context; membership still controls access.
  */
 class DomainContext
 {

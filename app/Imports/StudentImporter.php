@@ -16,12 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * Bring students in from a file.
- *
- * The file names the academic level and the cycle section by name, because the
- * people who keep these files do not know the numbers this application uses. A
- * row that names a student who is already here moves them; it never makes a
- * second enrollment.
+ * Resolve academic levels and cycle sections by name.
+ * Update existing enrollments instead of creating duplicates.
  */
 class StudentImporter implements Importer
 {

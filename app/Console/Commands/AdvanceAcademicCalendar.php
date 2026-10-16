@@ -12,34 +12,21 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 
 /**
- * Open the periods whose start day has arrived.
- *
- * A school should not have to remember to press a button on the first morning
- * of term. Only the organizations that asked for it are advanced, and only in
- * one direction: this command opens periods and never closes one.
- *
- * Closing stays with a person, because it freezes records and a wrong close
- * needs a reopen with a reason behind it.
+ * Open due periods for organizations with automatic advancement enabled.
+ * Never close periods automatically; closure freezes records and requires confirmation.
  */
 class AdvanceAcademicCalendar extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:advance-academic-calendar {--dry-run : List what would open without opening it}';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'Open scheduled academic periods whose start date has arrived';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(ChangeAcademicPeriodStatus $lifecycle): int
     {
         $dryRun = (bool) $this->option('dry-run');

@@ -63,11 +63,8 @@ class PublishSyllabus
     }
 
     /**
-     * Move what classes were taught, the lesson notes, and the gradebook items
-     * that name a topic onto the matching topics of the new revision.
-     *
-     * A topic the revision dropped keeps these records on the
-     * superseded revision, so the history of what was taught is never lost.
+     * Map coverage, lesson notes, and grade items to copied topics in the new revision.
+     * Keep records for removed topics on the superseded revision.
      */
     private function carryCoverageForward(Syllabus $revision): void
     {

@@ -29,11 +29,9 @@ $menuGroups[] = $currentGroup;
 }
 @endphp
 
-{{-- april:sidebar renders a desktop and a mobile root. Livewire needs one root
-element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
+{{-- Wrap April's desktop and mobile roots in one Livewire root. contents preserves layout. --}}
 <div class="contents">
-    {{-- Livewire renders this view on its own, so @aware cannot reach the
-    sidebar-layout above it. Both sides read the stored state instead. --}}
+    {{-- Livewire renders this view independently, so @aware cannot read the parent layout state. --}}
     <april:sidebar x-persist="sidebar" collapsible="icon" :default-open="sidebar_open()"
         class="border-r max-h-svh sticky top-0">
         <slot:header>
@@ -46,10 +44,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
 
                 @if ($schools->count() > 1)
                     <div class="flex min-w-0 flex-col gap-1 group-data-[collapsible=icon]:hidden">
-                        {{-- april:sidebar renders this header twice, once for
-                        the desktop rail and once for the mobile drawer, so an
-                        id here would appear twice and `for` would point at the
-                        copy the reader cannot see. Wrap the control instead. --}}
+                        {{-- April repeats the header for desktop and mobile. Wrap the control to avoid duplicate label IDs. --}}
                         <label class="flex min-w-0 flex-col gap-1">
                             <span class="px-2 text-xs font-medium text-sidebar-foreground/70">
                                 Working school
@@ -72,9 +67,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
             </div>
         </slot:header>
 
-        {{-- april merges these attributes onto the wrapper it draws for the
-        slot, so the sidebar becomes a landmark without a new element. The
-        label separates it from the breadcrumb trail. --}}
+        {{-- Apply the navigation landmark to April's slot wrapper and distinguish it from breadcrumbs. --}}
         <slot:content class="beautify-scrollbar" wire:navigate:scroll role="navigation"
             aria-label="Main">
             @foreach ($menuGroups as $group)
@@ -158,8 +151,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
             role="presentation" x-on:click="closePalette()">
             <div x-show="open" x-transition class="w-full max-w-2xl overflow-hidden rounded-xl border bg-background shadow-2xl"
                 role="dialog" aria-modal="true" aria-labelledby="command-palette-title" x-on:click.stop>
-                {{-- aria-labelledby takes any element. A heading here opened
-                the page one level under nothing, before the page h1. --}}
+                {{-- Use a labelled element here to preserve the page heading order. --}}
                 <p id="command-palette-title" class="sr-only">{{ __('Search pages and features') }}</p>
                 <div class="flex items-center gap-3 border-b px-4">
                     <x-lucide-search class="size-5 shrink-0 text-muted-foreground" />

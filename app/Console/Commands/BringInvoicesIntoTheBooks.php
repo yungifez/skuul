@@ -8,31 +8,20 @@ use App\Models\FeeInvoice;
 use Illuminate\Console\Command;
 
 /**
- * Put every invoice from before the books on its learner's account.
- *
- * A school that upgrades keeps its old invoices, but none of them reached the
- * ledger. Until they do, the account screens show less owed than the bills.
- * Run once after the upgrade. Running it again does nothing new.
+ * Post legacy invoices missing from the ledger. Repeated runs skip invoices already posted.
  */
 class BringInvoicesIntoTheBooks extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:bring-invoices-into-books {--school= : Only this school id}';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'Put invoices raised before the ledger existed on their learners\' accounts';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(BringInvoiceIntoTheBooks $bringIn): int
     {
         $brought = 0;

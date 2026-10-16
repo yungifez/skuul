@@ -12,13 +12,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Move the dates of an academic period, and record that it happened.
- *
- * Dates on a draft are just configuration. Dates on a period people are
- * already teaching in decide which period a record belongs to, so moving them
- * is a deliberate act with a reason and an audit event behind it.
- *
- * A frozen period keeps its dates. Reopen it first.
+ * Date changes to running periods require a reason and audit event.
+ * Reopen frozen periods before changing their dates.
  */
 class ChangeAcademicPeriodDates
 {

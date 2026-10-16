@@ -15,9 +15,6 @@ class MobileMoneyChannel extends OfficeChannel
         return 'mobile_money';
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return 'Mobile money';

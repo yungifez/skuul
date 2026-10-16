@@ -17,12 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Take money from a family and say which fees it settles.
- *
- * One payment can clear several invoices, part of one invoice, or arrive
- * before any invoice at all. What it does not settle stays as credit against
- * the payment, so the school still holds the money and the next invoice can
- * use it.
+ * Allocate payments across invoice lines and retain any unused amount as credit.
  */
 class ReceivePayment
 {

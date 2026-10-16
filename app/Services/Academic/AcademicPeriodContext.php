@@ -11,14 +11,8 @@ use Illuminate\Http\Request;
 use RuntimeException;
 
 /**
- * The academic year and academic period the current request works in.
- *
- * The working period belongs to the staff member, not to the school record,
- * so two people can work in different periods of the same school at the same
- * time. The school calendar still determines which period is current today.
- *
- * Every academic record still carries its own period. This context only says
- * which period the screen is showing.
+ * Keep each staff member's working period separate from the school calendar.
+ * Academic records retain their own period references.
  */
 class AcademicPeriodContext
 {
@@ -153,11 +147,7 @@ class AcademicPeriodContext
     }
 
     /**
-     * Work out which period this request belongs to and set it.
-     *
-     * A saved staff choice wins. When there is no saved choice, staff
-     * automatically start in the calendar period that covers today, then fall
-     * back to the school default when the calendar has no current period.
+     * Prefer the saved staff period, then today's calendar period, then the school default.
      */
     public function resolveFor(School $school, ?User $user = null, ?Request $request = null): void
     {

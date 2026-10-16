@@ -14,11 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
- * Put a group of students in order by their published results.
- *
- * A position is worked out when it is asked for. It is never a field on a
- * student, an enrollment, or a grade, so nothing has to be rewritten when a
- * result is corrected. Two equal averages share a position.
+ * Calculate rankings from published results without storing positions.
+ * Equal averages share a position.
  */
 class ResultRanking
 {

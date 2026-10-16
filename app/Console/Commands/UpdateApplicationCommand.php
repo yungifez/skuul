@@ -18,22 +18,15 @@ use Throwable;
 class UpdateApplicationCommand extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:update {--check : Only say whether a newer release exists} {--no-backup : Do not take a backup first}';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'Update Skuul to the newest release on GitHub';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(): int
     {
         $currentVersion = $this->currentVersion();

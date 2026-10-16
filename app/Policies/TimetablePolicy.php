@@ -13,17 +13,11 @@ class TimetablePolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
         return $user->can('read timetable') && !$user->isParentPortalOnly();
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Timetable $timetable): bool
     {
         if (!$user->can('read timetable')
@@ -45,9 +39,6 @@ class TimetablePolicy
                 || $timetable->academic_cycle_section_id === $enrollment->academic_cycle_section_id);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user)
     {
         if ($user->can('create timetable')) {
@@ -63,9 +54,6 @@ class TimetablePolicy
         return $user->can('create timetable') && $user->can('create schoolwide timetable');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Timetable $timetable)
     {
         if ($user->can('update timetable')
@@ -182,17 +170,11 @@ class TimetablePolicy
             && $academicYear->status !== AcademicPeriodStatus::Closing;
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Timetable $timetable)
     {
         //
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Timetable $timetable)
     {
         //

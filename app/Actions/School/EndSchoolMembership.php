@@ -27,14 +27,8 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 /**
- * Stop a person's access to one school.
- *
- * The membership record stays so the history remains readable. The person, and
- * their records in that school, are not deleted. The subjects they still teach
- * and the boarding houses they still supervise there end, so each shows it
- * needs somebody, and cover booked from today on is given up. Open cases
- * and support plans assigned to them are handed back to the campus, and
- * their library reservations there are taken off.
+ * End campus access and active assignments without deleting the person or history.
+ * Release library reservations and return open cases and support plans to the campus.
  */
 class EndSchoolMembership
 {
@@ -85,11 +79,8 @@ class EndSchoolMembership
     }
 
     /**
-     * End the work the person does at one campus from the given day on.
-     *
-     * Their subjects and boarding duty end that day, so each shows it needs
-     * somebody. Cover booked for that day or later is given up, so the lesson
-     * shows it needs cover again. Cover already given stays in the record.
+     * End teaching, boarding duty, and future cover from the leaving date.
+     * Preserve completed cover.
      */
     public function endDutiesFrom(User $user, int $schoolId, CarbonInterface $firstDayAway): void
     {
@@ -126,11 +117,8 @@ class EndSchoolMembership
     }
 
     /**
-     * Take the person's name off the cases and plans still open at the campus.
-     *
-     * A restricted case or a confidential plan is read by the person it is
-     * assigned to. Left on a leaver, the work has nobody, so each now shows
-     * it needs somebody. Finished work keeps its name.
+     * Unassign open cases and plans so the campus can reassign them.
+     * Preserve assignments on completed work.
      */
     private function handBackOpenCases(User $user, int $schoolId): void
     {

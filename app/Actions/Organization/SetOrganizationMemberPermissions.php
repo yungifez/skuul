@@ -14,14 +14,8 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 /**
- * Say how much of the organization one member may run.
- *
- * Delegation only narrows. A member can never be given more than the global
- * organization-admin role already carries, and every member keeps the read
- * permission so the organization screens still open.
- *
- * The last person who can manage members cannot give that permission away,
- * so an organization always keeps somebody who can hand it back.
+ * Limit delegation to the global role and retain organization read access.
+ * Preserve at least one member with authority to manage memberships.
  */
 class SetOrganizationMemberPermissions
 {

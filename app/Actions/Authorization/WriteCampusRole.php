@@ -14,15 +14,8 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Write the roles a campus offers.
- *
- * A role is a named set of permissions and nothing else. Nobody can write a
- * role that hands out more than they hold themselves, and the roles the
- * application relies on cannot be rewritten or retired.
- *
- * A shared role such as Librarian is one row every campus uses. A campus that
- * changes one gets its own copy, holding its own people, so the change never
- * reaches another campus or another organization.
+ * Limit role permissions to the actor's authority and protect built-in roles.
+ * Campus edits to shared roles create local copies.
  */
 class WriteCampusRole
 {
@@ -228,11 +221,8 @@ class WriteCampusRole
     }
 
     /**
-     * Get the campus's own copy of a shared role, making it when needed.
-     *
-     * The copy starts with everything the shared role holds, and the people
-     * holding the shared role at this campus move onto it. Nobody gains or
-     * loses anything by the copy itself, and no other campus notices.
+     * Copy a shared role and move this campus's assignments onto the local copy.
+     * Preserve permissions and leave other campuses unchanged.
      */
     private function ownCopy(CampusRole $role, School $school, User $actor): CampusRole
     {

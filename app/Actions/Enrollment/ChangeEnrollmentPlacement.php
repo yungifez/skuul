@@ -17,13 +17,8 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Put one enrollment in an exact cycle section, and keep the earlier ones.
- *
- * Admission, promotion, and a section change are all the same event: the
- * student sits somewhere new from a date. Each one is written to an
- * append-only history, so the school can answer where a student sat in any
- * academic year. Repeating the same placement changes nothing and adds no
- * second record, so a retry is safe.
+ * Append placement history for admissions, promotions, and section changes.
+ * Repeating the current placement adds no history.
  */
 class ChangeEnrollmentPlacement
 {

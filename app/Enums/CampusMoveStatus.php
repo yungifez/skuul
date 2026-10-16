@@ -30,9 +30,6 @@ enum CampusMoveStatus: string
      */
     case Cancelled = 'cancelled';
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {

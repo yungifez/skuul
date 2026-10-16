@@ -1,14 +1,10 @@
 <header
     class="sticky top-0 z-30 flex h-14 w-full items-center justify-between gap-2 border-b bg-background/95 px-4 backdrop-blur md:px-6">
     <div class="flex min-w-0 items-center gap-2">
-        {{-- The row is a flex line with min-w-0 beside it, so on a narrow
-        screen the trigger was squeezed to 18px wide. It is the only way to
-        reach the menu on a phone. --}}
+        {{-- Prevent the mobile menu trigger from shrinking below its usable width. --}}
         <april:sidebar-trigger class="size-11 shrink-0 select-none" />
         <a href="{{route('home')}}" class="flex shrink-0 items-center gap-3" aria-label="Home">
-            {{-- The product name is branding, not the heading of the page.
-            layouts/app.blade.php draws the one h1 each screen has. The link
-            around this already carries its own label. --}}
+            {{-- The page layout supplies the h1; keep the product name as branding. --}}
             <span class="hidden text-sm font-semibold tracking-tight sm:block">{{config('app.name')}}</span>
         </a>
         <x-show-set-school />
@@ -21,13 +17,13 @@
             <span>{{ __('Search') }}</span>
             <kbd class="ml-2 hidden rounded border bg-background px-1.5 py-0.5 font-mono text-[10px] sm:inline-block">{{ __('Ctrl') }} K</kbd>
         </button>
-        {{--full screen toggle--}}
+
         <april:button variant="ghost" size="icon" class="hidden sm:inline-flex" type="button"
             @click="fullScreen = !fullScreen; fullScreen == true ? document.documentElement.requestFullscreen() : document.exitFullscreen()">
             <x-lucide-maximize class="size-4" />
             <p class="sr-only">Full screen mode</p>
         </april:button>
-        {{--Dark mode toggle--}}
+
         <april:dropdown-menu>
             <slot:trigger>
                 <april:button aria-label="open theme selection" class="size-11 select-none justify-center" size="icon" variant="ghost"
@@ -54,7 +50,7 @@
                 </april:dropdown-menu-item>
             </slot:content>
         </april:dropdown-menu>
-        {{--Click to open profile card--}}
+
         <april:dropdown-menu x-teleport="body">
             <slot:trigger>
                 <april:button variant="ghost" size="none" class="ml-1 flex h-11 select-none items-center gap-2 rounded-md px-2">

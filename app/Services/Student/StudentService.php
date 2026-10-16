@@ -313,11 +313,8 @@ class StudentService
     }
 
     /**
-     * Put the learners of a promotion back in their old section.
-     *
-     * Only learners still sitting in the section they were promoted to go
-     * back. A learner who moved on since, graduated, or left stays where they
-     * are. Every learner goes back, or none does.
+     * Reverse promotions atomically for learners still in the destination section.
+     * Skip learners who moved, graduated, or left.
      */
     public function resetPromotion(Promotion $promotion): void
     {

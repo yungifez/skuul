@@ -5,15 +5,7 @@ namespace App\Contracts;
 use Illuminate\Support\Collection;
 
 /**
- * One shape a report can be handed over in.
- *
- * A report says what its columns and rows are. How those become a file
- * somebody can open is a separate question, so a school that wants a
- * spreadsheet instead of a comma-separated file changes nothing about the
- * report itself.
- *
- * A new shape is one class and one line in
- * `App\Services\Report\ExportFormatRegistry`.
+ * Convert report columns and rows to a file. Register formats in ExportFormatRegistry.
  */
 interface ExportFormat
 {
@@ -22,9 +14,6 @@ interface ExportFormat
      */
     public function key(): string;
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string;
 
     /**

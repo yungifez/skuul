@@ -14,22 +14,15 @@ use Illuminate\Console\Command;
 class RefreshDemoData extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:refresh-demo';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'Reset the demo school to its seeded data';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(DemoDataRefresher $refresher): int
     {
         if (!config('demo.enabled')) {

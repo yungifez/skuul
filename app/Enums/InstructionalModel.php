@@ -3,15 +3,7 @@
 namespace App\Enums;
 
 /**
- * The way a campus teaches a cycle.
- *
- * The model sets defaults, the screens staff see, the validation an offering
- * passes, and the words a report uses. It does not create a second data
- * model: every campus keeps home sections and instructional groups, and the
- * model only says which rosters an offering may use.
- *
- * Setup asks one question a school manager can answer without help. It never
- * asks for a country or an education system.
+ * Set roster rules, defaults, and terminology for a campus cycle within the shared data model.
  */
 enum InstructionalModel: string
 {
@@ -46,9 +38,6 @@ enum InstructionalModel: string
         return self::FixedHomeSections;
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {

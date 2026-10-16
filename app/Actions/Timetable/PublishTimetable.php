@@ -14,12 +14,7 @@ use App\Services\Timetable\TimetableConflictChecker;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Put a timetable revision into use.
- *
- * Publishing is the moment the schedule becomes a promise to students and
- * teachers, so it is also the moment the clashes are checked. The revision
- * that was in use is archived, not deleted, so the old schedule stays
- * readable.
+ * Check conflicts before publishing and archive the previous revision.
  */
 class PublishTimetable
 {

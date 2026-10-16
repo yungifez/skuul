@@ -15,9 +15,6 @@ class CashChannel extends OfficeChannel
         return 'cash';
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return 'Cash';

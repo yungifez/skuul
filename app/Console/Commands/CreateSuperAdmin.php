@@ -18,22 +18,15 @@ class CreateSuperAdmin extends Command
     use PasswordValidationRules;
 
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:create-super-admin';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'Creates a super admin';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(GrantSystemRole $grantSystemRole): int
     {
         try {
@@ -41,7 +34,6 @@ class CreateSuperAdmin extends Command
             $this->alert('Creating super admin');
             $this->info('Fill in the following details. You can modify the profile later with other information.');
             do {
-                // don't allow null values hence do while
                 $name = text('Full name?', required: true, validate: fn (string $value) => match (true) {
                     strlen($value) < 3 => 'The name must be at least 3 characters.',
                     strlen($value) > 100 => 'The name must not exceed 100 characters.',
@@ -88,7 +80,6 @@ class CreateSuperAdmin extends Command
                 }
             } while ($validator->fails());
 
-            // create super admin
             $superAdmin = User::firstOrCreate([
                 'name' => $name,
                 'email' => $email,

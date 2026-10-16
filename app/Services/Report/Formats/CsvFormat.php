@@ -18,9 +18,6 @@ class CsvFormat implements ExportFormat
         return 'csv';
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return 'Comma-separated file (CSV)';
@@ -65,11 +62,8 @@ class CsvFormat implements ExportFormat
     }
 
     /**
-     * Keep a cell as text when a spreadsheet would read it as a formula.
-     *
-     * A name or a note typed as "=HYPERLINK(...)" would run when the file is
-     * opened. A leading apostrophe makes the spreadsheet show it as typed.
-     * A plain number, such as a negative balance, is left alone.
+     * Prefix formula-like text with an apostrophe to prevent spreadsheet execution.
+     * Preserve numeric values, including negative balances.
      */
     private function cell(mixed $value): mixed
     {

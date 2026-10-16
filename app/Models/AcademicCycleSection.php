@@ -71,13 +71,8 @@ class AcademicCycleSection extends Model
     }
 
     /**
-     * Write the name of this section with the class it sits in.
-     *
-     * A section is named "A" or "B", which says nothing on its own: every
-     * class has an A. Use this anywhere the class is not already beside it,
-     * such as a select, a checkbox list, or a column that stands alone.
-     *
-     * Load `academicLevel` before calling this in a list.
+     * Qualify section labels with their academic level when no level is displayed beside them.
+     * Eager-load academicLevel when listing sections.
      */
     public function qualifiedName(): string
     {

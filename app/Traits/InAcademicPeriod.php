@@ -7,14 +7,8 @@ use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 
 /**
- * Freeze a record when the academic period it belongs to is closed.
- *
- * A closing school year must keep its placements, timetables, and results as
- * they were. Every model that belongs to a period says which period governs
- * it, and this trait refuses writes once that period is closed.
- *
- * Correcting frozen work means reopening the period, which is a separate
- * permissioned action that leaves an audit record.
+ * Refuse writes to records in frozen academic periods.
+ * Corrections require an authorized, audited reopen.
  */
 trait InAcademicPeriod
 {

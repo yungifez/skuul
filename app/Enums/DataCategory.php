@@ -5,11 +5,7 @@ namespace App\Enums;
 use App\Models\User;
 
 /**
- * The kinds of information one school can ask another for.
- *
- * Sharing an organization does not mean sharing everything. Identity,
- * guardians, enrollment, and published academic work travel with a role scope.
- * Everything else needs an approved request, one category at a time.
+ * Request sharing by category. Shared organization membership does not grant all data access.
  */
 enum DataCategory: string
 {
@@ -24,9 +20,6 @@ enum DataCategory: string
     case Wellbeing = 'wellbeing';
     case Finance = 'finance';
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {

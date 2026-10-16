@@ -21,12 +21,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 /**
- * Build the week of a draft timetable.
- *
- * Choose a cell, then choose what goes in it. Nothing here reloads the page,
- * so placing a week of lessons stays one continuous task. Only a draft
- * reaches this screen, because a published timetable is a promise the school
- * has already made.
+ * Edit draft timetable cells. Published revisions require a new draft.
  */
 class ManageTimetable extends Component
 {

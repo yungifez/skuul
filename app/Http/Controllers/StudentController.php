@@ -20,16 +20,12 @@ class StudentController extends Controller
      */
     public $userService;
 
-    // construct method which assigns studentService to student variable
     public function __construct(StudentService $student, UserService $userService)
     {
         $this->student = $student;
         $this->userService = $userService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         $this->authorize('viewAny', [User::class, 'student']);
@@ -37,9 +33,6 @@ class StudentController extends Controller
         return view('pages.student.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
         $this->authorize('create', [User::class, 'student']);
@@ -47,15 +40,11 @@ class StudentController extends Controller
         return view('pages.student.create');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(User $student): View|Response
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('view', [$student, 'student']);
 
-        // restrict parents from seeing other students profiles
         if (auth()->user()->readsLearnersOnlyAsGuardian() && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
             abort(404);
         }
@@ -72,7 +61,6 @@ class StudentController extends Controller
         $this->authorize('view', [$student, 'student']);
         $data['student'] = $student;
 
-        // restrict parents from seeing other students profiles
         if (auth()->user()->readsLearnersOnlyAsGuardian() && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
             abort(404);
         }

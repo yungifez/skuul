@@ -8,11 +8,7 @@ use Livewire\Attributes\Defer;
 use Livewire\Component;
 
 /**
- * Draw the school's recent trends under the dashboard's daily view.
- *
- * The charts load right after the page, so a slow count never holds up the
- * register button or today's calendar. Each chart needs its own permission
- * and stays hidden until it has something to draw.
+ * Load permission-scoped charts after the main dashboard to keep initial navigation responsive.
  */
 #[Defer]
 class DashboardTrends extends Component

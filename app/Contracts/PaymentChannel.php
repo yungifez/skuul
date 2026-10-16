@@ -3,17 +3,8 @@
 namespace App\Contracts;
 
 /**
- * One way money can reach the school.
- *
- * Schools do not agree on how families pay. A village school takes cash, a
- * city school takes cards, and a school group takes card payments through a
- * provider, so the ways to pay are a list the application can grow, never a
- * fixed set written into the books.
- *
- * A new way to pay is one class and one line in
- * `App\Services\Finance\PaymentChannelRegistry`. Nothing in the ledger, the
- * invoices, or the screens changes. A channel that charges a card through a
- * provider implements `App\Contracts\OnlinePaymentGateway` as well.
+ * Register payment channels in PaymentChannelRegistry.
+ * Provider-based channels also implement OnlinePaymentGateway.
  */
 interface PaymentChannel
 {
@@ -22,9 +13,6 @@ interface PaymentChannel
      */
     public function key(): string;
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string;
 
     /**

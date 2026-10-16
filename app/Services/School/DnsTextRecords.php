@@ -3,11 +3,7 @@
 namespace App\Services\School;
 
 /**
- * Read the text records of a name in the domain name system.
- *
- * An organization proves it owns an address by putting a value the application
- * gave it into a record only the owner of that address can write. This class
- * is the one place that asks, so a test can answer instead.
+ * Isolate DNS TXT lookups so domain verification can substitute test responses.
  */
 class DnsTextRecords
 {

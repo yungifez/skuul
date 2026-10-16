@@ -11,14 +11,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Create the person profile and a pending account for a new member of a school.
- *
- * The account has no password. The person sets one from an invitation link.
- * Calling this action again with the same email returns the existing account
- * and adds the school membership, so provisioning is safe to retry and one
- * person can join a second campus of the organization without a second login.
- * The second call never overwrites the profile the person already has; it only
- * fills blanks. An account the organization has never held is refused.
+ * Create invited accounts or reuse accounts held by the organization.
+ * Retries add membership and fill blank profile fields without overwriting existing values.
  */
 class ProvisionAccount
 {

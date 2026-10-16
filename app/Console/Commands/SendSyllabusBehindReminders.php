@@ -22,9 +22,6 @@ class SendSyllabusBehindReminders extends Command
 
     protected $description = 'Send teachers a weekly list of the classes that are behind their syllabus';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(SyllabusCoverageService $coverage): int
     {
         $sent = 0;

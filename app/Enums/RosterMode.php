@@ -3,12 +3,8 @@
 namespace App\Enums;
 
 /**
- * The ways a subject offering names the learners who attend it.
- *
- * One universal model serves every school. A school where learners stay
- * together reads the roster from a home section; a school where learners move
- * between subjects names the learners itself. The instructional model of the
- * campus says which of these an offering may use.
+ * Select a home-section roster or an explicit learner roster.
+ * The instructional model controls which modes an offering can use.
  */
 enum RosterMode: string
 {
@@ -32,9 +28,6 @@ enum RosterMode: string
      */
     case IndividualRoster = 'individual_roster';
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(string $sectionLabel = 'section', string $sectionsLabel = 'sections'): string
     {
         return match ($this) {

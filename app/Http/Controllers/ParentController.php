@@ -19,9 +19,6 @@ class ParentController extends Controller
         $this->parentService = $parentService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         $this->authorize('viewAny', [User::class, 'parent']);
@@ -29,9 +26,6 @@ class ParentController extends Controller
         return view('pages.parent.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
         $this->authorize('create', [User::class, 'parent']);

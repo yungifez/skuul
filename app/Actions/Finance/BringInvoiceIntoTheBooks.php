@@ -11,12 +11,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Put an invoice raised before the books existed on the learner's account.
- *
- * Invoices from before the upgrade carry no ledger entry. Money taken on them
- * still reaches the books, so without this the account says one thing and its
- * bills another. The charge is what the invoice still owes once the payments
- * the books never saw are taken off, so nothing is counted twice.
+ * Post legacy invoice debt after deducting payments absent from the ledger.
+ * This avoids counting those payments twice.
  */
 class BringInvoiceIntoTheBooks
 {

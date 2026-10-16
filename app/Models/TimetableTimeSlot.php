@@ -150,7 +150,6 @@ class TimetableTimeSlot extends Model
 
     public function weekdays(): BelongsToMany
     {
-        // get pivot table as timetableRecords
         return $this->belongsToMany(Weekday::class)
             ->as('timetableRecord')
             ->withPivot([

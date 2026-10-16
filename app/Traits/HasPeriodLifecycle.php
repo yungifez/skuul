@@ -129,9 +129,6 @@ trait HasPeriodLifecycle
         return $this->getAttribute('status')->acceptsNewWork();
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function statusLabel(): string
     {
         return $this->getAttribute('status')->label();

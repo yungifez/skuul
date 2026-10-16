@@ -12,15 +12,8 @@ use App\Services\Authorization\RoleAuthority;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Give and take away a campus role.
- *
- * A role can only be given to somebody who works at that campus, and only a
- * role the campus still offers. A learner never holds one, wherever they are
- * enrolled: a learner who moved keeps a membership at the campus they left. Both directions are written to the audit log,
- * because a role is how a person got whatever they were able to do.
- *
- * Giving a role somebody already holds, or taking one they do not, changes
- * nothing and writes nothing.
+ * Assign campus roles to active campus members who are not enrolled learners.
+ * Audit changes; repeated assignments and removals add no history.
  */
 class AssignCampusRole
 {

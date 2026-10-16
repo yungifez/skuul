@@ -9,12 +9,7 @@ use Stringable;
 use ZipArchive;
 
 /**
- * A spreadsheet file, written without a spreadsheet library.
- *
- * An office that wants to total a column should not have to import a
- * comma-separated file first. A workbook is a zip of small XML parts, so this
- * writes those parts directly and keeps the application free of another
- * dependency.
+ * Write workbook XML parts directly to a ZIP archive without a spreadsheet dependency.
  */
 class XlsxFormat implements ExportFormat
 {
@@ -26,9 +21,6 @@ class XlsxFormat implements ExportFormat
         return 'xlsx';
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return 'Spreadsheet (XLSX)';

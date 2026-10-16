@@ -21,12 +21,8 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Move one enrollment to another state and record why.
- *
- * The state lives on the enrollment. The reason, the actor, and the date live
- * in an append-only history, so nothing is lost when a student graduates,
- * leaves, or returns. Repeating the same request changes nothing and adds no
- * second history record, so a retry is always safe.
+ * Append the actor, reason, and effective date for each enrollment status change.
+ * Repeating the current status adds no history.
  */
 class ChangeEnrollmentStatus
 {

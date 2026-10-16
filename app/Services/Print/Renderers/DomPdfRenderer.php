@@ -6,11 +6,7 @@ use App\Contracts\DocumentRenderer;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 /**
- * The renderer built into the application.
- *
- * It needs nothing beside the application itself, so it is always there. It
- * understands less styling than a browser does, which is why a school that
- * cares about the look of its documents points at a browser service instead.
+ * Render PDFs locally with Dompdf, without an external browser service.
  */
 class DomPdfRenderer implements DocumentRenderer
 {
@@ -22,9 +18,6 @@ class DomPdfRenderer implements DocumentRenderer
         return 'dompdf';
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return 'Built-in renderer';

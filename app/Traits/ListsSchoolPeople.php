@@ -11,11 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
- * The two lists a screen needs when it names a person.
- *
- * A screen that hands work to somebody, or records something against a child,
- * asks the same two questions: who learns here, and who works here. Both
- * answers stay inside the working school.
+ * Provide learner and staff lists scoped to the working school.
  */
 trait ListsSchoolPeople
 {

@@ -11,14 +11,8 @@ use RuntimeException;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * The school the current request works in.
- *
- * This is the one place that answers "which school am I in right now". It reads
- * from the session, never from the user record, so switching school never
- * writes to the person's profile.
- *
- * Setting the school also sets the Spatie team id, so every role and permission
- * check resolves against the same school.
+ * Store the working school in the session and align the Spatie team scope.
+ * Switching schools does not change the user profile.
  */
 class SchoolContext
 {
@@ -101,13 +95,8 @@ class SchoolContext
     }
 
     /**
-     * Work out which school this request belongs to and set it.
-     *
-     * An address that names a campus wins, because asking for that address is
-     * the plainest way a person can say which campus they meant. It is still
-     * only a hint: a person with no membership there falls through to the
-     * remembered school, then to their primary school, then to any school they
-     * can still use.
+     * Prefer the domain campus when membership permits it, then the saved or primary school.
+     * Fall back to another accessible school.
      */
     public function resolveFor(User $user, ?Request $request = null): ?School
     {

@@ -4,10 +4,7 @@
     $canPick = $this->canChange() && $academicPeriods->isNotEmpty() && !$calendarError;
 @endphp
 
-{{-- Livewire reads the first tag in this view as the component root. A
-     directive before it writes a comment marker instead, and the next
-     request from a parent component then fails on an empty tag name.
-     Keep this element unconditional. --}}
+{{-- Keep the root unconditional; leading directive markers break Livewire's root-tag detection. --}}
 <div @class([
     'border-b px-4 py-1.5 md:px-6' => $academicYear !== null && $compact,
     'min-w-0' => $academicYear !== null && !$compact,

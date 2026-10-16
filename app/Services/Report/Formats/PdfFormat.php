@@ -7,11 +7,7 @@ use App\Services\Print\PrintService;
 use Illuminate\Support\Collection;
 
 /**
- * A report printed as a document, for filing or handing over.
- *
- * The table is laid out in HTML with print styles and given to whichever
- * renderer the installation uses. Because a report is built by a worker, a
- * long document never holds up the person who asked for it.
+ * Render reports through the configured PDF renderer in the report worker.
  */
 class PdfFormat implements ExportFormat
 {
@@ -23,9 +19,6 @@ class PdfFormat implements ExportFormat
         return 'pdf';
     }
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return 'Document (PDF)';

@@ -5,11 +5,7 @@ namespace App\Services\Print;
 use Illuminate\Http\Response;
 
 /**
- * Print a page of the application as a document.
- *
- * The page is an ordinary Blade view with print styles. Which renderer turns
- * it into a PDF is decided by `App\Services\Print\DocumentRendererRegistry`,
- * so a school can change renderer without any of these documents changing.
+ * Render a printable Blade view with the configured document renderer.
  */
 class PrintService
 {

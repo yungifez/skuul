@@ -21,9 +21,6 @@ class FeeInvoiceController extends Controller
         $this->authorizeResource(FeeInvoice::class, 'fee_invoice');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(FinancialPeriodResolver $periods): View
     {
         $financialPeriods = FinancialPeriod::query()->inSchool()->orderByDesc('starts_on')->get();
@@ -52,17 +49,11 @@ class FeeInvoiceController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
         return view('pages.fee.fee-invoice.create');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(FeeInvoice $feeInvoice): View
     {
         return view('pages.fee.fee-invoice.show', compact('feeInvoice'));
@@ -86,9 +77,6 @@ class FeeInvoiceController extends Controller
         return $this->feeInvoiceService->printFeeInvoice($feeInvoice->name, 'pages.fee.fee-invoice.print', compact('feeInvoice'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(FeeInvoice $feeInvoice): View
     {
         return view('pages.fee.fee-invoice.edit', compact('feeInvoice'));

@@ -16,9 +16,6 @@ class TeacherController extends Controller
         $this->teacherService = $teacherService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         $this->authorize('viewAny', [User::class, 'teacher']);
@@ -26,9 +23,6 @@ class TeacherController extends Controller
         return view('pages.teacher.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
         $this->authorize('create', [User::class, 'teacher']);

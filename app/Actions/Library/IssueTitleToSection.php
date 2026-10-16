@@ -17,12 +17,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Lend one title to every attending learner in a home section.
- *
- * The operation is all-or-nothing. A class set that cannot be completed, or
- * one learner who cannot take the loan, leaves the shelf unchanged. A learner
- * who already has a copy of the title is passed over, so lending the set a
- * second time never hands anybody a second copy.
+ * Lend a class set atomically. Skip learners who already hold this title.
  */
 class IssueTitleToSection
 {

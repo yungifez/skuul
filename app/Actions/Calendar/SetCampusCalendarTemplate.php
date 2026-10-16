@@ -11,12 +11,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Point a campus at a calendar of its own, or return it to its organization's.
- *
- * A campus that keeps its own calendar stops lining up with the rest of the
- * organization, so a report that compares campuses compares different weeks.
- * That is sometimes right and never accidental, which is why it is an action
- * with a reason and an audit event rather than a column a form writes.
+ * Audit calendar overrides because they change which dates campus comparisons cover.
  */
 class SetCampusCalendarTemplate
 {

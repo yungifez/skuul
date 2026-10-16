@@ -1,15 +1,5 @@
-{{--
-    One week of a timetable: a column for each weekday, a row for each time
-    slot. The read-only grid, the builder, and the printed sheet all draw
-    this, so a change to the week reaches every screen at once.
-
-    It stays a real table on purpose. The browser print view can paginate it
-    cleanly while preserving the same layout as the screen.
-
-    $grid       the array App\Services\Timetable\TimetableGrid returns
-    $editable   whether clicking a cell selects it for the builder
-    $selected   "slotId:weekdayId" of the cell being worked on, or null
---}}
+{{-- Keep the weekly grid as a table for consistent screen and print pagination.
+    $grid: TimetableGrid output; $editable: enable cell selection; $selected: "slotId:weekdayId" or null. --}}
 @php
     $editable = $editable ?? false;
     $selected = $selected ?? null;

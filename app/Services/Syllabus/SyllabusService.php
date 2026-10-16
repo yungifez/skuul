@@ -146,11 +146,7 @@ class SyllabusService
     }
 
     /**
-     * Delete a stored file once no syllabus revision points at it.
-     *
-     * A revision starts with the file of the syllabus it replaces, so one file
-     * can back several rows. Deleting it while another row still names it
-     * would break that row's download.
+     * Delete a stored file only when no syllabus revision references it.
      */
     private function deleteFileIfUnused(string $file): void
     {

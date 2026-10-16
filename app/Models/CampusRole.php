@@ -47,11 +47,7 @@ class CampusRole extends SpatieRole
     }
 
     /**
-     * Check whether the application itself relies on this role.
-     *
-     * The built-in roles decide who can sign in as what, and the platform
-     * roles carry authority above any one campus. A campus may hand them out,
-     * but it may not rewrite or retire them.
+     * Protect built-in and platform roles from campus edits and retirement.
      */
     public function isBuiltIn(): bool
     {

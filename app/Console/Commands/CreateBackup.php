@@ -19,22 +19,15 @@ use Throwable;
 class CreateBackup extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:backup {--with-files : Back up the uploaded files as well} {--keep-old : Leave old backups alone}';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'Back up the database, and the uploaded files when asked';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(BackupWriter $writer, BackupCatalogue $catalogue, BackupCipher $cipher): int
     {
         $started = microtime(true);

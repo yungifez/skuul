@@ -8,15 +8,8 @@ use App\Models\AdmissionWaitlistEntry;
 use App\Models\StudentRecord;
 
 /**
- * Count the seats of a home section.
- *
- * A seat is taken by a learner who attends, suspended learners included, and
- * by a waitlisted family that was offered it and has not answered. Placement,
- * re-admission, the waitlist and the section form all ask here, so they can
- * never disagree about whether a section is full.
- *
- * Callers lock the section row first. The count is then true until their
- * transaction ends.
+ * Count active and suspended learners plus unanswered seat offers.
+ * Lock the section before counting to serialize placement and waitlist changes.
  */
 class SectionSeats
 {

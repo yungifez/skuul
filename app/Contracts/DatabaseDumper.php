@@ -3,14 +3,8 @@
 namespace App\Contracts;
 
 /**
- * One way of copying a database out and putting it back.
- *
- * Each database engine has its own tools, so the backup command does not know
- * how a dump is taken. It asks the registry for the dumper of the connection
- * it was given.
- *
- * A new engine is one class and one line in
- * `App\Services\Backup\DatabaseDumperRegistry`.
+ * Use engine-specific tools to dump and restore a database.
+ * Register implementations in DatabaseDumperRegistry.
  */
 interface DatabaseDumper
 {

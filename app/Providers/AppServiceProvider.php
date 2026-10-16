@@ -162,11 +162,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Refuse a date whose year the database cannot hold.
-     *
-     * PHP reads a slip such as 20266-09-02 as a real date, so the `date` rule
-     * passes it and MySQL then fails the whole request. Every form gets the
-     * check through the one rule it already uses.
+     * Reject years outside the database range even when PHP accepts them as valid dates.
      */
     private function keepDatesInsideTheDatabase(): void
     {
@@ -198,12 +194,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Hold every Livewire request to the rules of the page it came from.
-     *
-     * A screen left open in a tab keeps talking to the server. It must stop
-     * when the person's account is suspended or the school turns its feature
-     * off, and it must never write into another school after the person
-     * switched school in another tab.
+     * Recheck account, feature, and campus access on Livewire requests from existing tabs.
      */
     private function keepLivewireInsideItsSchool(): void
     {

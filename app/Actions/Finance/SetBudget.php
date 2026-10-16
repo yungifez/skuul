@@ -15,11 +15,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Say what one account is allowed over one stretch of the year.
- *
- * A budget is a plan, so setting it again revises the same plan rather than
- * making a second one. Every revision is written to the audit log, because a
- * budget that quietly grows is how overspending hides.
+ * Revise the existing budget and audit each change instead of creating duplicate plans.
  */
 class SetBudget
 {

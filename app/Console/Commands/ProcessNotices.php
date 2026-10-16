@@ -18,22 +18,15 @@ use Throwable;
 class ProcessNotices extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'skuul:process-notices';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'Publish scheduled notices and expire finished ones';
 
-    /**
-     * Execute the console command.
-     */
     public function handle(PublishNotice $publisher): int
     {
         $published = 0;

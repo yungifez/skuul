@@ -71,9 +71,6 @@ enum Feature: string
      */
     case Programmes = 'programmes';
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {
@@ -147,11 +144,7 @@ enum Feature: string
     }
 
     /**
-     * Check whether the feature is on when nobody has chosen.
-     *
-     * Rankings start off, because a school should decide to rank children
-     * rather than find that the application already does. Boarding and the
-     * library start off because not every school has either.
+     * Default rankings, boarding, and library to off until the school enables them.
      */
     public function defaultsToOn(): bool
     {

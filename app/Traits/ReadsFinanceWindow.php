@@ -11,10 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
- * The stretch of time a finance report covers.
- *
- * A report that says nothing about its dates is not worth printing, so every
- * finance report answers for one window and says which one it used.
+ * Resolve the date range shared by finance reports.
  */
 trait ReadsFinanceWindow
 {

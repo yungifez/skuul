@@ -18,9 +18,6 @@ enum LibraryCopyStatus: string
 
     case Withdrawn = 'withdrawn';
 
-    /**
-     * Get the label to show in the interface.
-     */
     public function label(): string
     {
         return match ($this) {

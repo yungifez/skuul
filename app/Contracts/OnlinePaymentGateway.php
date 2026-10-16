@@ -7,14 +7,8 @@ use App\Services\Finance\PaymentOutcome;
 use Illuminate\Http\Request;
 
 /**
- * A way to pay where an outside provider holds the card details.
- *
- * The school never sees a card number. The gateway sends the payer away to
- * the provider, the provider says whether the money arrived, and only then
- * does the application record a payment and post it to the books.
- *
- * Adding a provider means writing one class that implements this and naming
- * it in `App\Services\Finance\PaymentChannelRegistry`.
+ * The provider collects card details. Record payments only after it confirms settlement.
+ * Register gateways in PaymentChannelRegistry.
  */
 interface OnlinePaymentGateway extends PaymentChannel
 {

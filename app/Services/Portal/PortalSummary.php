@@ -22,11 +22,7 @@ use App\Services\Finance\StudentLedger;
 use Illuminate\Support\Collection;
 
 /**
- * Gather what one family may read about one student.
- *
- * Every part comes from a record the school already published: a result
- * snapshot, a published timetable, a published notice, a posted ledger line.
- * Work in progress never reaches the portal.
+ * Collect enrollment-scoped data for family portal readers.
  */
 class PortalSummary
 {

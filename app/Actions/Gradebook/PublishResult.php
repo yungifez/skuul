@@ -15,11 +15,8 @@ use App\Services\Gradebook\GradebookCalculator;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Turn what the gradebook says today into a result awaiting approval.
- *
- * Teachers keep working in the gradebook. Publication takes a copy and gives
- * it a revision number, so a correction is a new revision instead of a quiet
- * change to a result a family already read.
+ * Snapshot gradebook results as numbered revisions awaiting approval.
+ * Corrections create new revisions rather than changing published results.
  */
 class PublishResult
 {
