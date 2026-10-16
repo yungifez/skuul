@@ -1,4 +1,4 @@
-@extends('layouts.app', ['breadcrumbs' => [['href' => route('dashboard'), 'text' => 'Dashboard'], ['text' => 'Library', 'active']]])
+@extends('layouts.app', ['breadcrumbs' => [['href' => route('dashboard'), 'text' => 'Dashboard'], ['href' => route('portal.overview'), 'text' => 'My school'], ['text' => 'Library', 'active']]])
 
 @section('title', 'Library')
 @section('page_heading', 'Library')

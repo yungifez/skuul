@@ -1,4 +1,5 @@
 @extends('layouts.app', ['breadcrumbs' => [
+    ['href' => route('dashboard'), 'text' => 'Dashboard'],
     ['href' => route('portal.overview'), 'text' => 'My school'],
     ['text' => 'Invoices and payments', 'active'],
 ]])

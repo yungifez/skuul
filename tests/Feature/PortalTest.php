@@ -713,7 +713,8 @@ class PortalTest extends TestCase
             ->assertOk()
             ->assertSee('Attendance rate')
             ->assertSee('100%')
-            ->assertSee('1 day recorded');
+            ->assertSee('1 day recorded')
+            ->assertSee(route('portal.overview'), false);
     }
 
     public function test_the_attendance_screen_says_when_no_register_was_taken(): void
