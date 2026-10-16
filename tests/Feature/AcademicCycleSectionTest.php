@@ -135,6 +135,18 @@ class AcademicCycleSectionTest extends TestCase
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::AcademicCycleSectionStatusChanged)->forSubject($section)->first());
     }
 
+    public function test_the_section_form_names_years_and_classes_the_same_way_as_the_rest_of_the_app(): void
+    {
+        $this->authorized_user(['create section', 'read section']);
+        AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id, 'start_year' => 2026, 'stop_year' => 2027, 'starts_on' => '2026-08-24', 'ends_on' => '2027-06-11']);
+        $yearWord = strtolower(school_term('academic_year', 'school year'));
+
+        Livewire::test(AcademicCycleSectionForm::class)
+            ->assertSee('Choose '.with_indefinite_article($yearWord))
+            ->assertSee('2026–27')
+            ->assertDontSee('2026 - 2027');
+    }
+
     public function test_a_section_with_learners_is_not_archived(): void
     {
         $this->authorized_user(['read section', 'update section']);

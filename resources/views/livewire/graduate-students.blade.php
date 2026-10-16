@@ -7,7 +7,7 @@
         <div class="md:col-span-2">
             <label for="graduation-section" class="text-sm text-muted-foreground">{{ school_term('section', 'Section') }}</label>
             <select id="graduation-section" wire:model.live="academicCycleSectionId" class="{{ $controlClasses }}" {{ field_error_bindings('academicCycleSectionId') }}>
-                <option value="">Choose a {{ $sectionWord }}</option>
+                <option value="">Choose {{ with_indefinite_article($sectionWord) }}</option>
                 @foreach ($cycleSections as $cycleSection)
                     <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
                 @endforeach

@@ -18,7 +18,7 @@
             <div>
                 <label for="section-year" class="text-sm text-muted-foreground">{{ school_term('academic_year', 'School year') }}</label>
                 <select id="section-year" wire:model="academicYearId" required aria-describedby="section-year-hint" class="{{ $controlClasses }}" {{ field_error_bindings('academicYearId') }}>
-                    <option value="">Choose a {{ $yearWord }}</option>
+                    <option value="">Choose {{ with_indefinite_article($yearWord) }}</option>
                     @foreach ($academicYears as $academicYear)
                         <option value="{{ $academicYear->id }}">{{ $academicYear->name }}</option>
                     @endforeach
@@ -29,7 +29,7 @@
             <div>
                 <label for="section-level" class="text-sm text-muted-foreground">{{ school_term('class_level', 'Class') }}</label>
                 <select id="section-level" wire:model="academicLevelId" required class="{{ $controlClasses }}" {{ field_error_bindings('academicLevelId') }}>
-                    <option value="">Choose a {{ $classWord }}</option>
+                    <option value="">Choose {{ with_indefinite_article($classWord) }}</option>
                     @foreach ($academicLevels as $academicLevel)
                         <option value="{{ $academicLevel->id }}">{{ $academicLevel->name }}</option>
                     @endforeach
