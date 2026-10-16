@@ -117,10 +117,12 @@ class ProgramRecord extends Component
             'staffId.in' => 'Choose somebody who works in this school.',
         ], ['studentRecordId' => 'learner', 'startsOn' => 'start date', 'staffId' => 'person running it']);
 
+        $enrollment = StudentRecord::query()->inSchool()->with('user:id,name')->findOrFail((int) $this->studentRecordId);
+
         try {
-            $changeParticipation->join(
+            $place = $changeParticipation->join(
                 program: $this->program,
-                enrollment: StudentRecord::query()->inSchool()->findOrFail((int) $this->studentRecordId),
+                enrollment: $enrollment,
                 startsOn: $this->startsOn,
                 staff: $this->staffId === '' ? null : User::query()->findOrFail((int) $this->staffId),
                 schedule: $this->schedule === '' ? null : $this->schedule,
@@ -132,8 +134,14 @@ class ProgramRecord extends Component
             return;
         }
 
+        if (!$place->wasRecentlyCreated) {
+            $this->addError('studentRecordId', "{$enrollment->user?->name} already has a place in this programme.");
+
+            return;
+        }
+
         $this->reset('studentRecordId', 'schedule', 'staffId');
-        $this->notify('The learner has a place.');
+        $this->notify("{$enrollment->user?->name} has a place.");
     }
 
     public function movePlace(int $participationId, string $status, string $seen, ChangeProgramParticipation $changeParticipation): void

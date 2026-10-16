@@ -306,7 +306,11 @@ class CohortScreenTest extends TestCase
             ->assertHasNoErrors()
             ->assertSee('Ada Bell')
             ->assertSee('Tuesday, 15:30')
-            ->assertSee('Coach Obi');
+            ->assertSee('Coach Obi')
+            ->assertDispatched('status-message', type: 'success', message: 'Ada Bell has a place.')
+            ->set('studentRecordId', (string) $enrollment->id)
+            ->call('givePlace')
+            ->assertHasErrors(['studentRecordId' => 'Ada Bell already has a place in this programme.']);
 
         $this->assertSame(1, $program->participations()->count());
         $this->assertTrue(AuditEvent::query()->where('action', AuditAction::ProgramParticipationChanged->value)->exists());
