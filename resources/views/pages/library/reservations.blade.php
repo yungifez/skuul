@@ -1,7 +1,7 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('library-copies.index'), 'text' => 'Library'],
-    ['href' => route('library-reservations.index'), 'text' => 'Queue', 'active'],
+    ['href' => route('library-copies.index'), 'text' => 'Catalogue'],
+    ['href' => route('library-reservations.index'), 'text' => 'Library queue', 'active'],
 ]])
 
 @section('title', __('Library queue'))

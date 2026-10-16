@@ -323,6 +323,16 @@ class ExamTest extends TestCase
 
     // test unauthorized user cannot view exam
 
+    public function test_a_reader_of_exams_is_not_told_to_manage_them(): void
+    {
+        $this->authorized_user(['read exam']);
+
+        Livewire::test(ListExamsTable::class)
+            ->assertSee('The exams scheduled for this period.')
+            ->assertDontSee('Manage scheduled exams.')
+            ->assertDontSee('Create an exam for the current academic period.');
+    }
+
     public function test_unauthorized_user_cannot_delete_exam()
     {
         $exam = Exam::factory()->create();

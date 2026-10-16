@@ -1,6 +1,6 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('library-copies.index'), 'text' => 'Library'],
+    ['href' => route('library-copies.index'), 'text' => 'Catalogue'],
     ['href' => route('library-loans.index'), 'text' => 'Lending desk', 'active'],
 ]])
 

@@ -1,10 +1,10 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('staff-profiles.index'), 'text' => 'Staff', 'active'],
+    ['href' => route('staff-profiles.index'), 'text' => 'Staff directory', 'active'],
 ]])
 
-@section('title', 'Staff')
-@section('page_heading', 'Staff')
+@section('title', 'Staff directory')
+@section('page_heading', 'Staff directory')
 
 @section('page_actions')
     @can('create', App\Models\StaffProfile::class)

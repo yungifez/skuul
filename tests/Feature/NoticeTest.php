@@ -68,7 +68,29 @@ class NoticeTest extends TestCase
 
         $this->get(route('notices.show', $notice))
             ->assertSuccessful()
-            ->assertSee('Draft');
+            ->assertSee('Draft')
+            ->assertDontSee("View {$notice->title}")
+            ->assertSee('For Whole school');
+    }
+
+    public function test_a_notice_manager_sees_who_a_notice_reaches_and_when(): void
+    {
+        $this->authorized_user(['read notice', 'update notice']);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => 'Grade 10']);
+        $notice = Notice::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'status' => NoticeStatus::Draft,
+            'start_date' => '2026-10-16',
+            'stop_date' => '2026-10-30',
+            'send_email' => true,
+            'audience' => ['scope' => 'class', 'academic_level_ids' => [$academicLevel->id], 'academic_cycle_section_ids' => [], 'include_guardians' => true],
+        ]);
+
+        $this->get(route('notices.show', $notice))
+            ->assertOk()
+            ->assertSee('Shows 16 Oct 2026 to 30 Oct 2026')
+            ->assertSee('For Classes / levels: Grade 10, with guardians')
+            ->assertSee('Also sent by email');
     }
 
     public function test_a_student_only_sees_active_notices_delivered_to_their_account(): void
@@ -131,7 +153,9 @@ class NoticeTest extends TestCase
             ->assertSuccessful()
             ->assertSee('data-slot="editor"', false)
             ->assertSee('wire:model="content"', false)
-            ->assertSee('wire:model.live="audienceScope"', false);
+            ->assertSee('wire:model.live="audienceScope"', false)
+            ->assertSee('Add notice')
+            ->assertDontSee('Create notice');
     }
 
     public function test_the_message_editor_loads_from_whatever_host_serves_the_page(): void

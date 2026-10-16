@@ -45,6 +45,7 @@ class StaffScreenTest extends TestCase
         $this->get(route('staff-profiles.index'))
             ->assertOk()
             ->assertSee('No employment records yet')
+            ->assertSee('Staff directory')
             ->assertSee(route('staff-profiles.create'));
     }
 

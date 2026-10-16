@@ -1,6 +1,6 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('staff-profiles.index'), 'text' => 'Staff'],
+    ['href' => route('staff-profiles.index'), 'text' => 'Staff directory'],
     ['text' => 'Add an employment record', 'active'],
 ]])
 

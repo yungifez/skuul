@@ -1,10 +1,16 @@
 <div class="card">
     <div class="card-header">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <h4 class="card-title">View {{ $notice->title }}</h4>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
             <april:badge variant="{{ $notice->status->value === 'published' ? 'default' : 'secondary' }}">
                 {{ $notice->status->label() }}
             </april:badge>
+            <span>Shows {{ \Illuminate\Support\Carbon::parse($notice->start_date)->format('j M Y') }} to {{ \Illuminate\Support\Carbon::parse($notice->stop_date)->format('j M Y') }}</span>
+            @if ($audience !== null)
+                <span>For {{ $audience }}</span>
+                @if ($notice->send_email)
+                    <span>Also sent by email</span>
+                @endif
+            @endif
         </div>
     </div>
     <div class="card-body">

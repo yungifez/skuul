@@ -1,11 +1,11 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('library-copies.index'), 'text' => 'Library', 'active'],
+    ['href' => route('library-copies.index'), 'text' => 'Catalogue', 'active'],
 ]])
 
-@section('title', __('Library'))
+@section('title', __('Catalogue'))
 
-@section('page_heading', __('Library'))
+@section('page_heading', __('Catalogue'))
 
 @section('page_actions')
     <april:button-link href="{{ route('library-loans.index') }}" variant="outline" class="h-11 select-none">
@@ -20,7 +20,7 @@
                 </april:button>
             </slot:trigger>
             <slot:content align="end">
-                <april:dropdown-menu-item href="{{ route('library-reservations.index') }}"><x-lucide-list-ordered class="mr-2 size-4" />Queue</april:dropdown-menu-item>
+                <april:dropdown-menu-item href="{{ route('library-reservations.index') }}"><x-lucide-list-ordered class="mr-2 size-4" />Library queue</april:dropdown-menu-item>
                 <april:dropdown-menu-item href="{{ route('library-rules.edit') }}"><x-lucide-settings-2 class="mr-2 size-4" />Lending rules</april:dropdown-menu-item>
             </slot:content>
         </april:dropdown-menu>

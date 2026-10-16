@@ -744,7 +744,7 @@ class LibraryTest extends TestCase
 
         app(FeatureManager::class)->enable(Feature::Library);
 
-        $actor->get(route('library-copies.index'))->assertOk()->assertSee('on the shelf')->assertSeeLivewire(LibraryCopyCatalogComponent::class);
+        $actor->get(route('library-copies.index'))->assertOk()->assertSee('on the shelf')->assertSee('Catalogue')->assertSeeLivewire(LibraryCopyCatalogComponent::class);
     }
 
     public function test_the_library_catalogue_searches_copies_live_and_clears_the_search(): void

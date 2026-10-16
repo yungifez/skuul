@@ -122,7 +122,7 @@ class Menu extends Component
             [
                 'type' => 'menu-item',
                 'icon' => 'calendar',
-                'text' => 'Academic cycles',
+                'text' => school_terms('academic_year', 'School years'),
                 'route' => 'academic-years.index',
                 'can' => 'read academic year',
             ],
