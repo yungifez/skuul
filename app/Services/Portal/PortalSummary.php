@@ -72,15 +72,21 @@ class PortalSummary
 
     /**
      * Get the published timetable of the student's current home group.
+     *
+     * A learner with no home group has no week to read. Without that check,
+     * the query would match every campus's schoolwide timetable.
      */
     public function timetable(StudentRecord $enrollment): ?Timetable
     {
-        if (!$this->access->areaIsOpen(PortalArea::Timetable, $enrollment->school_id)) {
+        if (!$this->access->areaIsOpen(PortalArea::Timetable, $enrollment->school_id)
+            || $enrollment->academic_cycle_section_id === null
+        ) {
             return null;
         }
 
         return Timetable::query()
             ->where('academic_cycle_section_id', $enrollment->academic_cycle_section_id)
+            ->whereHas('academicPeriod', fn ($period) => $period->where('school_id', $enrollment->school_id))
             ->published()
             ->orderByDesc('published_at')
             ->first();
