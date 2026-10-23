@@ -75,6 +75,16 @@ class CourseOfferingPolicy
     }
 
     /**
+     * Determine whether the user can take the register in the offering's lessons.
+     *
+     * The teachers of the offering take it, and so does a curriculum manager.
+     */
+    public function takeLessonRegister(User $user, CourseOffering $courseOffering): bool
+    {
+        return $this->canWorkInGradebook($user, $courseOffering, 'take attendance', stillTeaching: true);
+    }
+
+    /**
      * Determine whether the user may approve a submitted result.
      */
     public function approveResult(User $user, CourseOffering $courseOffering): bool

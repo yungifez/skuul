@@ -2,8 +2,6 @@
 
 namespace App\Services\Timetable;
 
-use App\Enums\RosterMode;
-use App\Models\AcademicCycleSection;
 use App\Models\CourseOffering;
 use App\Models\StudentRecord;
 use App\Models\TeachingAssignment;
@@ -58,7 +56,7 @@ class PersonalWeek
         $assignments = TeachingAssignment::inSchool($schoolId)
             ->forTeacher($teacher)
             ->runningOn()
-            ->with(['courseOffering.cycleSections:id', 'courseOffering.studentRecords:id,academic_cycle_section_id', 'courseOffering.academicLevel'])
+            ->with('courseOffering.academicLevel')
             ->get();
 
         if ($assignments->isEmpty()) {
@@ -173,21 +171,6 @@ class PersonalWeek
             return [$assignment->academic_cycle_section_id];
         }
 
-        $offering = $assignment->courseOffering;
-
-        if ($offering === null) {
-            return [];
-        }
-
-        return match ($offering->roster_mode) {
-            RosterMode::HomeSection, RosterMode::CombinedHomeSections => $offering->cycleSections->modelKeys(),
-            RosterMode::IndividualRoster => $offering->studentRecords->pluck('academic_cycle_section_id')->filter()->map(fn (int|string $id): int => (int) $id)->all(),
-            RosterMode::AcademicLevel => AcademicCycleSection::query()
-                ->where('academic_year_id', $offering->academic_year_id)
-                ->whereIn('academic_level_id', $offering->academicLevel->teachingScopeIds())
-                ->pluck('id')
-                ->map(fn (int|string $id): int => (int) $id)
-                ->all(),
-        };
+        return $assignment->courseOffering?->reachedSectionIds() ?? [];
     }
 }

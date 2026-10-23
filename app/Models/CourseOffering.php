@@ -93,6 +93,29 @@ class CourseOffering extends Model
     }
 
     /**
+     * Get the sections whose timetables can place this offering's lessons.
+     *
+     * These are the sections the roster names, the sections of the level and
+     * the levels under it, or the home sections of the named learners.
+     *
+     * @return array<int, int>
+     */
+    public function reachedSectionIds(): array
+    {
+        $ids = match ($this->roster_mode) {
+            RosterMode::HomeSection, RosterMode::CombinedHomeSections => $this->cycleSections()->pluck('academic_cycle_sections.id')->all(),
+            RosterMode::IndividualRoster => $this->studentRecords()->whereNotNull('academic_cycle_section_id')->pluck('academic_cycle_section_id')->all(),
+            RosterMode::AcademicLevel => AcademicCycleSection::query()
+                ->where('academic_year_id', $this->academic_year_id)
+                ->whereIn('academic_level_id', $this->academicLevel->teachingScopeIds())
+                ->pluck('id')
+                ->all(),
+        };
+
+        return array_values(array_unique(array_map('intval', $ids)));
+    }
+
+    /**
      * Limit the query to the offerings a timetable teaches.
      *
      * An offering's own timetable teaches that offering. A section's
