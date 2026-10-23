@@ -10,10 +10,13 @@
 @php
     $rate = $attendance['rate'];
     $recorded = $attendance['recorded'];
+    // A campus that takes a register in each lesson counts lessons, not days.
+    $byLesson = ($attendance['kind'] ?? 'daily') !== 'daily';
+    $unit = $byLesson ? 'lesson' : 'day';
     $figures = [
-        ['label' => 'Present', 'value' => $attendance['present'], 'hint' => 'Days in school'],
-        ['label' => 'Absent', 'value' => $attendance['absent'], 'hint' => 'Days missed'],
-        ['label' => 'Late', 'value' => $attendance['late'], 'hint' => 'Days of arriving after the start'],
+        ['label' => 'Present', 'value' => $attendance['present'], 'hint' => $byLesson ? 'Lessons attended' : 'Days in school'],
+        ['label' => 'Absent', 'value' => $attendance['absent'], 'hint' => $byLesson ? 'Lessons missed' : 'Days missed'],
+        ['label' => 'Late', 'value' => $attendance['late'], 'hint' => $byLesson ? 'Lessons joined after the start' : 'Days of arriving after the start'],
         ['label' => 'Excused', 'value' => $attendance['excused'], 'hint' => 'Absences the school agreed to'],
     ];
 @endphp
@@ -22,17 +25,17 @@
     <div class="space-y-6">
         <april:card>
             <slot:title>{{ $studentRecord->user?->name ?? $studentRecord->admission_number }}</slot:title>
-            <slot:description>The school counts only the days it took a register. A day with no register does not count as an absence.</slot:description>
+            <slot:description>The school counts only the {{ Str::plural($unit) }} it took a register. {{ ucfirst(with_indefinite_article($unit)) }} with no register does not count as an absence.</slot:description>
             <slot:content>
                 @if ($recorded === 0)
                     <x-empty-state icon="lucide-calendar-off" title="No attendance recorded yet"
-                        description="Once the school starts taking the register, the days appear here." />
+                        description="Once the school starts taking the register, the {{ Str::plural($unit) }} appear here." />
                 @else
                     <div class="space-y-6">
                         <div>
                             <div class="flex flex-wrap items-baseline justify-between gap-2">
                                 <p class="text-sm text-muted-foreground">Attendance rate</p>
-                                <p class="text-sm text-muted-foreground">{{ $recorded }} {{ Str::plural('day', $recorded) }} recorded</p>
+                                <p class="text-sm text-muted-foreground">{{ $recorded }} {{ Str::plural($unit, $recorded) }} recorded</p>
                             </div>
                             <p class="text-4xl font-semibold">{{ $rate === null ? '—' : $rate.'%' }}</p>
                             @if ($rate !== null)

@@ -1,6 +1,6 @@
 @php
-    $chosen = $academicLevel !== null || $section !== null || $cohort !== null;
-    $groupName = $cohort?->name ?? $section?->name ?? $academicLevel?->name;
+    $chosen = $academicLevel !== null || $section !== null || $cohort !== null || $courseOffering !== null;
+    $groupName = $courseOffering?->qualifiedName() ?? $cohort?->name ?? $section?->name ?? $academicLevel?->name;
 @endphp
 
 <div class="space-y-6">
@@ -105,6 +105,19 @@
                         <p class="text-xs text-muted-foreground">Optional: compare a named set of learners instead.</p>
                     </div>
                 </div>
+
+                @if ($courseOfferings->isNotEmpty())
+                    <div class="flex flex-col gap-2 md:w-1/2">
+                        <april:label for="course_offering_id">Learners of one subject</april:label>
+                        <april:native-select id="course_offering_id" wire:model.live="courseOfferingId" class="w-full min-w-0">
+                            <option value="">No subject</option>
+                            @foreach ($courseOfferings as $option)
+                                <option value="{{ $option->id }}">{{ $option->qualifiedName() }} · {{ $option->academicPeriod?->display_name }}</option>
+                            @endforeach
+                        </april:native-select>
+                        <p class="text-xs text-muted-foreground">Optional: compare the learners who take one subject, by their result in it. Use this where learners take different subjects.</p>
+                    </div>
+                @endif
 
                 <div class="grid gap-4 md:grid-cols-2">
                     <div class="flex flex-col gap-2">

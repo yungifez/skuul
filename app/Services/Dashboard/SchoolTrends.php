@@ -2,7 +2,6 @@
 
 namespace App\Services\Dashboard;
 
-use App\Enums\AttendanceKind;
 use App\Enums\AttendanceStatus;
 use App\Enums\EnrollmentStatus;
 use App\Models\AcademicCycleSection;
@@ -13,6 +12,7 @@ use App\Models\Incident;
 use App\Models\StudentPayment;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Attendance\AttendanceSummary;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -43,7 +43,7 @@ class SchoolTrends
 
         $totals = AttendanceRecord::query()
             ->inSchool()
-            ->ofKind(AttendanceKind::Daily)
+            ->ofKind(AttendanceSummary::countedKind())
             ->where('status', '!=', AttendanceStatus::NotRecorded)
             ->whereBetween('attended_on', [$firstWeek->toDateString(), $today->toDateString()])
             ->selectRaw('attended_on, count(*) as recorded')

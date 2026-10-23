@@ -67,6 +67,7 @@
                                 @case('school') Everyone in this school: staff and learners who attend. @break
                                 @case('class') Every current section of the classes or groups you choose. @break
                                 @case('section') Only the sections you choose. @break
+                                @case('offering') The learners who take the subjects you choose, from any section. @break
                             @endswitch
                         </span>
                     </span>
@@ -108,6 +109,23 @@
                         <p class="text-sm text-muted-foreground">No active sections yet.</p>
                     @endif
                     <x-field-error name="sectionIds" class="mt-1" />
+                </div>
+            @elseif ($audienceScope === 'offering')
+                <div class="mt-2">
+                    @if ($courseOfferings->isNotEmpty())
+                        <div class="max-h-64 divide-y overflow-y-auto border-y" role="group" aria-label="Subjects">
+                            @foreach ($courseOfferings as $courseOffering)
+                                <label wire:key="offering-{{ $courseOffering->id }}" class="flex min-h-11 cursor-pointer select-none items-center gap-3 text-sm">
+                                    <input type="checkbox" wire:model="courseOfferingIds" value="{{ $courseOffering->id }}" class="size-4 rounded border-input">
+                                    {{ $courseOffering->qualifiedName() }}
+                                    <span class="text-xs text-muted-foreground">{{ $courseOffering->academicPeriod?->display_name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-sm text-muted-foreground">No subjects this year yet.</p>
+                    @endif
+                    <x-field-error name="courseOfferingIds" class="mt-1" />
                 </div>
             @endif
 

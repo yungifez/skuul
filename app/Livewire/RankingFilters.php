@@ -50,6 +50,12 @@ class RankingFilters extends Component
     public ?int $subjectId = null;
 
     /**
+     * One subject's roster, ranked in that subject alone.
+     */
+    #[Url(as: 'course_offering_id')]
+    public ?int $courseOfferingId = null;
+
+    /**
      * @var array<int, list<int>>
      */
     private array $academicLevelHierarchies = [];
@@ -134,10 +140,17 @@ class RankingFilters extends Component
         $this->cohortId = null;
         $this->academicPeriodId = null;
         $this->subjectId = null;
+        $this->courseOfferingId = null;
     }
 
     public function render(): View
     {
+        $courseOffering = $this->courseOffering();
+
+        if ($courseOffering !== null) {
+            return $this->renderCourseOffering($courseOffering);
+        }
+
         $academicLevel = $this->academicLevel();
         $section = $this->section($academicLevel);
         $cohort = $this->cohort();
@@ -170,12 +183,70 @@ class RankingFilters extends Component
             'cohorts' => Cohort::query()->inSchool()->active()->orderBy('name')->get(['id', 'name']),
             'periods' => AcademicPeriod::query()->inSchool()->ordered()->get(['id', 'name', 'label']),
             'subjects' => $subjects,
+            'courseOfferings' => $this->courseOfferings(),
             'academicLevel' => $academicLevel,
             'section' => $section,
             'cohort' => $cohort,
             'period' => $period,
             'subject' => $subject,
+            'courseOffering' => null,
         ]);
+    }
+
+    /**
+     * Rank the roster of one subject in that subject alone.
+     */
+    private function renderCourseOffering(CourseOffering $courseOffering): View
+    {
+        try {
+            [$rows, $error] = [$this->ranking->forCourseOffering($courseOffering), null];
+        } catch (InvalidValueException $exception) {
+            [$rows, $error] = [collect(), $exception->getMessage()];
+        }
+
+        return view('livewire.ranking-filters', [
+            'rows' => $rows,
+            'error' => $error,
+            'learners' => $this->learnersOf($rows),
+            'academicLevels' => AcademicLevel::query()->inSchool()->with('parent:id,name')->orderBy('is_group')->orderBy('position')->orderBy('name')->get(['id', 'parent_id', 'name', 'is_group']),
+            'sections' => new EloquentCollection,
+            'cohorts' => Cohort::query()->inSchool()->active()->orderBy('name')->get(['id', 'name']),
+            'periods' => AcademicPeriod::query()->inSchool()->ordered()->get(['id', 'name', 'label']),
+            'subjects' => new EloquentCollection,
+            'courseOfferings' => $this->courseOfferings(),
+            'academicLevel' => null,
+            'section' => null,
+            'cohort' => null,
+            'period' => null,
+            'subject' => null,
+            'courseOffering' => $courseOffering,
+        ]);
+    }
+
+    private function courseOffering(): ?CourseOffering
+    {
+        return $this->courseOfferingId === null
+            ? null
+            : CourseOffering::query()->inSchool()->where('roster_mode', RosterMode::IndividualRoster)->with(['subject:id,name', 'academicLevel:id,name'])->find($this->courseOfferingId);
+    }
+
+    /**
+     * Get this year's subjects that name their learners.
+     *
+     * A subject taught to whole sections or levels is ranked through those filters.
+     *
+     * @return EloquentCollection<int, CourseOffering>
+     */
+    private function courseOfferings(): EloquentCollection
+    {
+        return CourseOffering::query()
+            ->inSchool()
+            ->where('academic_year_id', current_academic_year_id())
+            ->where('roster_mode', RosterMode::IndividualRoster)
+            ->with(['subject:id,name', 'academicLevel:id,name', 'academicPeriod'])
+            ->orderBy('academic_level_id')
+            ->orderBy('subject_id')
+            ->get();
     }
 
     /**

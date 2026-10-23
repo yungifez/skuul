@@ -204,7 +204,7 @@ class NoticeTest extends TestCase
 
         $component->assertRedirect(route('notices.show', $notice));
         $this->assertFalse($notice->isPublished());
-        $this->assertEquals(['scope' => 'school', 'academic_level_ids' => [], 'academic_cycle_section_ids' => [], 'include_guardians' => false], $notice->audience);
+        $this->assertEquals(['scope' => 'school', 'academic_level_ids' => [], 'academic_cycle_section_ids' => [], 'include_guardians' => false, 'course_offering_ids' => []], $notice->audience);
         $this->assertFalse($notice->send_email);
     }
 
