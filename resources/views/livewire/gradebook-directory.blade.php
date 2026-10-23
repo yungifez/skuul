@@ -39,7 +39,7 @@
                             <div class="flex items-start justify-between gap-3">
                                 <div class="min-w-0">
                                     <h3 class="break-words font-medium leading-6">
-                                        {{ $courseOffering->subject->name }}
+                                        {{ $courseOffering->nameWithSubject() }}
                                         @if ($courseOffering->subject->short_name)
                                             <span class="text-sm font-normal text-muted-foreground">{{ $courseOffering->subject->short_name }}</span>
                                         @endif
@@ -82,7 +82,7 @@
                             @foreach ($courseOfferings as $courseOffering)
                                 <tr wire:key="gradebook-row-{{ $courseOffering->id }}">
                                     <td class="px-3 py-3 font-medium">
-                                        {{ $courseOffering->subject->name }}
+                                        {{ $courseOffering->nameWithSubject() }}
                                         @if ($courseOffering->subject->short_name)
                                             <span class="ml-1 text-muted-foreground">{{ $courseOffering->subject->short_name }}</span>
                                         @endif

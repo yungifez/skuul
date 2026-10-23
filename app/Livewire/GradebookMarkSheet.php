@@ -9,6 +9,7 @@ use App\Actions\Gradebook\RejectResult;
 use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
 use App\Enums\ResultApprovalStatus;
+use App\Enums\RosterMode;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
@@ -420,11 +421,46 @@ class GradebookMarkSheet extends Component
     }
 
     /**
+     * Get the learners this person marks.
+     *
      * @return SupportCollection<int, StudentRecord>
      */
     private function students(): SupportCollection
     {
-        return once(fn (): SupportCollection => app(CourseOfferingRoster::class)->students($this->courseOffering));
+        return once(function (): SupportCollection {
+            $students = app(CourseOfferingRoster::class)->students($this->courseOffering);
+            $sectionIds = $this->markedSectionIds();
+
+            return $sectionIds === null
+                ? $students
+                : $students->whereIn('academic_cycle_section_id', $sectionIds)->values();
+        });
+    }
+
+    /**
+     * Get the sections a teacher marks when they teach only part of a whole-level offering.
+     *
+     * A teacher assigned to some sections of the level marks only those
+     * sections. A subject manager, a teacher of the whole offering, and a
+     * reviewer with no assignment see every learner.
+     *
+     * @return list<int>|null
+     */
+    private function markedSectionIds(): ?array
+    {
+        $user = auth()->user();
+
+        if ($this->courseOffering->roster_mode !== RosterMode::AcademicLevel || $user->can('update subject')) {
+            return null;
+        }
+
+        $sectionIds = $this->courseOffering->teachingAssignments()->where('user_id', $user->id)->pluck('academic_cycle_section_id');
+
+        if ($sectionIds->isEmpty() || $sectionIds->contains(null)) {
+            return null;
+        }
+
+        return $sectionIds->map(fn ($id): int => (int) $id)->unique()->values()->all();
     }
 
     /**

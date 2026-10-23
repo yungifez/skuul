@@ -11,10 +11,13 @@ use App\Models\AcademicCycleSection;
 use App\Models\AcademicPeriod;
 use App\Models\AttendanceChange;
 use App\Models\AttendanceRecord;
+use App\Models\CourseOffering;
 use App\Models\StudentRecord;
 use App\Models\Subject;
+use App\Models\TimetableTimeSlot;
 use App\Models\User;
 use App\Services\Calendar\SchoolCalendar;
+use App\Services\Gradebook\CourseOfferingRoster;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +30,10 @@ use Illuminate\Support\Facades\DB;
  */
 class RecordAttendance
 {
-    public function __construct(private SchoolCalendar $calendar) {}
+    public function __construct(
+        private SchoolCalendar $calendar,
+        private CourseOfferingRoster $roster,
+    ) {}
 
     /**
      * Record where the student was.
@@ -44,8 +50,17 @@ class RecordAttendance
         ?User $actor = null,
         ?string $reason = null,
         string $source = 'teacher',
+        ?CourseOffering $courseOffering = null,
+        ?TimetableTimeSlot $timeSlot = null,
     ): AttendanceRecord {
         $day = Carbon::parse($date ?? school_today($enrollment->school_id))->startOfDay();
+
+        if ($courseOffering !== null) {
+            $this->failIfNotInTheLesson($enrollment, $day, $kind, $subject, $courseOffering, $timeSlot);
+            $subject = $courseOffering->subject;
+        } elseif ($timeSlot !== null) {
+            throw new InvalidValueException('A lesson time belongs to the register of one subject.');
+        }
 
         $term = $this->termOf($enrollment, $day);
         $this->failIfRecordsDoNotFit($enrollment, $day, $kind, $subject, $term);
@@ -57,14 +72,18 @@ class RecordAttendance
             throw new InvalidValueException("The school was shut on {$day->format('j M Y')} for {$closure->title}. That day has no register.");
         }
 
-        return DB::transaction(function () use ($enrollment, $status, $day, $kind, $subject, $actor, $reason, $source, $term, $section): AttendanceRecord {
+        return DB::transaction(function () use ($enrollment, $status, $day, $kind, $subject, $actor, $reason, $source, $term, $section, $courseOffering, $timeSlot): AttendanceRecord {
             $record = AttendanceRecord::query()
                 ->lockForUpdate()
                 ->firstOrNew([
                     'student_record_id' => $enrollment->id,
                     'attended_on' => $day->toDateString(),
+                    'register_key' => AttendanceRecord::registerKey($kind, $courseOffering?->id, $timeSlot?->id, $subject?->id),
+                ], [
                     'kind' => $kind->value,
                     'subject_id' => $subject?->id,
+                    'course_offering_id' => $courseOffering?->id,
+                    'timetable_time_slot_id' => $timeSlot?->id,
                 ]);
 
             // A learner who moved keeps one enrollment. The day they spent at
@@ -118,9 +137,11 @@ class RecordAttendance
         AttendanceKind $kind = AttendanceKind::Daily,
         ?Subject $subject = null,
         ?User $actor = null,
+        ?CourseOffering $courseOffering = null,
+        ?TimetableTimeSlot $timeSlot = null,
     ): array {
         // One register is saved whole or not at all.
-        return DB::transaction(function () use ($entries, $date, $kind, $subject, $actor): array {
+        return DB::transaction(function () use ($entries, $date, $kind, $subject, $actor, $courseOffering, $timeSlot): array {
             $records = [];
 
             foreach ($entries as $entry) {
@@ -132,6 +153,8 @@ class RecordAttendance
                     subject: $subject,
                     actor: $actor,
                     reason: $entry['reason'] ?? null,
+                    courseOffering: $courseOffering,
+                    timeSlot: $timeSlot,
                 );
             }
 
@@ -187,6 +210,38 @@ class RecordAttendance
 
         if ($period !== null && $period->isClosed()) {
             throw new ClosedPeriodException('You cannot take attendance in a closed academic period.');
+        }
+    }
+
+    /**
+     * Check that the learner is on the offering's roster and the lesson time is one of its own.
+     *
+     * @throws InvalidValueException
+     */
+    private function failIfNotInTheLesson(StudentRecord $enrollment, Carbon $day, AttendanceKind $kind, ?Subject $subject, CourseOffering $courseOffering, ?TimetableTimeSlot $timeSlot): void
+    {
+        if ($kind !== AttendanceKind::Period) {
+            throw new InvalidValueException('A daily register covers the whole day, not one subject.');
+        }
+
+        if ($subject !== null && $subject->id !== $courseOffering->subject_id) {
+            throw new InvalidValueException('The subject does not match the course offering.');
+        }
+
+        if ($enrollment->school_id !== $courseOffering->school_id || !$this->roster->includes($courseOffering, $enrollment)) {
+            throw new InvalidValueException("{$enrollment->user?->name} does not take {$courseOffering->displayName()}.");
+        }
+
+        if ($timeSlot === null) {
+            return;
+        }
+
+        $timetable = $timeSlot->timetable;
+
+        if ($timetable === null
+            || !CourseOffering::query()->whereKey($courseOffering->id)->taughtOn($timetable)->exists()
+            || !$timeSlot->occursOn($day, $day->dayOfWeekIso)) {
+            throw new InvalidValueException("Choose a lesson time of {$courseOffering->displayName()} on {$day->format('j M Y')}.");
         }
     }
 

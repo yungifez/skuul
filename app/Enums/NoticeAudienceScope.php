@@ -10,12 +10,18 @@ enum NoticeAudienceScope: string
 
     case Section = 'section';
 
+    /**
+     * The learners on the rosters of the chosen course offerings.
+     */
+    case Offering = 'offering';
+
     public function label(): string
     {
         return match ($this) {
             self::School => 'Whole school',
             self::Classes => 'Classes / levels',
             self::Section => 'Sections',
+            self::Offering => 'Subjects',
         };
     }
 

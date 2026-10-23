@@ -103,6 +103,29 @@ class CourseOfferingRollForwardTest extends TestCase
         $this->assertSame([$targetSectionB->id], $created->first()->cycleSections->modelKeys());
     }
 
+    /**
+     * Two named-learner groups of one subject, such as Algebra A and Algebra B, both carry over once.
+     */
+    public function test_every_named_learner_offering_is_copied_once(): void
+    {
+        [$source, $target, $sourcePeriod, , $sourceSection, $subject] = $this->rollForwardContext();
+
+        foreach ([1, 2] as $copy) {
+            CourseOffering::factory()->create([
+                'school_id' => $source->school_id,
+                'academic_year_id' => $source->id,
+                'academic_period_id' => $sourcePeriod->id,
+                'academic_level_id' => $sourceSection->academic_level_id,
+                'subject_id' => $subject->id,
+                'roster_mode' => RosterMode::IndividualRoster,
+            ]);
+        }
+
+        $this->assertCount(2, app(RollForwardCourseOfferings::class)->rollForward($source, $target));
+        $this->assertCount(0, app(RollForwardCourseOfferings::class)->rollForward($source, $target));
+        $this->assertSame(2, CourseOffering::query()->where('academic_year_id', $target->id)->where('roster_mode', RosterMode::IndividualRoster)->count());
+    }
+
     public function test_the_screen_copies_the_subjects_once_and_returns_to_the_setup(): void
     {
         $this->authorized_user(['create subject', 'read subject']);

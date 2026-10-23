@@ -67,25 +67,28 @@
                         $mode = $configurations[$level->id]['roster_mode'] ?? \App\Enums\RosterMode::HomeSection->value;
                         $levelSections = $sectionsByLevel->get($level->id, collect());
                         $choosesSections = !$level->is_group && \App\Enums\RosterMode::tryFrom($mode)?->usesHomeSections();
+                        $levelModes = array_filter($rosterModes, fn (\App\Enums\RosterMode $rosterMode): bool => $level->allowsRosterMode($rosterMode));
                     @endphp
                     <li wire:key="settings-{{ $level->id }}" class="flex flex-col gap-3 py-4">
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             <h3 class="font-medium">{{ $level->name }}</h3>
-                            @if ($level->is_group)
-                                <p class="text-sm text-muted-foreground">Everyone in the group</p>
+                            @if (count($levelModes) === 1)
+                                <p class="text-sm text-muted-foreground">{{ $level->is_group ? 'Everyone in the group' : school_roster_label(reset($levelModes)) }}</p>
                             @else
                                 <div class="w-full sm:w-64">
                                     <label for="roster-mode-{{ $level->id }}" class="sr-only">Who attends in {{ $level->name }}</label>
                                     <select id="roster-mode-{{ $level->id }}" wire:model.live="configurations.{{ $level->id }}.roster_mode" class="{{ $controlClasses }}">
-                                        @foreach ($rosterModes as $rosterMode)
-                                            <option value="{{ $rosterMode->value }}">{{ school_roster_label($rosterMode) }}</option>
+                                        @foreach ($levelModes as $rosterMode)
+                                            <option value="{{ $rosterMode->value }}">{{ $level->is_group && $rosterMode === \App\Enums\RosterMode::AcademicLevel ? 'Everyone in the group' : school_roster_label($rosterMode) }}</option>
                                         @endforeach
                                     </select>
                                 </div>
                             @endif
                         </div>
 
-                        @if ($choosesSections)
+                        @if ($mode === \App\Enums\RosterMode::IndividualRoster->value)
+                            <p class="text-sm text-muted-foreground">Add the subject, then name its learners on the roster page.</p>
+                        @elseif ($choosesSections)
                             @if ($levelSections->isEmpty())
                                 <p class="text-sm text-muted-foreground">No {{ $sectionsTerm }} this year</p>
                             @else

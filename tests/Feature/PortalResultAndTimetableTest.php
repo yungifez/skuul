@@ -7,6 +7,8 @@ use App\Enums\PortalArea;
 use App\Enums\ResultApprovalStatus;
 use App\Enums\RosterMode;
 use App\Enums\TimetableStatus;
+use App\Models\AcademicPeriod;
+use App\Models\AcademicYear;
 use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
 use App\Models\ParentRecord;
@@ -74,6 +76,30 @@ class PortalResultAndTimetableTest extends TestCase
             ->assertSee('Morning assembly')
             ->assertDontSee('Draft swim lesson')
             ->assertDontSee('Another class lesson');
+    }
+
+    /**
+     * A learner whose section was removed has no week to read, and never another campus's.
+     */
+    public function test_a_learner_without_a_section_does_not_read_another_campus_week(): void
+    {
+        $enrollment = $this->enrollment();
+        StudentRecord::query()->whereKey($enrollment->id)->update(['academic_cycle_section_id' => null]);
+        $otherCampus = School::factory()->create();
+        $otherYear = AcademicYear::factory()->create(['school_id' => $otherCampus->id]);
+        $otherPeriod = AcademicPeriod::factory()->create(['school_id' => $otherCampus->id, 'academic_year_id' => $otherYear->getKey()]);
+        $timetable = Timetable::factory()->create([
+            'name' => 'Other campus week',
+            'academic_cycle_section_id' => null,
+            'academic_period_id' => $otherPeriod->id,
+        ]);
+        Timetable::query()->whereKey($timetable->id)->update(['status' => TimetableStatus::Published->value, 'published_at' => now()]);
+
+        $this->actingAs($enrollment->user)
+            ->get(route('portal.timetable.show', $enrollment))
+            ->assertOk()
+            ->assertSee('No timetable yet')
+            ->assertDontSee('Other campus week');
     }
 
     public function test_a_guardian_sees_only_the_lessons_their_child_takes(): void

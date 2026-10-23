@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Enums\AcademicPeriodStatus;
-use App\Enums\AttendanceKind;
 use App\Enums\AttendanceStatus;
 use App\Enums\PlatformPermission;
 use App\Enums\Role;
@@ -15,6 +14,7 @@ use App\Models\CalendarEvent;
 use App\Models\CourseOffering;
 use App\Models\Notice;
 use App\Models\User;
+use App\Services\Attendance\AttendanceSummary;
 use App\Services\School\SchoolSetupPhaseService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
@@ -166,7 +166,7 @@ class DashboardDataCards extends Component
 
         $records = AttendanceRecord::query()
             ->inSchool()
-            ->ofKind(AttendanceKind::Daily)
+            ->ofKind(AttendanceSummary::countedKind())
             ->when($academicYearId !== null, fn ($query) => $query->where('academic_year_id', $academicYearId))
             ->whereBetween('attended_on', [$weekStart->toDateString(), $today->toDateString()])
             ->get(['attended_on', 'status']);

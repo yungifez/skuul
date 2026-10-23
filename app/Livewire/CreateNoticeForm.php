@@ -3,9 +3,11 @@
 namespace App\Livewire;
 
 use App\Enums\AcademicStructureStatus;
+use App\Enums\CourseOfferingStatus;
 use App\Enums\NoticeAudienceScope;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
+use App\Models\CourseOffering;
 use App\Models\Notice;
 use App\Services\Notice\NoticeService;
 use Illuminate\Http\UploadedFile;
@@ -41,6 +43,9 @@ class CreateNoticeForm extends Component
     /** @var array<int, string> */
     public array $sectionIds = [];
 
+    /** @var array<int, string> */
+    public array $courseOfferingIds = [];
+
     public bool $includeGuardians = false;
 
     public bool $sendEmail = false;
@@ -70,11 +75,14 @@ class CreateNoticeForm extends Component
             'academicLevelIds.*' => ['integer', 'distinct', Rule::exists((new AcademicLevel)->getTable(), 'id')->where('school_id', current_school_id())],
             'sectionIds' => [Rule::requiredIf($this->audienceScope === NoticeAudienceScope::Section->value), 'array'],
             'sectionIds.*' => ['integer', 'distinct', Rule::exists((new AcademicCycleSection)->getTable(), 'id')->where('school_id', current_school_id())],
+            'courseOfferingIds' => [Rule::requiredIf($this->audienceScope === NoticeAudienceScope::Offering->value), 'array'],
+            'courseOfferingIds.*' => ['integer', 'distinct', Rule::exists((new CourseOffering)->getTable(), 'id')->where('school_id', current_school_id())],
             'includeGuardians' => ['boolean'],
             'sendEmail' => ['boolean'],
         ], [
             'academicLevelIds.required' => 'Choose at least one class or level.',
             'sectionIds.required' => 'Choose at least one section.',
+            'courseOfferingIds.required' => 'Choose at least one subject.',
             'content.required' => 'Write the message.',
         ], [
             'startDate' => 'From',
@@ -100,6 +108,7 @@ class CreateNoticeForm extends Component
                 'scope' => $this->audienceScope,
                 'academic_level_ids' => $this->audienceScope === NoticeAudienceScope::Classes->value ? array_map('intval', $this->academicLevelIds) : [],
                 'academic_cycle_section_ids' => $this->audienceScope === NoticeAudienceScope::Section->value ? array_map('intval', $this->sectionIds) : [],
+                'course_offering_ids' => $this->audienceScope === NoticeAudienceScope::Offering->value ? array_map('intval', $this->courseOfferingIds) : [],
                 'include_guardians' => $this->includeGuardians,
             ],
         ]);
@@ -118,6 +127,14 @@ class CreateNoticeForm extends Component
                 ->orderBy('name')
                 ->get(['id', 'is_group', 'name']),
             'audienceScopes' => NoticeAudienceScope::cases(),
+            'courseOfferings' => CourseOffering::query()
+                ->inSchool()
+                ->where('academic_year_id', current_academic_year_id())
+                ->where('status', '!=', CourseOfferingStatus::Archived)
+                ->with(['subject:id,name', 'academicLevel:id,name', 'academicPeriod'])
+                ->orderBy('academic_level_id')
+                ->orderBy('subject_id')
+                ->get(),
             'sections' => AcademicCycleSection::query()
                 ->inSchool()
                 ->where('status', AcademicStructureStatus::Active)

@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Enums\CourseOfferingStatus;
 use App\Enums\Role;
+use App\Enums\RosterMode;
 use App\Enums\SyllabusStatus;
 use App\Models\Syllabus;
 use App\Models\TeachingAssignment;
@@ -115,8 +116,10 @@ class SyllabusPolicy
     /**
      * Determine whether the user can record what a class was taught.
      *
-     * A teacher records coverage for the sections they are assigned to. An
-     * assignment with no section covers the whole offering.
+     * A whole-level offering keeps coverage for each section: a teacher
+     * records it for the sections they are assigned to, and an assignment
+     * with no section covers them all. Any other offering keeps one record
+     * for the whole class, which every teacher of the offering shares.
      */
     public function recordCoverage(User $user, Syllabus $syllabus, ?int $academicCycleSectionId = null): bool
     {
@@ -132,11 +135,13 @@ class SyllabusPolicy
             return true;
         }
 
+        $tracksEachSection = $syllabus->courseOffering->roster_mode === RosterMode::AcademicLevel;
+
         return $syllabus->courseOffering->teachingAssignments()
             ->where('user_id', $user->id)
-            ->where(function (Builder $assignments) use ($academicCycleSectionId): void {
+            ->when($tracksEachSection, fn (Builder $assignments): Builder => $assignments->where(function (Builder $assignments) use ($academicCycleSectionId): void {
                 $assignments->whereNull('academic_cycle_section_id')->orWhere('academic_cycle_section_id', $academicCycleSectionId);
-            })
+            }))
             ->exists();
     }
 

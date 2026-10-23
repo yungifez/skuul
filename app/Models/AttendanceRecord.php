@@ -16,9 +16,16 @@ use Illuminate\Support\Carbon;
 /**
  * Whether one student was in school on one day, or in one lesson.
  *
+ * A lesson record names the course offering it was taken for, and the lesson
+ * time when one was chosen, so two lessons of one subject on a day each keep
+ * their own register.
+ *
  * @property AttendanceStatus $status
  * @property AttendanceKind $kind
  * @property Carbon $attended_on
+ * @property string $register_key
+ * @property int|null $course_offering_id
+ * @property int|null $timetable_time_slot_id
  */
 class AttendanceRecord extends Model
 {
@@ -32,7 +39,10 @@ class AttendanceRecord extends Model
         'academic_period_id',
         'academic_cycle_section_id',
         'subject_id',
+        'course_offering_id',
+        'timetable_time_slot_id',
         'kind',
+        'register_key',
         'attended_on',
         'status',
         'reason',
@@ -61,6 +71,39 @@ class AttendanceRecord extends Model
         'attended_on' => 'date:Y-m-d',
         'recorded_at' => 'datetime',
     ];
+
+    /**
+     * Name the register a new record belongs to.
+     *
+     * One student holds one record in each register on a day.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (self $record): void {
+            if (blank($record->register_key)) {
+                $record->register_key = self::registerKey($record->kind, $record->course_offering_id, $record->timetable_time_slot_id, $record->subject_id);
+            }
+        });
+    }
+
+    /**
+     * Get the key of one register.
+     *
+     * The daily register is one per day. A lesson register is one per
+     * offering, or per offering and lesson time when a time was chosen.
+     */
+    public static function registerKey(AttendanceKind $kind, ?int $courseOfferingId = null, ?int $timeSlotId = null, ?int $subjectId = null): string
+    {
+        if ($kind === AttendanceKind::Daily) {
+            return 'daily';
+        }
+
+        if ($courseOfferingId !== null) {
+            return 'offering:'.$courseOfferingId.($timeSlotId === null ? '' : ':slot:'.$timeSlotId);
+        }
+
+        return 'subject:'.$subjectId;
+    }
 
     /**
      * Limit the query to one day.
@@ -122,6 +165,16 @@ class AttendanceRecord extends Model
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    /**
+     * Get the course offering of the lesson, when the record names one.
+     *
+     * @return BelongsTo<CourseOffering, $this>
+     */
+    public function courseOffering(): BelongsTo
+    {
+        return $this->belongsTo(CourseOffering::class);
     }
 
     /**

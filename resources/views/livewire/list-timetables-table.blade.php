@@ -2,7 +2,7 @@
     <april:card>
         <slot:title>Timetables</slot:title>
         <slot:description>
-            A timetable repeats weekly during one {{ strtolower(school_term('period', 'period')) }}. It can belong to {{ with_indefinite_article(strtolower(school_term('section', 'section'))) }} or be schoolwide.
+            A timetable repeats weekly during one {{ strtolower(school_term('period', 'period')) }}. It can belong to {{ with_indefinite_article(strtolower(school_term('section', 'section'))) }}, to a subject that meets at its own times, or be schoolwide.
             The published one is what the school teaches; a change goes out as the next revision.
         </slot:description>
         <slot:content>
@@ -13,6 +13,7 @@
                             <april:label for="timetable-scope">Schedule for</april:label>
                             <select id="timetable-scope" wire:model.live="scope" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                                 <option value="section">A section</option>
+                                <option value="offering">A subject's own times</option>
                                 <option value="schoolwide">Schoolwide</option>
                             </select>
                         </div>
@@ -56,7 +57,7 @@
                                     <april:data-table-cell>
                                         <span class="font-medium">{{ $timetable['name'] }}</span>
                                         <span class="block text-xs text-muted-foreground">
-                                            Revision {{ $timetable['revision'] }}@if ($timetable['description']) · {{ $timetable['description'] }}@endif
+                                            @if ($timetable['serves']){{ $timetable['serves'] }} · @endif Revision {{ $timetable['revision'] }}@if ($timetable['description']) · {{ $timetable['description'] }}@endif
                                         </span>
                                     </april:data-table-cell>
                                     <april:data-table-cell>

@@ -322,6 +322,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 Route::get('syllabi/{syllabus}/print', [SyllabusController::class, 'print'])->name('syllabi.print');
                 Route::resource('syllabi', SyllabusController::class);
 
+                Route::get('timetables/week', [TimetableController::class, 'week'])->name('timetables.week');
                 Route::resource('timetables', TimetableController::class)->except(['store', 'update']);
                 Route::resource('custom-timetable-items', CustomTimetableItemController::class)->except(['store', 'update', 'destroy']);
 

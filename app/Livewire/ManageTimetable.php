@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Exceptions\InvalidValueException;
+use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
 use App\Models\Facility;
 use App\Models\Subject;
@@ -423,7 +424,11 @@ class ManageTimetable extends Component
     }
 
     /**
-     * Get the subjects this home group is taught.
+     * Get the subjects this timetable can hold.
+     *
+     * A section's timetable holds the subjects of every offering whose roster
+     * reaches the section, named learners included. An offering's own
+     * timetable holds that offering's subject.
      *
      * @return Collection<int, Subject>
      */
@@ -431,10 +436,10 @@ class ManageTimetable extends Component
     public function subjects()
     {
         return Subject::query()
-            ->when($this->timetable->academic_cycle_section_id !== null, fn ($query) => $query->whereHas(
-                'courseOfferings.cycleSections',
-                fn ($query) => $query->whereKey($this->timetable->academic_cycle_section_id),
-            ))
+            ->when(
+                $this->timetable->academic_cycle_section_id !== null || $this->timetable->course_offering_id !== null,
+                fn ($query) => $query->whereIn('id', CourseOffering::query()->taughtOn($this->timetable)->select('subject_id')),
+            )
             ->inSchool()
             ->when($this->search !== '', fn ($query) => $query->where('name', 'like', '%'.$this->search.'%'))
             ->orderBy('name')

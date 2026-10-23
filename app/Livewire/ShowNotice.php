@@ -8,6 +8,7 @@ use App\Exceptions\InvalidValueException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
+use App\Models\CourseOffering;
 use App\Models\Notice;
 use App\Services\Notice\NoticeContentSanitizer;
 use Illuminate\View\View;
@@ -44,7 +45,7 @@ class ShowNotice extends Component
      */
     private function audienceSummary(): string
     {
-        /** @var array{scope?: string, academic_level_ids?: array<int, int>, academic_cycle_section_ids?: array<int, int>, include_guardians?: bool}|null $audience */
+        /** @var array{scope?: string, academic_level_ids?: array<int, int>, academic_cycle_section_ids?: array<int, int>, course_offering_ids?: array<int, int>, include_guardians?: bool}|null $audience */
         $audience = $this->notice->audience;
         $scope = NoticeAudienceScope::tryFrom((string) ($audience['scope'] ?? '')) ?? NoticeAudienceScope::School;
 
@@ -53,6 +54,10 @@ class ShowNotice extends Component
             NoticeAudienceScope::Classes => AcademicLevel::query()->inSchool()->whereKey($audience['academic_level_ids'] ?? [])->orderBy('name')->pluck('name')->all(),
             NoticeAudienceScope::Section => AcademicCycleSection::query()->inSchool()->whereKey($audience['academic_cycle_section_ids'] ?? [])->with('academicLevel:id,name')->get()
                 ->map(fn (AcademicCycleSection $section): string => trim($section->academicLevel->name.' · '.($section->label ?? $section->name), ' ·'))
+                ->sort()
+                ->all(),
+            NoticeAudienceScope::Offering => CourseOffering::query()->inSchool()->whereKey($audience['course_offering_ids'] ?? [])->with(['subject:id,name', 'academicLevel:id,name'])->get()
+                ->map(fn (CourseOffering $offering): string => $offering->qualifiedName())
                 ->sort()
                 ->all(),
         };

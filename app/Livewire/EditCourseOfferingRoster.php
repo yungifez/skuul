@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Actions\Curriculum\RenameCourseOffering;
 use App\Actions\Curriculum\UpdateCourseOfferingRoster;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\RosterMode;
@@ -11,6 +12,7 @@ use App\Models\CourseOffering;
 use App\Models\StudentRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -30,6 +32,8 @@ class EditCourseOfferingRoster extends Component
 
     public string $rosterMode = '';
 
+    public string $name = '';
+
     /** @var array<int, int|string> */
     public array $academicCycleSectionIds = [];
 
@@ -43,6 +47,7 @@ class EditCourseOfferingRoster extends Component
         $this->setup = $setup;
         $this->courseOffering->loadMissing(['academicLevel', 'academicPeriod', 'academicYear', 'subject', 'cycleSections', 'studentRecords']);
         $this->rosterMode = $this->courseOffering->roster_mode->value;
+        $this->name = (string) $this->courseOffering->name;
         $this->academicCycleSectionIds = $this->stillChoosable($this->courseOffering->cycleSections->modelKeys(), $this->sections()->modelKeys());
         $this->studentRecordIds = $this->stillChoosable($this->courseOffering->studentRecords->modelKeys(), $this->learners()->modelKeys());
     }
@@ -62,11 +67,12 @@ class EditCourseOfferingRoster extends Component
         return array_values(array_intersect($chosen, $offered));
     }
 
-    public function save(UpdateCourseOfferingRoster $updateCourseOfferingRoster): void
+    public function save(UpdateCourseOfferingRoster $updateCourseOfferingRoster, RenameCourseOffering $renameCourseOffering): void
     {
         Gate::authorize('update', $this->courseOffering);
 
         $this->validate([
+            'name' => ['nullable', 'string', 'max:100'],
             'rosterMode' => ['required', Rule::in(array_map(fn (RosterMode $mode): string => $mode->value, $this->rosterModes()))],
             'academicCycleSectionIds' => ['array'],
             'academicCycleSectionIds.*' => ['integer', 'distinct', Rule::in($this->sections()->modelKeys())],
@@ -80,14 +86,17 @@ class EditCourseOfferingRoster extends Component
         $rosterMode = RosterMode::from($this->rosterMode);
 
         try {
-            $updateCourseOfferingRoster->update(
-                $this->courseOffering,
-                $rosterMode,
-                $rosterMode->usesHomeSections() ? array_map('intval', $this->academicCycleSectionIds) : [],
-                $rosterMode === RosterMode::IndividualRoster ? array_map('intval', $this->studentRecordIds) : [],
-                null,
-                auth()->user(),
-            );
+            DB::transaction(function () use ($renameCourseOffering, $updateCourseOfferingRoster, $rosterMode): void {
+                $renameCourseOffering->rename($this->courseOffering, $this->name, auth()->user());
+                $updateCourseOfferingRoster->update(
+                    $this->courseOffering,
+                    $rosterMode,
+                    $rosterMode->usesHomeSections() ? array_map('intval', $this->academicCycleSectionIds) : [],
+                    $rosterMode === RosterMode::IndividualRoster ? array_map('intval', $this->studentRecordIds) : [],
+                    null,
+                    auth()->user(),
+                );
+            });
         } catch (InvalidValueException $exception) {
             $this->addError('rosterMode', $exception->getMessage());
 
@@ -108,11 +117,11 @@ class EditCourseOfferingRoster extends Component
      */
     private function rosterModes(): array
     {
-        if ($this->courseOffering->academicLevel->is_group) {
-            return [RosterMode::AcademicLevel];
-        }
-
-        $rosterModes = instructional_model($this->courseOffering->academicYear)->rosterModes();
+        $academicLevel = $this->courseOffering->academicLevel;
+        $rosterModes = array_values(array_filter(
+            instructional_model($this->courseOffering->academicYear)->rosterModes(),
+            fn (RosterMode $mode): bool => $academicLevel->allowsRosterMode($mode),
+        ));
 
         if (!in_array($this->courseOffering->roster_mode, $rosterModes, true)) {
             $rosterModes[] = $this->courseOffering->roster_mode;
@@ -142,10 +151,10 @@ class EditCourseOfferingRoster extends Component
     {
         return StudentRecord::inSchool()
             ->attending()
-            ->with(['academicCycleSection', 'user:id,name'])
+            ->with(['academicCycleSection.academicLevel:id,name', 'user:id,name'])
             ->whereHas('academicCycleSection', function (Builder $query): void {
                 $query->where('academic_year_id', $this->courseOffering->academic_year_id)
-                    ->where('academic_level_id', $this->courseOffering->academic_level_id);
+                    ->whereIn('academic_level_id', $this->courseOffering->academicLevel->teachingScopeIds());
             })
             ->orderBy('admission_number')
             ->get();
