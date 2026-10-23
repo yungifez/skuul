@@ -56,8 +56,9 @@ class CreateCourseOffering extends Component
         Gate::authorize('create', CourseOffering::class);
 
         $this->setup = $setup;
-        $this->academicYearId = AcademicYear::inSchool()->whereKey($academicYearId ?: current_academic_year_id())->value('id');
-        $this->rosterMode = RosterMode::HomeSection->value;
+        $academicYear = AcademicYear::inSchool()->find($academicYearId ?: current_academic_year_id());
+        $this->academicYearId = $academicYear?->id;
+        $this->rosterMode = ($academicYear === null ? RosterMode::HomeSection : instructional_model($academicYear)->defaultRosterMode())->value;
     }
 
     public function updatedAcademicYearId(): void

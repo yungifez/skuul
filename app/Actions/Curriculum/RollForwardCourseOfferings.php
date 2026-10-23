@@ -5,6 +5,7 @@ namespace App\Actions\Curriculum;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
+use App\Enums\RosterMode;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicPeriod;
@@ -112,11 +113,22 @@ class RollForwardCourseOfferings
             ->get()
             ->keyBy(fn (AcademicCycleSection $section): string => $section->academic_level_id.':'.$section->name);
         // What the target year already teaches, per subject, period, and level.
-        // A section-based offering only claims its own sections.
+        // A section-based offering only claims its own sections. Named-learner
+        // offerings are counted, because one level can run several of them,
+        // such as Algebra A and Algebra B.
         $claimed = [];
+        $namedClaims = [];
 
         foreach (CourseOffering::inSchool()->with('cycleSections')->where('academic_year_id', $target->id)->get() as $existingOffering) {
-            $claimed[$existingOffering->subject_id.':'.$existingOffering->academic_period_id.':'.$existingOffering->academic_level_id][] = $existingOffering->roster_mode->usesHomeSections()
+            $key = $existingOffering->subject_id.':'.$existingOffering->academic_period_id.':'.$existingOffering->academic_level_id;
+
+            if ($existingOffering->roster_mode === RosterMode::IndividualRoster) {
+                $namedClaims[$key] = ($namedClaims[$key] ?? 0) + 1;
+
+                continue;
+            }
+
+            $claimed[$key][] = $existingOffering->roster_mode->usesHomeSections()
                 ? $existingOffering->cycleSections->modelKeys()
                 : null;
         }
@@ -126,7 +138,7 @@ class RollForwardCourseOfferings
             ->where('academic_year_id', $source->id)
             ->orderBy('id')
             ->get()
-            ->map(function (CourseOffering $offering) use ($periods, $targetSections, &$claimed): array {
+            ->map(function (CourseOffering $offering) use ($periods, $targetSections, &$claimed, &$namedClaims): array {
                 $period = $periods[$offering->academic_period_id] ?? null;
 
                 if (!$period instanceof AcademicPeriod) {
@@ -147,9 +159,14 @@ class RollForwardCourseOfferings
                 }
 
                 $key = $offering->subject_id.':'.$period->id.':'.$offering->academic_level_id;
+
+                if ($offering->roster_mode === RosterMode::IndividualRoster) {
+                    return $this->planNamedLearners($offering, $period, $key, $claimed, $namedClaims);
+                }
+
                 $wanted = $offering->roster_mode->usesHomeSections() ? $sectionIds : null;
 
-                if ($this->alreadyTaught($claimed[$key] ?? [], $wanted)) {
+                if ($this->alreadyTaught($claimed[$key] ?? [], $wanted) || ($wanted === null && ($namedClaims[$key] ?? 0) > 0)) {
                     return ['status' => 'skip', 'offering' => $offering, 'period' => $period, 'section_ids' => []];
                 }
 
@@ -162,10 +179,36 @@ class RollForwardCourseOfferings
     }
 
     /**
+     * Copy a named-learner offering unless the target year already has one to match it.
+     *
+     * Each named-learner offering of the target year matches one source
+     * offering, so running the copy twice adds nothing. A whole-level offering
+     * already teaches everyone, so it matches them all.
+     *
+     * @param  array<string, list<list<int>|null>>  $claimed
+     * @param  array<string, int>  $namedClaims
+     * @return array{status: 'copy'|'skip', offering: CourseOffering, period: AcademicPeriod, section_ids: list<int>}
+     */
+    private function planNamedLearners(CourseOffering $offering, AcademicPeriod $period, string $key, array $claimed, array &$namedClaims): array
+    {
+        if (in_array(null, $claimed[$key] ?? [], true)) {
+            return ['status' => 'skip', 'offering' => $offering, 'period' => $period, 'section_ids' => []];
+        }
+
+        if (($namedClaims[$key] ?? 0) > 0) {
+            $namedClaims[$key]--;
+
+            return ['status' => 'skip', 'offering' => $offering, 'period' => $period, 'section_ids' => []];
+        }
+
+        return ['status' => 'copy', 'offering' => $offering, 'period' => $period, 'section_ids' => []];
+    }
+
+    /**
      * Whether the target year already teaches these learners.
      *
-     * A null entry is an offering for the whole level or named learners, which
-     * covers everyone. Section offerings clash only when they share a section.
+     * A null entry is an offering for the whole level, which covers everyone.
+     * Section offerings clash only when they share a section.
      *
      * @param  list<list<int>|null>  $claims
      * @param  list<int>|null  $sectionIds

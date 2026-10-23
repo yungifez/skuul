@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Curriculum\AssignTeacher;
 use App\Actions\Curriculum\ChangeCourseOfferingStatus;
 use App\Actions\Curriculum\CreateCourseOffering;
+use App\Actions\Curriculum\UpdateCourseOfferingRoster;
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
@@ -235,6 +236,76 @@ class CourseOfferingTest extends TestCase
 
         $offering = CourseOffering::query()->where('subject_id', $subject->id)->where('academic_level_id', $group->id)->sole();
         $this->assertEqualsCanonicalizing([$tenth->id, $eleventh->id], $offering->studentRecords->modelKeys());
+    }
+
+    public function test_a_named_roster_cannot_go_over_the_capacity(): void
+    {
+        $this->authorized_user([]);
+        [$subject, $academicYear, $academicPeriod, $group, $gradeTen, $gradeEleven] = $this->groupContext();
+        $learners = [$this->learnerIn($gradeTen)->id, $this->learnerIn($gradeEleven)->id];
+
+        try {
+            app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $group, [], RosterMode::IndividualRoster, $learners, capacity: 1);
+            $this->fail('The offering took more learners than it has room for.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('room for 1 learners', $exception->getMessage());
+        }
+
+        $courseOffering = app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $group, [], RosterMode::IndividualRoster, [$learners[0]], capacity: 1);
+
+        $this->expectExceptionMessage('room for 1 learners');
+
+        app(UpdateCourseOfferingRoster::class)->update($courseOffering, RosterMode::IndividualRoster, [], $learners);
+    }
+
+    public function test_the_add_subject_form_starts_with_the_roster_of_the_teaching_setup(): void
+    {
+        $this->authorized_user(['create subject', 'read subject']);
+        [, $academicYear] = $this->groupContext();
+        [, $fixedYear] = $this->courseContext();
+
+        Livewire::test(CreateCourseOfferingForm::class, ['academicYearId' => $academicYear->id])
+            ->assertSet('rosterMode', RosterMode::IndividualRoster->value);
+        Livewire::test(CreateCourseOfferingForm::class, ['academicYearId' => $fixedYear->id])
+            ->assertSet('rosterMode', RosterMode::HomeSection->value);
+    }
+
+    public function test_the_bulk_setup_adds_named_learner_subjects_for_a_subject_based_year(): void
+    {
+        $this->authorized_user(['create subject', 'read subject']);
+        [$subject, $academicYear, $academicPeriod, $group, $gradeTen] = $this->groupContext();
+        $gradeTenLevelId = $gradeTen->academic_level_id;
+
+        Livewire::test(SetUpSubjectAcrossLevels::class, ['academicYear' => $academicYear])
+            ->set('subjectId', $subject->id)
+            ->set('academicPeriodId', (string) $academicPeriod->id)
+            ->set('levelIds', [(string) $gradeTenLevelId, (string) $group->id])
+            ->assertSet("configurations.{$gradeTenLevelId}.roster_mode", RosterMode::IndividualRoster->value)
+            ->assertSet("configurations.{$group->id}.roster_mode", RosterMode::IndividualRoster->value)
+            ->assertSee('Add the subject, then name its learners on the roster page.')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $offerings = CourseOffering::query()->where('subject_id', $subject->id)->get();
+
+        $this->assertCount(2, $offerings);
+        $this->assertTrue($offerings->every(fn (CourseOffering $offering): bool => $offering->roster_mode === RosterMode::IndividualRoster));
+    }
+
+    public function test_the_bulk_setup_keeps_a_group_off_the_section_rosters(): void
+    {
+        $this->authorized_user(['create subject', 'read subject']);
+        [$subject, $academicYear, $academicPeriod, $group] = $this->groupContext();
+
+        Livewire::test(SetUpSubjectAcrossLevels::class, ['academicYear' => $academicYear])
+            ->set('subjectId', $subject->id)
+            ->set('academicPeriodId', (string) $academicPeriod->id)
+            ->set('levelIds', [(string) $group->id])
+            ->set("configurations.{$group->id}.roster_mode", RosterMode::HomeSection->value)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(RosterMode::IndividualRoster, CourseOffering::query()->where('subject_id', $subject->id)->sole()->roster_mode);
     }
 
     public function test_a_course_offering_keeps_its_teacher_assignment(): void

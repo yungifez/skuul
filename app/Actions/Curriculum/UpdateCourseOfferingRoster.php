@@ -91,6 +91,10 @@ class UpdateCourseOfferingRoster
 
             $this->validateRoster($rosterMode, $academicCycleSectionIds, $studentRecordIds, $courseOffering->status);
 
+            if ($courseOffering->capacity !== null && $studentRecords->count() > $courseOffering->capacity) {
+                throw new InvalidValueException("This subject has room for {$courseOffering->capacity} learners. Name fewer learners or raise the capacity.");
+            }
+
             $activeKey = null;
 
             if ($courseOffering->status === CourseOfferingStatus::Active) {

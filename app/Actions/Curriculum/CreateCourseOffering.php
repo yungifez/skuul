@@ -68,6 +68,10 @@ class CreateCourseOffering
 
         $this->failIfRecordsDoNotFit($subject, $academicYear, $academicPeriod, $academicLevel, $rosterMode, $cycleSections, $academicCycleSectionIds, $studentRecords, $studentRecordIds);
 
+        if ($capacity !== null && $studentRecords->count() > $capacity) {
+            throw new InvalidValueException("This subject has room for {$capacity} learners. Name fewer learners or raise the capacity.");
+        }
+
         return DB::transaction(function () use ($subject, $academicYear, $academicPeriod, $academicLevel, $rosterMode, $cycleSections, $studentRecords, $plannedPeriodsPerWeek, $capacity, $actor): CourseOffering {
             $courseOffering = CourseOffering::create([
                 'school_id' => $subject->school_id,
