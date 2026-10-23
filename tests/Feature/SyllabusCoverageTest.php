@@ -18,6 +18,8 @@ use App\Models\Subject;
 use App\Models\Syllabus;
 use App\Models\SyllabusTopic;
 use App\Models\SyllabusTopicCoverage;
+use App\Models\TeachingAssignment;
+use App\Models\User;
 use App\Services\Syllabus\SyllabusCoverageService;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -186,6 +188,54 @@ class SyllabusCoverageTest extends TestCase
             ->get(route('syllabi.show', $syllabus))
             ->assertOk()
             ->assertSee('Not yet taught');
+    }
+
+    public function test_a_teacher_of_one_section_records_the_whole_class_of_a_combined_offering(): void
+    {
+        $courseOffering = $this->courseOffering(['roster_mode' => RosterMode::CombinedHomeSections]);
+        $sectionA = $this->section($courseOffering, 'A');
+        $syllabus = $this->publishedSyllabus($courseOffering);
+        $topic = $syllabus->topics()->firstOrFail();
+        $this->actingAs($this->teacherOf($courseOffering, $sectionA));
+
+        Livewire::test(SyllabusCoverageTracker::class, ['syllabus' => $syllabus])
+            ->call('mark', $topic->id, TopicCoverageStatus::Covered->value)
+            ->assertSee('1 of 3');
+
+        $this->assertNull(SyllabusTopicCoverage::query()->sole()->academic_cycle_section_id);
+    }
+
+    public function test_a_teacher_of_one_section_does_not_record_another_section_of_a_whole_level_offering(): void
+    {
+        $courseOffering = $this->courseOffering(['roster_mode' => RosterMode::AcademicLevel]);
+        $sectionA = $this->section($courseOffering, 'A');
+        $sectionB = $this->section($courseOffering, 'B');
+        $syllabus = $this->publishedSyllabus($courseOffering);
+        $teacher = $this->teacherOf($courseOffering, $sectionA);
+
+        $this->assertTrue($teacher->can('recordCoverage', [$syllabus, $sectionA->id]));
+        $this->assertFalse($teacher->can('recordCoverage', [$syllabus, $sectionB->id]));
+        $this->assertFalse($teacher->can('recordCoverage', [$syllabus, null]));
+    }
+
+    private function teacherOf(CourseOffering $courseOffering, AcademicCycleSection $section): User
+    {
+        $teacher = $this->memberOf($this->workingSchool());
+        school_context()->set($this->workingSchool(), remember: false);
+        $teacher->assignRole('teacher');
+        $teacher->givePermissionTo(['read syllabus', 'update syllabus']);
+        TeachingAssignment::create([
+            'school_id' => $courseOffering->school_id,
+            'subject_id' => $courseOffering->subject_id,
+            'user_id' => $teacher->id,
+            'academic_year_id' => $courseOffering->academic_year_id,
+            'academic_period_id' => $courseOffering->academic_period_id,
+            'course_offering_id' => $courseOffering->id,
+            'academic_cycle_section_id' => $section->id,
+            'starts_on' => '2026-09-07',
+        ]);
+
+        return $teacher->fresh();
     }
 
     private function publishedSyllabus(?CourseOffering $courseOffering = null, string $subjectName = 'Mathematics'): Syllabus
