@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AcademicStructureStatus;
+use App\Enums\RosterMode;
 use App\Traits\InSchool;
 use Database\Factories\AcademicLevelFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -83,6 +84,18 @@ class AcademicLevel extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')->orderBy('position')->orderBy('name');
+    }
+
+    /**
+     * Check if an offering of this level may use the roster.
+     *
+     * A level group has no sections of its own. Its offerings take the whole
+     * group, or named learners from the levels under it, such as an elective
+     * that mixes three grades.
+     */
+    public function allowsRosterMode(RosterMode $rosterMode): bool
+    {
+        return !$this->is_group || !$rosterMode->usesHomeSections();
     }
 
     /**

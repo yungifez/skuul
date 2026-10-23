@@ -108,11 +108,11 @@ class EditCourseOfferingRoster extends Component
      */
     private function rosterModes(): array
     {
-        if ($this->courseOffering->academicLevel->is_group) {
-            return [RosterMode::AcademicLevel];
-        }
-
-        $rosterModes = instructional_model($this->courseOffering->academicYear)->rosterModes();
+        $academicLevel = $this->courseOffering->academicLevel;
+        $rosterModes = array_values(array_filter(
+            instructional_model($this->courseOffering->academicYear)->rosterModes(),
+            fn (RosterMode $mode): bool => $academicLevel->allowsRosterMode($mode),
+        ));
 
         if (!in_array($this->courseOffering->roster_mode, $rosterModes, true)) {
             $rosterModes[] = $this->courseOffering->roster_mode;
@@ -142,10 +142,10 @@ class EditCourseOfferingRoster extends Component
     {
         return StudentRecord::inSchool()
             ->attending()
-            ->with(['academicCycleSection', 'user:id,name'])
+            ->with(['academicCycleSection.academicLevel:id,name', 'user:id,name'])
             ->whereHas('academicCycleSection', function (Builder $query): void {
                 $query->where('academic_year_id', $this->courseOffering->academic_year_id)
-                    ->where('academic_level_id', $this->courseOffering->academic_level_id);
+                    ->whereIn('academic_level_id', $this->courseOffering->academicLevel->teachingScopeIds());
             })
             ->orderBy('admission_number')
             ->get();

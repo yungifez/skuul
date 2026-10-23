@@ -32,6 +32,7 @@ use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\User;
 use App\Policies\CourseOfferingPolicy;
+use App\Services\Gradebook\CourseOfferingRoster;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -143,6 +144,97 @@ class CourseOfferingTest extends TestCase
         $this->assertSame(RosterMode::IndividualRoster, $courseOffering->roster_mode);
         $this->assertSame([$studentRecord->id], $courseOffering->studentRecords->modelKeys());
         $this->assertTrue($courseOffering->cycleSections->isEmpty());
+    }
+
+    /**
+     * An elective that mixes grades lives on their level group and names its learners.
+     */
+    public function test_a_group_offering_names_learners_from_every_level_in_the_group(): void
+    {
+        $this->authorized_user([]);
+        [$subject, $academicYear, $academicPeriod, $group, $gradeTen, $gradeEleven] = $this->groupContext();
+        $tenth = $this->learnerIn($gradeTen);
+        $eleventh = $this->learnerIn($gradeEleven);
+
+        $courseOffering = app(CreateCourseOffering::class)->create(
+            $subject,
+            $academicYear,
+            $academicPeriod,
+            $group,
+            [],
+            RosterMode::IndividualRoster,
+            [$tenth->id, $eleventh->id],
+        );
+
+        $this->assertEqualsCanonicalizing([$tenth->id, $eleventh->id], $courseOffering->studentRecords->modelKeys());
+        $this->assertEqualsCanonicalizing([$tenth->id, $eleventh->id], app(CourseOfferingRoster::class)->students($courseOffering)->modelKeys());
+    }
+
+    public function test_a_group_offering_refuses_a_learner_outside_the_group(): void
+    {
+        $this->authorized_user([]);
+        [$subject, $academicYear, $academicPeriod, $group] = $this->groupContext();
+        $outsideLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $outsider = $this->learnerIn(AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $outsideLevel->id,
+            'status' => AcademicStructureStatus::Active,
+        ]));
+
+        $this->expectException(InvalidValueException::class);
+
+        app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $group, [], RosterMode::IndividualRoster, [$outsider->id]);
+    }
+
+    public function test_a_group_offering_cannot_be_taught_by_section(): void
+    {
+        $this->authorized_user([]);
+        [$subject, $academicYear, $academicPeriod, $group, $gradeTen] = $this->groupContext();
+
+        $this->expectExceptionMessage('A level group has no sections of its own');
+
+        app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $group, [$gradeTen->id], RosterMode::HomeSection);
+    }
+
+    public function test_the_roster_editor_names_learners_across_a_group(): void
+    {
+        $this->authorized_user(['update subject']);
+        [$subject, $academicYear, $academicPeriod, $group, $gradeTen, $gradeEleven] = $this->groupContext();
+        $tenth = $this->learnerIn($gradeTen);
+        $eleventh = $this->learnerIn($gradeEleven);
+        $courseOffering = app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $group, [], RosterMode::IndividualRoster);
+
+        Livewire::test(EditCourseOfferingRoster::class, ['courseOffering' => $courseOffering])
+            ->assertSee($gradeTen->qualifiedName())
+            ->assertSee($gradeEleven->qualifiedName())
+            ->set('studentRecordIds', [(string) $tenth->id, (string) $eleventh->id])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertEqualsCanonicalizing([$tenth->id, $eleventh->id], $courseOffering->fresh()->studentRecords->modelKeys());
+    }
+
+    public function test_the_add_subject_form_offers_named_learners_for_a_group(): void
+    {
+        $this->authorized_user(['create subject', 'read subject']);
+        [$subject, $academicYear, $academicPeriod, $group, $gradeTen, $gradeEleven] = $this->groupContext();
+        $tenth = $this->learnerIn($gradeTen);
+        $eleventh = $this->learnerIn($gradeEleven);
+
+        Livewire::test(CreateCourseOfferingForm::class, ['academicYearId' => $academicYear->id])
+            ->set('academicLevelId', $group->id)
+            ->assertViewHas('rosterModes', [RosterMode::AcademicLevel, RosterMode::IndividualRoster])
+            ->set('rosterMode', RosterMode::IndividualRoster->value)
+            ->assertSee($gradeTen->qualifiedName())
+            ->set('subjectId', $subject->id)
+            ->set('academicPeriodId', (string) $academicPeriod->id)
+            ->set('studentRecordIds', [(string) $tenth->id, (string) $eleventh->id])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $offering = CourseOffering::query()->where('subject_id', $subject->id)->where('academic_level_id', $group->id)->sole();
+        $this->assertEqualsCanonicalizing([$tenth->id, $eleventh->id], $offering->studentRecords->modelKeys());
     }
 
     public function test_a_course_offering_keeps_its_teacher_assignment(): void
@@ -627,6 +719,41 @@ class CourseOfferingTest extends TestCase
         );
 
         return [$courseOffering, $studentRecord];
+    }
+
+    /**
+     * Make a subject-based year with a level group over two grades, each with one section.
+     *
+     * @return array{Subject, AcademicYear, AcademicPeriod, AcademicLevel, AcademicCycleSection, AcademicCycleSection}
+     */
+    private function groupContext(): array
+    {
+        [$subject, $academicYear, $academicPeriod] = $this->courseContext();
+        InstructionalModelSetting::create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $academicYear->id,
+            'model' => InstructionalModel::SubjectBasedSchedule,
+        ]);
+        $group = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'is_group' => true, 'name' => 'Upper school']);
+        $sections = collect(['Grade 10', 'Grade 11'])->map(fn (string $name): AcademicCycleSection => AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'parent_id' => $group->id, 'name' => $name])->id,
+            'status' => AcademicStructureStatus::Active,
+        ]));
+
+        return [$subject, $academicYear, $academicPeriod, $group, $sections[0], $sections[1]];
+    }
+
+    private function learnerIn(AcademicCycleSection $section): StudentRecord
+    {
+        return StudentRecord::create([
+            'user_id' => User::factory()->create()->id,
+            'school_id' => $section->school_id,
+            'academic_cycle_section_id' => $section->id,
+            'admission_number' => fake()->unique()->bothify('####????'),
+            'admission_date' => now()->toDateString(),
+        ]);
     }
 
     /**

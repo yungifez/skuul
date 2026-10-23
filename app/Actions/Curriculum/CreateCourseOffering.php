@@ -61,7 +61,7 @@ class CreateCourseOffering
             ->attending()
             ->whereHas('academicCycleSection', function ($query) use ($academicYear, $academicLevel): void {
                 $query->where('academic_year_id', $academicYear->id)
-                    ->where('academic_level_id', $academicLevel->id);
+                    ->whereIn('academic_level_id', $academicLevel->teachingScopeIds());
             })
             ->whereKey($studentRecordIds)
             ->get();
@@ -179,12 +179,12 @@ class CreateCourseOffering
             throw new InvalidValueException('That '.strtolower(school_term('class_level', 'class')).' belongs to another school.');
         }
 
-        if ($academicLevel->is_group && $rosterMode !== RosterMode::AcademicLevel) {
-            throw new InvalidValueException('A level group can only use a whole-level roster. Choose the whole-level option for this subject.');
-        }
-
         $sectionLabel = strtolower(school_term('section', 'section'));
         $sectionsLabel = strtolower(school_terms('section', 'sections'));
+
+        if (!$academicLevel->allowsRosterMode($rosterMode)) {
+            throw new InvalidValueException("A level group has no {$sectionsLabel} of its own. Choose the whole group or named learners for this subject.");
+        }
 
         if ($cycleSections->count() !== count($academicCycleSectionIds)) {
             throw new InvalidValueException("Every selected {$sectionLabel} must belong to this level and academic cycle.");

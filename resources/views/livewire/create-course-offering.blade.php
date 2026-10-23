@@ -69,57 +69,53 @@
 
         <fieldset class="flex flex-col gap-3">
             <legend class="mb-2 text-sm font-medium">Who attends</legend>
-            @if ($isGroup)
-                <p class="text-sm">Everyone in {{ $selectedLevel->name }}</p>
-            @else
-                <div>
-                    <label for="roster-mode" class="sr-only">Who attends</label>
-                    <select id="roster-mode" wire:model.live="rosterMode" class="{{ $controlClasses }} sm:w-72" {{ field_error_bindings('rosterMode') }}>
-                        @foreach ($rosterModes as $mode)
-                            <option value="{{ $mode->value }}">{{ school_roster_label($mode) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <x-field-error name="rosterMode" />
+            <div>
+                <label for="roster-mode" class="sr-only">Who attends</label>
+                <select id="roster-mode" wire:model.live="rosterMode" class="{{ $controlClasses }} sm:w-72" {{ field_error_bindings('rosterMode') }}>
+                    @foreach ($rosterModes as $mode)
+                        <option value="{{ $mode->value }}">{{ school_roster_label($mode) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <x-field-error name="rosterMode" />
 
-                @if ($choosesSections)
-                    @if ($selectedLevel === null)
-                        <p class="text-sm text-muted-foreground">Choose {{ with_indefinite_article(strtolower(school_term('class_level', 'class'))) }} to see its {{ $sectionsTerm }}.</p>
-                    @elseif ($sections->isEmpty())
-                        <p class="text-sm text-muted-foreground">No {{ $sectionsTerm }} in {{ $selectedLevel->name }} this year.</p>
-                    @else
-                        <div class="flex flex-wrap gap-2" role="group" aria-label="{{ ucfirst($sectionsTerm) }}">
-                            @foreach ($sections as $section)
-                                <label wire:key="section-{{ $section->id }}" class="flex min-h-11 cursor-pointer items-center gap-2 rounded-md border px-3 text-sm select-none has-[:checked]:border-foreground">
-                                    <input type="checkbox" value="{{ $section->id }}" wire:model="academicCycleSectionIds" class="size-4 rounded border-input">
-                                    {{ $section->label ?? $section->name }}
-                                </label>
-                            @endforeach
-                        </div>
-                    @endif
-                    <x-field-error name="academicCycleSectionIds" />
-                    <x-field-error name="academicCycleSectionIds.*" />
-                @elseif ($rosterMode === \App\Enums\RosterMode::AcademicLevel->value)
-                    <p class="text-sm">Everyone in {{ $selectedLevel?->name ?? 'the '.strtolower(school_term('class_level', 'class')) }}</p>
-                @elseif ($rosterMode === \App\Enums\RosterMode::IndividualRoster->value)
-                    @if ($learners->isEmpty())
-                        <p class="text-sm text-muted-foreground">{{ $selectedLevel === null ? 'Choose '.with_indefinite_article(strtolower(school_term('class_level', 'class'))).' to see its learners.' : 'No learners in '.$selectedLevel->name.' yet.' }}</p>
-                    @else
-                        <ul class="max-h-72 divide-y overflow-y-auto border-y" aria-label="Learners">
-                            @foreach ($learners as $learner)
-                                <li wire:key="learner-{{ $learner->id }}">
-                                    <label class="flex min-h-11 cursor-pointer items-center gap-3 text-sm select-none">
-                                        <input type="checkbox" value="{{ $learner->id }}" wire:model="studentRecordIds" class="size-4 rounded border-input">
-                                        <span class="min-w-0 flex-1 truncate">{{ $learner->user?->name ?? $learner->admission_number }}</span>
-                                        <span class="text-muted-foreground">{{ $learner->academicCycleSection?->label ?? $learner->academicCycleSection?->name }}</span>
-                                    </label>
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
-                    <x-field-error name="studentRecordIds" />
-                    <x-field-error name="studentRecordIds.*" />
+            @if ($choosesSections)
+                @if ($selectedLevel === null)
+                    <p class="text-sm text-muted-foreground">Choose {{ with_indefinite_article(strtolower(school_term('class_level', 'class'))) }} to see its {{ $sectionsTerm }}.</p>
+                @elseif ($sections->isEmpty())
+                    <p class="text-sm text-muted-foreground">No {{ $sectionsTerm }} in {{ $selectedLevel->name }} this year.</p>
+                @else
+                    <div class="flex flex-wrap gap-2" role="group" aria-label="{{ ucfirst($sectionsTerm) }}">
+                        @foreach ($sections as $section)
+                            <label wire:key="section-{{ $section->id }}" class="flex min-h-11 cursor-pointer items-center gap-2 rounded-md border px-3 text-sm select-none has-[:checked]:border-foreground">
+                                <input type="checkbox" value="{{ $section->id }}" wire:model="academicCycleSectionIds" class="size-4 rounded border-input">
+                                {{ $section->label ?? $section->name }}
+                            </label>
+                        @endforeach
+                    </div>
                 @endif
+                <x-field-error name="academicCycleSectionIds" />
+                <x-field-error name="academicCycleSectionIds.*" />
+            @elseif ($rosterMode === \App\Enums\RosterMode::AcademicLevel->value)
+                <p class="text-sm">Everyone in {{ $selectedLevel?->name ?? 'the '.strtolower(school_term('class_level', 'class')) }}</p>
+            @elseif ($rosterMode === \App\Enums\RosterMode::IndividualRoster->value)
+                @if ($learners->isEmpty())
+                    <p class="text-sm text-muted-foreground">{{ $selectedLevel === null ? 'Choose '.with_indefinite_article(strtolower(school_term('class_level', 'class'))).' to see its learners.' : 'No learners in '.$selectedLevel->name.' yet.' }}</p>
+                @else
+                    <ul class="max-h-72 divide-y overflow-y-auto border-y" aria-label="Learners">
+                        @foreach ($learners as $learner)
+                            <li wire:key="learner-{{ $learner->id }}">
+                                <label class="flex min-h-11 cursor-pointer items-center gap-3 text-sm select-none">
+                                    <input type="checkbox" value="{{ $learner->id }}" wire:model="studentRecordIds" class="size-4 rounded border-input">
+                                    <span class="min-w-0 flex-1 truncate">{{ $learner->user?->name ?? $learner->admission_number }}</span>
+                                    <span class="text-muted-foreground">{{ $isGroup ? $learner->academicCycleSection?->qualifiedName() : ($learner->academicCycleSection?->label ?? $learner->academicCycleSection?->name) }}</span>
+                                </label>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+                <x-field-error name="studentRecordIds" />
+                <x-field-error name="studentRecordIds.*" />
             @endif
         </fieldset>
 
