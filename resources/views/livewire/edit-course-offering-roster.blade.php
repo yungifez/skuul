@@ -7,6 +7,13 @@
 <form wire:submit="save" class="max-w-3xl space-y-6">
     <p class="text-sm text-muted-foreground">{{ $courseOffering->subject->name }} · {{ $courseOffering->academicYear->name }} · {{ $level->name }} · {{ $courseOffering->academicPeriod->display_name }}</p>
 
+    <div class="flex flex-col gap-2 sm:w-96">
+        <label for="offering-name" class="text-sm font-medium">Name</label>
+        <input type="text" id="offering-name" wire:model="name" maxlength="100" placeholder="Optional, such as Algebra B" class="{{ $controlClasses }}" {{ field_error_bindings('name') }}>
+        <p class="text-xs text-muted-foreground">Name it when the same subject runs more than once for {{ $level->name }}.</p>
+        <x-field-error name="name" />
+    </div>
+
     <fieldset class="flex flex-col gap-3">
         <legend class="mb-2 text-sm font-medium">Who attends</legend>
         <div>

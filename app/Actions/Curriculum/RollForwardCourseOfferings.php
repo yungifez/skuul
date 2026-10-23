@@ -70,6 +70,7 @@ class RollForwardCourseOfferings
                     'academic_year_id' => $target->id,
                     'academic_period_id' => $item['period']->id,
                     'subject_id' => $sourceOffering->subject_id,
+                    'name' => $sourceOffering->name,
                     'academic_level_id' => $sourceOffering->academic_level_id,
                     'roster_mode' => $sourceOffering->roster_mode,
                     'planned_periods_per_week' => $sourceOffering->planned_periods_per_week,

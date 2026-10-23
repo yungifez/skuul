@@ -2,8 +2,8 @@
 
 namespace App\Services\Timetable;
 
-use App\Enums\RosterMode;
 use App\Models\AcademicPeriod;
+use App\Models\CourseOffering;
 use App\Models\Facility;
 use App\Models\FacilityBooking;
 use App\Models\School;
@@ -14,15 +14,19 @@ use App\Models\Timetable;
 use App\Models\TimetableRecord;
 use App\Models\TimetableTimeSlot;
 use App\Models\User;
+use App\Services\Gradebook\CourseOfferingRoster;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
- * Check room, teacher, and section conflicts across the whole academic period.
+ * Check room, teacher, learner, and section conflicts across the whole academic period.
  */
 class TimetableConflictChecker
 {
+    public function __construct(private CourseOfferingRoster $roster) {}
+
     /**
      * Get every conflict in the timetable, as sentences people can act on.
      *
@@ -33,6 +37,7 @@ class TimetableConflictChecker
         return array_merge(
             $this->overlappingSlots($timetable),
             $this->teacherClashes($timetable),
+            $this->learnerClashes($timetable),
             $this->roomClashes($timetable),
             $this->bookingClashes($timetable),
             $this->roomsOutOfUse($timetable),
@@ -121,6 +126,56 @@ class TimetableConflictChecker
                     foreach ($shared as $teacherId) {
                         $name = $entry['teacher_names'][$teacherId] ?? "Teacher $teacherId";
                         $conflicts[] = "$name already teaches $other->name at {$entry['start_time']} on that day.";
+                    }
+                }
+            }
+        }
+
+        return array_values(array_unique($conflicts));
+    }
+
+    /**
+     * Find learners who would sit two lessons at once.
+     *
+     * An offering's own timetable names learners apart from any section, so
+     * it is compared with the other offering timetables of the same dates.
+     * Two offerings clash when they share a learner and meet at one time.
+     *
+     * @return array<int, string>
+     */
+    private function learnerClashes(Timetable $timetable): array
+    {
+        $offering = $timetable->courseOffering;
+
+        if ($offering === null) {
+            return [];
+        }
+
+        $learnerIds = $this->roster->students($offering)->pluck('id')->all();
+        $entries = $this->entriesOf($timetable);
+
+        if ($learnerIds === [] || $entries->isEmpty()) {
+            return [];
+        }
+
+        $conflicts = [];
+
+        foreach ($this->publishedAlongside($timetable)->whereNotNull('course_offering_id') as $other) {
+            $otherOffering = $other->courseOffering;
+            $shared = $otherOffering === null ? [] : array_intersect($learnerIds, $this->roster->students($otherOffering)->pluck('id')->all());
+
+            if ($shared === []) {
+                continue;
+            }
+
+            $window = $this->sharedDates($timetable->academicPeriod, $other->academicPeriod);
+
+            foreach ($this->entriesOf($other) as $otherEntry) {
+                foreach ($entries as $entry) {
+                    if ($this->sameEntryOccurrence($entry, $otherEntry, $window)
+                        && $this->overlaps($entry['start_time'], $entry['stop_time'], $otherEntry['start_time'], $otherEntry['stop_time'])) {
+                        $count = count($shared);
+                        $conflicts[] = "$count ".Str::plural('learner', $count).' of this subject also '.($count === 1 ? 'has' : 'have')." $other->name at {$entry['start_time']} on that day.";
                     }
                 }
             }
@@ -367,27 +422,16 @@ class TimetableConflictChecker
             )
             ->get()
             ->keyBy('id');
-        $cycleSection = $timetable->academicCycleSection;
-        $cycleSection?->loadMissing('academicLevel');
-        $levelScopeIds = $cycleSection?->academicLevel?->hierarchyIds() ?? [];
         $facilityNames = Facility::query()
             ->whereKey($records->pluck('facility_id')->filter()->unique())
             ->pluck('name', 'id');
-        $assignmentsBySubject = $cycleSection === null || $subjects->isEmpty()
+        $assignmentsBySubject = $subjects->isEmpty()
             ? collect()
             : TeachingAssignment::query()
                 ->whereIn('subject_id', $subjects->keys())
                 ->where('academic_period_id', $timetable->academic_period_id)
                 ->runningOn()
-                ->whereHas('courseOffering', function ($query) use ($cycleSection, $levelScopeIds): void {
-                    $query->where(function ($offerings) use ($cycleSection, $levelScopeIds): void {
-                        $offerings->whereHas('cycleSections', fn ($sections) => $sections->whereKey($cycleSection->id))
-                            ->orWhere(function ($offerings) use ($levelScopeIds): void {
-                                $offerings->where('roster_mode', RosterMode::AcademicLevel)
-                                    ->whereIn('academic_level_id', $levelScopeIds);
-                            });
-                    });
-                })
+                ->whereIn('course_offering_id', CourseOffering::query()->taughtOn($timetable)->select('id'))
                 ->with('teacher:id,name')
                 ->get()
                 ->groupBy('subject_id');

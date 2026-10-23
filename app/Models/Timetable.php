@@ -13,12 +13,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * One revision of a home-group schedule.
+ * One revision of a schedule.
+ *
+ * A timetable belongs to one home group, to one course offering that meets at
+ * its own times, or to the whole campus.
  *
  * @property TimetableStatus $status
  * @property int $revision
  * @property int $academic_period_id
  * @property int|null $academic_cycle_section_id
+ * @property int|null $course_offering_id
  * @property Carbon|null $published_at
  */
 class Timetable extends Model
@@ -35,6 +39,7 @@ class Timetable extends Model
         'revision',
         'academic_period_id',
         'academic_cycle_section_id',
+        'course_offering_id',
         'template_timetable_id',
         'effective_from',
         'effective_to',
@@ -73,6 +78,10 @@ class Timetable extends Model
     protected static function booted(): void
     {
         static::saving(function (self $timetable): void {
+            if ($timetable->academic_cycle_section_id !== null && $timetable->course_offering_id !== null) {
+                throw new InvalidValueException('A timetable belongs to one section or one subject, not both.');
+            }
+
             if (!$timetable->exists || $timetable->getRawOriginal('status') !== TimetableStatus::Published->value) {
                 return;
             }
@@ -157,6 +166,16 @@ class Timetable extends Model
     public function academicCycleSection(): BelongsTo
     {
         return $this->belongsTo(AcademicCycleSection::class);
+    }
+
+    /**
+     * Get the course offering whose own meeting times this timetable holds.
+     *
+     * @return BelongsTo<CourseOffering, $this>
+     */
+    public function courseOffering(): BelongsTo
+    {
+        return $this->belongsTo(CourseOffering::class);
     }
 
     /**

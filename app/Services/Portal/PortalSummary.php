@@ -20,6 +20,8 @@ use App\Models\TranscriptSnapshot;
 use App\Models\User;
 use App\Services\Attendance\AttendanceSummary;
 use App\Services\Finance\StudentLedger;
+use App\Services\Timetable\PersonalWeek;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 /**
@@ -31,6 +33,7 @@ class PortalSummary
         private PortalAccess $access,
         private AttendanceSummary $attendance,
         private StudentLedger $ledger,
+        private PersonalWeek $week,
     ) {}
 
     /**
@@ -71,25 +74,21 @@ class PortalSummary
     }
 
     /**
-     * Get the published timetable of the student's current home group.
+     * Get the published timetables that make up the student's week.
      *
-     * A learner with no home group has no week to read. Without that check,
-     * the query would match every campus's schoolwide timetable.
+     * That is their home group's timetable, the timetables of the subjects
+     * they take that meet at their own times, and the schoolwide ones. Only
+     * timetables of the student's own campus count.
+     *
+     * @return EloquentCollection<int, Timetable>
      */
-    public function timetable(StudentRecord $enrollment): ?Timetable
+    public function timetables(StudentRecord $enrollment): EloquentCollection
     {
-        if (!$this->access->areaIsOpen(PortalArea::Timetable, $enrollment->school_id)
-            || $enrollment->academic_cycle_section_id === null
-        ) {
-            return null;
+        if (!$this->access->areaIsOpen(PortalArea::Timetable, $enrollment->school_id)) {
+            return new EloquentCollection;
         }
 
-        return Timetable::query()
-            ->where('academic_cycle_section_id', $enrollment->academic_cycle_section_id)
-            ->whereHas('academicPeriod', fn ($period) => $period->where('school_id', $enrollment->school_id))
-            ->published()
-            ->orderByDesc('published_at')
-            ->first();
+        return $this->week->timetablesOfLearner($enrollment);
     }
 
     /**

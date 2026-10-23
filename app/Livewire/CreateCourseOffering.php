@@ -49,6 +49,8 @@ class CreateCourseOffering extends Component
 
     public ?int $capacity = null;
 
+    public string $name = '';
+
     public bool $setup = false;
 
     public function mount(?int $academicYearId = null, bool $setup = false): void
@@ -95,6 +97,7 @@ class CreateCourseOffering extends Component
             'subjectId' => ['required', 'integer', Rule::exists('subjects', 'id')->where('school_id', current_school_id())],
             'plannedPeriodsPerWeek' => ['nullable', 'integer', 'min:1', 'max:80'],
             'capacity' => ['nullable', 'integer', 'min:1', 'max:5000'],
+            'name' => ['nullable', 'string', 'max:100'],
         ], [
             'academicCycleSectionIds.required' => 'Choose at least one '.strtolower(school_term('section', 'section')).'.',
             'studentRecordIds.required' => 'Choose at least one learner.',
@@ -111,9 +114,9 @@ class CreateCourseOffering extends Component
             if ($rosterMode === RosterMode::HomeSection && count($sectionIds) > 1) {
                 $created = $createCourseOfferingsForSections->create($subject, $academicYear, $this->academicPeriodId, $academicLevel, $sectionIds, $this->plannedPeriodsPerWeek, $this->capacity, auth()->user())->count();
             } elseif ($this->academicPeriodId === 'all') {
-                $created = $createCourseOffering->createForAcademicYear($subject, $academicYear, $academicLevel, $sectionIds, $rosterMode, $learnerIds, $this->plannedPeriodsPerWeek, $this->capacity, auth()->user())->count();
+                $created = $createCourseOffering->createForAcademicYear($subject, $academicYear, $academicLevel, $sectionIds, $rosterMode, $learnerIds, $this->plannedPeriodsPerWeek, $this->capacity, auth()->user(), $this->name)->count();
             } else {
-                $createCourseOffering->create($subject, $academicYear, AcademicPeriod::inSchool()->findOrFail((int) $this->academicPeriodId), $academicLevel, $sectionIds, $rosterMode, $learnerIds, $this->plannedPeriodsPerWeek, $this->capacity, auth()->user());
+                $createCourseOffering->create($subject, $academicYear, AcademicPeriod::inSchool()->findOrFail((int) $this->academicPeriodId), $academicLevel, $sectionIds, $rosterMode, $learnerIds, $this->plannedPeriodsPerWeek, $this->capacity, auth()->user(), $this->name);
                 $created = 1;
             }
         } catch (InvalidValueException $exception) {

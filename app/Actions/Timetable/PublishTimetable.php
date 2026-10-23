@@ -54,11 +54,14 @@ class PublishTimetable
                 throw new TimetableConflictException($conflicts);
             }
 
-            // Only one revision of a schedule is in use at a time.
+            // Only one revision of a schedule is in use at a time. An
+            // offering's own times are a schedule of their own, apart from
+            // the schoolwide one.
             $inUse = Timetable::query()
                 ->published()
                 ->where('academic_period_id', $timetable->academic_period_id)
                 ->where('academic_cycle_section_id', $timetable->academic_cycle_section_id)
+                ->where('course_offering_id', $timetable->course_offering_id)
                 ->whereKeyNot($timetable->getKey())
                 ->get();
 
@@ -77,6 +80,7 @@ class PublishTimetable
                 [
                     'revision' => $timetable->revision,
                     'academic_cycle_section_id' => $timetable->academic_cycle_section_id,
+                    'course_offering_id' => $timetable->course_offering_id,
                     'academic_period_id' => $timetable->academic_period_id,
                 ],
                 $actor,

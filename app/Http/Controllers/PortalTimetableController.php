@@ -7,26 +7,28 @@ use App\Models\StudentRecord;
 use App\Models\Timetable;
 use App\Services\Portal\PortalAccess;
 use App\Services\Portal\PortalSummary;
-use App\Services\Timetable\TimetableGrid;
+use App\Services\Timetable\PersonalWeek;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Show a learner and their guardian the week of the learner's class.
+ * Show a learner and their guardian the learner's week.
  *
- * Only a published timetable is shown, and only the lessons the learner takes.
+ * The week puts together every published timetable that applies to the
+ * learner, and only the lessons they take.
  */
 class PortalTimetableController extends Controller
 {
     public function __construct(
         private PortalAccess $access,
         private PortalSummary $summary,
-        private TimetableGrid $grid,
+        private PersonalWeek $week,
     ) {}
 
     /**
-     * Read the newest published timetable of the learner's class.
+     * Read the learner's week from the timetables in use.
      */
     public function show(Request $request, StudentRecord $studentRecord): View
     {
@@ -34,12 +36,12 @@ class PortalTimetableController extends Controller
         abort_unless($this->access->areaIsOpen(PortalArea::Timetable, $studentRecord->school_id), 404);
 
         $studentRecord->load('user', 'school:id,name');
-        $timetable = $this->summary->timetable($studentRecord);
+        $timetables = $this->summary->timetables($studentRecord);
 
         return view('pages.portal.timetable', [
             'studentRecord' => $studentRecord,
-            'timetable' => $timetable,
-            'grid' => $timetable === null ? null : $this->gridFor($timetable, $studentRecord),
+            'timetables' => $timetables,
+            'days' => $timetables->isEmpty() ? [] : $this->weekFor($timetables, $studentRecord),
         ]);
     }
 
@@ -49,9 +51,10 @@ class PortalTimetableController extends Controller
      * Roles belong to a campus. A guardian may be working at another one, so
      * the learner's roles are read at the learner's campus.
      *
-     * @return array<string, mixed>
+     * @param  Collection<int, Timetable>  $timetables
+     * @return array<int, array{weekday: string, lessons: list<array{start: string, stop: string, name: string, kind: string, teachers: array<int, string>, timetable: string}>}>
      */
-    private function gridFor(Timetable $timetable, StudentRecord $studentRecord): array
+    private function weekFor(Collection $timetables, StudentRecord $studentRecord): array
     {
         $registrar = app(PermissionRegistrar::class);
         $before = $registrar->getPermissionsTeamId();
@@ -61,7 +64,7 @@ class PortalTimetableController extends Controller
             $registrar->setPermissionsTeamId($studentRecord->school_id);
             $learner?->unsetRelation('roles')->unsetRelation('permissions');
 
-            return $this->grid->of($timetable, viewer: $learner);
+            return $this->week->of($timetables, $learner);
         } finally {
             $registrar->setPermissionsTeamId($before);
             $learner?->unsetRelation('roles')->unsetRelation('permissions');

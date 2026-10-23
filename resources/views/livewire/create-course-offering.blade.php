@@ -119,6 +119,13 @@
             @endif
         </fieldset>
 
+        <div class="flex flex-col gap-2 sm:w-96">
+            <label for="offering-name" class="text-sm font-medium">Name</label>
+            <input type="text" id="offering-name" wire:model="name" maxlength="100" placeholder="Optional, such as Algebra B" class="{{ $controlClasses }}" {{ field_error_bindings('name') }}>
+            <p class="text-xs text-muted-foreground">Name it when the same subject runs more than once for this {{ strtolower(school_term('class_level', 'class')) }}.</p>
+            <x-field-error name="name" />
+        </div>
+
         <div class="grid grid-cols-2 gap-4 sm:w-96">
             <div class="flex flex-col gap-2">
                 <label for="planned-periods-per-week" class="text-sm font-medium">Periods a week</label>

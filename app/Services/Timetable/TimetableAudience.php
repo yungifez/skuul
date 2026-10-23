@@ -3,8 +3,6 @@
 namespace App\Services\Timetable;
 
 use App\Enums\Role;
-use App\Enums\RosterMode;
-use App\Models\AcademicCycleSection;
 use App\Models\AcademicPeriod;
 use App\Models\CourseOffering;
 use App\Models\StudentRecord;
@@ -21,7 +19,7 @@ use Illuminate\Support\Collection;
  *
  * Timetable records store a subject, not a course offering. The offering and
  * roster rules are therefore the source of truth when a learner or teacher
- * reads a section timetable.
+ * reads a timetable. An offering's own timetable reads that one offering.
  */
 class TimetableAudience
 {
@@ -57,6 +55,11 @@ class TimetableAudience
     }
 
     /**
+     * Get the subjects of the timetable the viewer teaches or takes.
+     *
+     * Planners read every subject. A teacher reads the subjects of their
+     * assignments, and a learner the subjects of the offerings they take.
+     *
      * @param  Collection<string, TimetableRecord>  $records
      * @return Collection<int, int>
      */
@@ -69,60 +72,70 @@ class TimetableAudience
             ->map(fn (int|string $subjectId): int => (int) $subjectId)
             ->unique()
             ->values();
-
-        if ($subjectIds->isEmpty() || $timetable->academic_cycle_section_id === null) {
-            return collect();
-        }
-
-        $section = $timetable->academicCycleSection;
         $period = $timetable->academicPeriod;
 
-        if ($section === null || $period === null) {
+        if ($subjectIds->isEmpty() || $period === null) {
             return collect();
         }
 
         if ($viewer->hasRole(Role::Teacher)) {
-            return $this->subjectsTaughtInSection($period, $section, $subjectIds, $viewer);
+            return $this->subjectsTaught($timetable, $period, $subjectIds, $viewer);
         }
 
         if ($viewer->hasRole(Role::Student)) {
-            $student = StudentRecord::query()
-                ->where('user_id', $viewer->id)
-                ->where('academic_cycle_section_id', $section->id)
-                ->attending()
-                ->first();
+            $student = $this->learnerOf($timetable, $period, $viewer);
 
-            if ($student === null) {
-                return collect();
-            }
-
-            return $this->subjectsTakenInSection($period, $section, $student, $subjectIds);
+            return $student === null ? collect() : $this->subjectsTaken($timetable, $period, $student, $subjectIds);
         }
 
         return $subjectIds;
     }
 
     /**
+     * Get the viewer's enrollment that this timetable can serve.
+     *
+     * A section's timetable serves the learners of that section. Any other
+     * timetable serves the learners of its campus.
+     */
+    private function learnerOf(Timetable $timetable, AcademicPeriod $period, User $viewer): ?StudentRecord
+    {
+        return StudentRecord::query()
+            ->where('user_id', $viewer->id)
+            ->where('school_id', $period->school_id)
+            ->when(
+                $timetable->academic_cycle_section_id !== null,
+                fn (Builder $query): Builder => $query->where('academic_cycle_section_id', $timetable->academic_cycle_section_id),
+            )
+            ->attending()
+            ->with('academicCycleSection.academicLevel')
+            ->first();
+    }
+
+    /**
      * @param  Collection<int, int>  $subjectIds
      * @return Collection<int, int>
      */
-    private function subjectsTaughtInSection(
+    private function subjectsTaught(
+        Timetable $timetable,
         AcademicPeriod $period,
-        AcademicCycleSection $section,
         Collection $subjectIds,
         User $teacher,
     ): Collection {
-        return TeachingAssignment::inSchool($section->school_id)
+        $section = $timetable->academicCycleSection;
+
+        return TeachingAssignment::inSchool($period->school_id)
             ->where('academic_period_id', $period->id)
             ->forTeacher($teacher)
             ->whereIn('subject_id', $subjectIds)
-            ->where(function (Builder $query) use ($section): void {
-                $query->where('academic_cycle_section_id', $section->id)
-                    ->orWhere(function (Builder $query) use ($section): void {
-                        $query->whereNull('academic_cycle_section_id')
-                            ->whereHas('courseOffering', fn (Builder $offering): Builder => $this->offeringCoversSection($offering, $section));
-                    });
-            })
+            ->when($timetable->course_offering_id !== null, fn (Builder $query): Builder => $query
+                ->where('course_offering_id', $timetable->course_offering_id))
+            ->when($section !== null, fn (Builder $query): Builder => $query
+                ->where(function (Builder $query) use ($section): void {
+                    $query->where('academic_cycle_section_id', $section?->id)
+                        ->orWhere(fn (Builder $query): Builder => $query
+                            ->whereNull('academic_cycle_section_id')
+                            ->whereIn('course_offering_id', CourseOffering::query()->reachingSection($section)->select('id')));
+                }))
             ->pluck('subject_id')
             ->map(fn (int|string $subjectId): int => (int) $subjectId)
             ->unique()
@@ -133,44 +146,20 @@ class TimetableAudience
      * @param  Collection<int, int>  $subjectIds
      * @return Collection<int, int>
      */
-    private function subjectsTakenInSection(
+    private function subjectsTaken(
+        Timetable $timetable,
         AcademicPeriod $period,
-        AcademicCycleSection $section,
         StudentRecord $student,
         Collection $subjectIds,
     ): Collection {
-        return CourseOffering::inSchool($section->school_id)
+        return CourseOffering::inSchool($period->school_id)
             ->where('academic_period_id', $period->id)
             ->whereIn('subject_id', $subjectIds)
-            ->where(function (Builder $query) use ($section, $student): void {
-                $query->where(function (Builder $query) use ($section): void {
-                    $query->whereIn('roster_mode', [RosterMode::HomeSection->value, RosterMode::CombinedHomeSections->value])
-                        ->whereHas('cycleSections', fn (Builder $sections): Builder => $sections->whereKey($section->id));
-                })->orWhere(function (Builder $query) use ($section): void {
-                    $query->where('roster_mode', RosterMode::AcademicLevel->value)
-                        ->where('academic_level_id', $section->academic_level_id);
-                })->orWhere(function (Builder $query) use ($student): void {
-                    $query->where('roster_mode', RosterMode::IndividualRoster->value)
-                        ->whereHas('studentRecords', fn (Builder $students): Builder => $students->whereKey($student->id));
-                });
-            })
+            ->when($timetable->course_offering_id !== null, fn (Builder $query): Builder => $query->whereKey($timetable->course_offering_id))
+            ->takenBy($student)
             ->pluck('subject_id')
             ->map(fn (int|string $subjectId): int => (int) $subjectId)
             ->unique()
             ->values();
-    }
-
-    private function offeringCoversSection(Builder $query, AcademicCycleSection $section): Builder
-    {
-        return $query->where(function (Builder $query) use ($section): void {
-            $query->where(function (Builder $query) use ($section): void {
-                $query->whereIn('roster_mode', [RosterMode::HomeSection->value, RosterMode::CombinedHomeSections->value])
-                    ->whereHas('cycleSections', fn (Builder $sections): Builder => $sections->whereKey($section->id));
-            })->orWhere(function (Builder $query) use ($section): void {
-                $query->where('roster_mode', RosterMode::AcademicLevel->value)
-                    ->where('academic_level_id', $section->academic_level_id);
-            })->orWhereHas('studentRecords', fn (Builder $students): Builder => $students
-                ->where('academic_cycle_section_id', $section->id));
-        });
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Timetable;
+use App\Services\Timetable\PersonalWeek;
 use App\Services\Timetable\TimetableService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
@@ -26,6 +27,25 @@ class TimetableController extends Controller
     public function create(): View
     {
         return view('pages.timetable.create');
+    }
+
+    /**
+     * Show the signed-in teacher every lesson they teach this week.
+     *
+     * On a campus that teaches separate subjects, a teacher's lessons sit on
+     * several timetables: the sections they teach and the subjects that meet
+     * at their own times.
+     */
+    public function week(PersonalWeek $week): View
+    {
+        $this->authorize('viewAny', Timetable::class);
+
+        $timetables = $week->timetablesOfTeacher(auth()->user(), (int) current_school_id());
+
+        return view('pages.timetable.week', [
+            'timetables' => $timetables,
+            'days' => $week->of($timetables, auth()->user(), lessonsOnly: true),
+        ]);
     }
 
     public function show(Timetable $timetable): View

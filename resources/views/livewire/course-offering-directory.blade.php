@@ -30,7 +30,7 @@
         <ul class="divide-y border-y" wire:loading.class="opacity-60" wire:target="academicYearId,subjectId,gotoPage,nextPage,previousPage">
             @foreach ($courseOfferings as $courseOffering)
                 @php
-                    $subjectName = $courseOffering->subject->name;
+                    $subjectName = $courseOffering->nameWithSubject();
                     $canUpdate = auth()->user()->can('update', $courseOffering);
                     $canOpenGradebook = auth()->user()->can('viewGradebook', $courseOffering);
                     $isDraft = $courseOffering->status === \App\Enums\CourseOfferingStatus::Draft;

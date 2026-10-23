@@ -90,7 +90,8 @@ class TimeSlotService
      * Refuse a subject, item, or room that another school owns.
      *
      * The builder lists only this school's choices, but the id arrives from the
-     * browser. A room must also be open and able to hold a lesson.
+     * browser. A room must also be open and able to hold a lesson, and a
+     * subject's own timetable holds only that subject.
      *
      * @throws InvalidValueException
      */
@@ -103,6 +104,12 @@ class TimeSlotService
             throw new InvalidValueException($kind === 'subject'
                 ? 'Choose a subject this school teaches.'
                 : 'Choose an item this school set up.');
+        }
+
+        $offering = $timeSlot->timetable->courseOffering;
+
+        if ($offering !== null && $kind === 'subject' && $recordableId !== $offering->subject_id) {
+            throw new InvalidValueException('This timetable holds the times of one subject. Place that subject only.');
         }
 
         if ($facilityId !== null && !Facility::query()->whereKey($facilityId)->where('school_id', $schoolId)->active()->holdsLessons()->exists()) {

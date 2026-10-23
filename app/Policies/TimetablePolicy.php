@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\Role;
 use App\Enums\TimetableStatus;
+use App\Models\CourseOffering;
 use App\Models\Timetable;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -31,12 +32,19 @@ class TimetablePolicy
             return true;
         }
 
-        $enrollment = $user->studentRecord()->attending()->first();
+        $enrollment = $user->studentRecord()->attending()->with('academicCycleSection.academicLevel')->first();
 
-        return $timetable->status === TimetableStatus::Published
-            && $enrollment !== null
-            && ($timetable->academic_cycle_section_id === null
-                || $timetable->academic_cycle_section_id === $enrollment->academic_cycle_section_id);
+        if ($timetable->status !== TimetableStatus::Published || $enrollment === null) {
+            return false;
+        }
+
+        // A subject's own times serve only the learners who take it.
+        if ($timetable->course_offering_id !== null) {
+            return CourseOffering::query()->whereKey($timetable->course_offering_id)->takenBy($enrollment)->exists();
+        }
+
+        return $timetable->academic_cycle_section_id === null
+            || $timetable->academic_cycle_section_id === $enrollment->academic_cycle_section_id;
     }
 
     public function create(User $user)

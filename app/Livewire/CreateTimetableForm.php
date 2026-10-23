@@ -3,9 +3,11 @@
 namespace App\Livewire;
 
 use App\Enums\AcademicStructureStatus;
+use App\Enums\CourseOfferingStatus;
 use App\Enums\Role;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicPeriod;
+use App\Models\CourseOffering;
 use App\Models\Subject;
 use App\Models\Timetable;
 use App\Models\Weekday;
@@ -39,6 +41,8 @@ class CreateTimetableForm extends Component
 
     public ?int $academicCycleSectionId = null;
 
+    public ?int $courseOfferingId = null;
+
     /** @var array<int, array{weekday_id: int, weekday_ids: array<int, int>, start_time: string, stop_time: string, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>, type: string, subject_id: int|null, title: string, audience_role: string}> */
     public array $events = [];
 
@@ -64,6 +68,14 @@ class CreateTimetableForm extends Component
 
     /** @var array<int, array{id: int, name: string}> */
     public array $subjects = [];
+
+    /**
+     * The offerings of the chosen period that can meet at their own times.
+     *
+     * @var array<int, array{id: int, label: string, subject_id: int}>
+     */
+    #[Locked]
+    public array $courseOfferings = [];
 
     /** @var array<int, array{id: int, name: string}> */
     #[Locked]
@@ -104,6 +116,7 @@ class CreateTimetableForm extends Component
             ])->all();
         $this->academicCycleSectionId = $this->cycleSections[0]['id'] ?? null;
         $this->subjects = Subject::inSchool()->orderBy('name')->get(['id', 'name'])->toArray();
+        $this->loadCourseOfferings();
         $this->weekdays = Weekday::query()->orderBy('id')->get(['id', 'name'])->toArray();
         $this->newEvent['weekday_id'] = $this->weekdays[0]['id'] ?? null;
         $this->newEvent['weekday_ids'] = $this->newEvent['weekday_id'] === null ? [] : [(int) $this->newEvent['weekday_id']];
@@ -123,6 +136,34 @@ class CreateTimetableForm extends Component
 
         if ($scope === 'section' && $this->academicCycleSectionId === null) {
             $this->academicCycleSectionId = $this->cycleSections[0]['id'] ?? null;
+        }
+
+        if ($scope === 'offering' && $this->courseOfferingId === null) {
+            $this->courseOfferingId = $this->courseOfferings[0]['id'] ?? null;
+        }
+    }
+
+    /**
+     * List the offerings of the chosen period, so a subject can meet at its own times.
+     */
+    private function loadCourseOfferings(): void
+    {
+        $this->courseOfferings = CourseOffering::inSchool()
+            ->with(['subject:id,name', 'academicLevel:id,name'])
+            ->where('academic_period_id', $this->academicPeriodId)
+            ->where('status', '!=', CourseOfferingStatus::Archived)
+            ->orderBy('academic_level_id')
+            ->orderBy('subject_id')
+            ->get()
+            ->map(fn (CourseOffering $offering): array => [
+                'id' => $offering->id,
+                'label' => $offering->qualifiedName(),
+                'subject_id' => $offering->subject_id,
+            ])
+            ->all();
+
+        if (!in_array($this->courseOfferingId, array_column($this->courseOfferings, 'id'), true)) {
+            $this->courseOfferingId = $this->scope === 'offering' ? ($this->courseOfferings[0]['id'] ?? null) : null;
         }
     }
 
@@ -147,6 +188,7 @@ class CreateTimetableForm extends Component
 
     public function updatedAcademicPeriodId(): void
     {
+        $this->loadCourseOfferings();
         $this->calendarDate = $this->selectedPeriod()['starts_on'] ?? school_today()->toDateString();
 
         if ($this->newEvent['recurrence'] === 'one_time') {
@@ -401,9 +443,24 @@ class CreateTimetableForm extends Component
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:10000'],
             'academicPeriodId' => ['required', 'integer', Rule::exists('academic_periods', 'id')->where('school_id', current_school_id())->where('academic_year_id', current_academic_year_id())],
-            'scope' => ['required', 'in:section,schoolwide'],
+            'scope' => ['required', 'in:section,offering,schoolwide'],
             'academicCycleSectionId' => ['required_if:scope,section', 'nullable', 'integer', Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id())->where('academic_year_id', current_academic_year_id())],
+            'courseOfferingId' => ['required_if:scope,offering', 'nullable', 'integer', Rule::in(array_column($this->courseOfferings, 'id'))],
+        ], [
+            'courseOfferingId.required_if' => 'Choose the subject that meets at these times.',
+            'courseOfferingId.in' => 'Choose a subject of this '.strtolower(school_term('period', 'period')).'.',
         ]);
+
+        $offeringSubjectId = $this->offeringSubjectId();
+
+        foreach ($this->events as $event) {
+            if ($offeringSubjectId !== null && $event['type'] === 'subject' && (int) $event['subject_id'] !== $offeringSubjectId) {
+                $this->addError('events', 'A subject\'s own timetable holds only that subject.');
+
+                return;
+            }
+        }
+
         foreach ($this->events as $index => $event) {
             Validator::make($event, [
                 'weekday_id' => ['nullable', 'integer', Rule::exists('weekdays', 'id')],
@@ -465,13 +522,34 @@ class CreateTimetableForm extends Component
             'description' => $this->description ?: null,
             'academic_period_id' => $this->academicPeriodId,
             'academic_cycle_section_id' => $this->scope === 'section' ? $this->academicCycleSectionId : null,
+            'course_offering_id' => $this->scope === 'offering' ? $this->courseOfferingId : null,
         ], $expandedEvents);
         $this->redirectRoute('timetables.manage', $timetable, navigate: true);
     }
 
     public function render(): View
     {
-        return view('livewire.create-timetable-form');
+        $offeringSubjectId = $this->offeringSubjectId();
+
+        return view('livewire.create-timetable-form', [
+            'eventSubjects' => $offeringSubjectId === null
+                ? $this->subjects
+                : array_values(array_filter($this->subjects, fn (array $subject): bool => $subject['id'] === $offeringSubjectId)),
+        ]);
+    }
+
+    /**
+     * Get the subject of the chosen offering, when the timetable is for one.
+     */
+    private function offeringSubjectId(): ?int
+    {
+        if ($this->scope !== 'offering') {
+            return null;
+        }
+
+        $offering = collect($this->courseOfferings)->firstWhere('id', $this->courseOfferingId);
+
+        return $offering === null ? null : $offering['subject_id'];
     }
 
     /**
