@@ -34,6 +34,7 @@ class ReviseTimetable
                 'revision' => $timetable->revision + 1,
                 'academic_period_id' => $timetable->academic_period_id,
                 'academic_cycle_section_id' => $timetable->academic_cycle_section_id,
+                'course_offering_id' => $timetable->course_offering_id,
                 'effective_from' => $timetable->effective_from,
                 'effective_to' => $timetable->effective_to,
                 'revision_of_id' => $timetable->id,

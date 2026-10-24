@@ -13,7 +13,6 @@ use App\Models\FinancialPeriod;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Route;
@@ -206,11 +205,7 @@ class FeeTest extends TestCase
         ]);
         $this->authorized_user(['read fee', 'delete fee']);
 
-        try {
-            Livewire::test(ListFeesTable::class)->call('deleteFee', $theirs->id);
-            $this->fail('Another school\'s fee was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListFeesTable::class)->call('deleteFee', $theirs->id)->assertNotFound();
 
         $this->assertModelExists($theirs);
         $this->assertNotSoftDeleted($theirs);

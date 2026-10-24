@@ -21,7 +21,6 @@ use App\Models\StudentRecord;
 use App\Services\Finance\BudgetVersusActual;
 use App\Services\Finance\ChartOfAccounts;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -328,8 +327,8 @@ class BudgetTest extends TestCase
 
         $planner = Livewire::test(BudgetPlanner::class);
 
-        $this->assertThrows(fn () => $planner->call('remove', $theirs->id), ModelNotFoundException::class);
-        $this->assertThrows(fn () => $planner->call('revise', $theirs->id), ModelNotFoundException::class);
+        $planner->call('remove', $theirs->id)->assertNotFound();
+        $planner->call('revise', $theirs->id)->assertNotFound();
         $this->assertNotNull($theirs->fresh());
 
         Livewire::withQueryParams(['academic_year_id' => $theirCycle->id])

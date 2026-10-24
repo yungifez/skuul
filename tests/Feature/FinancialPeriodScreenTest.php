@@ -7,7 +7,6 @@ use App\Livewire\ManageFinancialPeriods;
 use App\Models\FinancialPeriod;
 use App\Models\School;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -142,10 +141,7 @@ class FinancialPeriodScreenTest extends TestCase
             'ends_on' => now()->endOfYear()->toDateString(),
         ]);
 
-        $this->assertThrows(
-            fn () => Livewire::test(ManageFinancialPeriods::class)->call('close', $other->id),
-            ModelNotFoundException::class,
-        );
+        Livewire::test(ManageFinancialPeriods::class)->call('close', $other->id)->assertNotFound();
 
         $this->assertSame(FinancialPeriodStatus::Open, $other->fresh()->status);
     }

@@ -2,8 +2,8 @@
 
 namespace App\Services\Timetable;
 
-use App\Enums\RosterMode;
 use App\Models\AcademicPeriod;
+use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
@@ -218,33 +218,21 @@ class TimetableGrid
      */
     private function teachersOf(Timetable $timetable, Collection $records): Collection
     {
-        $cycleSection = $timetable->academicCycleSection;
         $subjectIds = $records
             ->where('timetable_time_slot_weekdayable_type', (new Subject)->getMorphClass())
             ->pluck('timetable_time_slot_weekdayable_id')
             ->unique()
             ->all();
 
-        if ($cycleSection === null || $subjectIds === []) {
+        if ($subjectIds === []) {
             return $this->asTeacherLists([]);
         }
-
-        $cycleSection->loadMissing('academicLevel');
-        $levelScopeIds = $cycleSection->academicLevel->hierarchyIds();
 
         $assignments = TeachingAssignment::query()
             ->whereIn('subject_id', $subjectIds)
             ->where('academic_period_id', $timetable->academic_period_id)
             ->runningOn()
-            ->whereHas('courseOffering', function ($query) use ($cycleSection, $levelScopeIds): void {
-                $query->where(function ($offerings) use ($cycleSection, $levelScopeIds): void {
-                    $offerings->whereHas('cycleSections', fn ($sections) => $sections->whereKey($cycleSection->id))
-                        ->orWhere(function ($offerings) use ($levelScopeIds): void {
-                            $offerings->where('roster_mode', RosterMode::AcademicLevel)
-                                ->whereIn('academic_level_id', $levelScopeIds);
-                        });
-                });
-            })
+            ->whereIn('course_offering_id', CourseOffering::query()->taughtOn($timetable)->select('id'))
             ->with('teacher:id,name')
             ->get()
             ->groupBy('subject_id');

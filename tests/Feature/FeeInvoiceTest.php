@@ -19,7 +19,6 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Services\Fee\FeeInvoiceService;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Str;
@@ -547,11 +546,7 @@ class FeeInvoiceTest extends TestCase
         $theirs = FeeInvoice::factory()->create(['school_id' => School::factory()->create()->id]);
         $this->authorized_user(['read fee invoice', 'delete fee invoice']);
 
-        try {
-            Livewire::test(ListFeeInvoicesTable::class, ['status' => 'all'])->call('deleteInvoice', $theirs->id);
-            $this->fail('Another school\'s invoice was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListFeeInvoicesTable::class, ['status' => 'all'])->call('deleteInvoice', $theirs->id)->assertNotFound();
 
         $this->assertModelExists($theirs);
         $this->assertNotSoftDeleted($theirs);

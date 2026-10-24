@@ -14,15 +14,16 @@
         </p>
 
         <april:card>
-            @if ($timetable !== null)
-                <slot:title>{{ $timetable->name }}</slot:title>
+            <slot:title>This week</slot:title>
+            @if ($timetables->isNotEmpty())
+                <slot:description>From {{ $timetables->pluck('name')->join(', ', ' and ') }}</slot:description>
             @endif
             <slot:content>
-                @if ($timetable === null || $grid['rows'] === [])
+                @if ($days === [])
                     <x-empty-state icon="lucide-clock" title="No timetable yet"
                         description="The timetable appears here when the school publishes it." />
                 @else
-                    @include('livewire.partials.timetable-grid', ['grid' => $grid])
+                    <x-personal-week :days="$days" />
                 @endif
             </slot:content>
         </april:card>

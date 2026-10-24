@@ -37,6 +37,7 @@
                         <label for="timetable-scope" class="text-sm font-medium">Schedule for *</label>
                         <select id="timetable-scope" wire:model.live="scope" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('scope') }}>
                             <option value="section">One class section</option>
+                            <option value="offering">One subject at its own times</option>
                             @if ($canCreateSchoolwide)<option value="schoolwide">Schoolwide</option>@endif
                         </select>
                         <x-field-error name="scope" />
@@ -47,6 +48,19 @@
                             <select id="academic-cycle-section" wire:model="academicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                                 @foreach ($cycleSections as $section)<option value="{{ $section['id'] }}">{{ $section['label'] }}</option>@endforeach
                             </select>
+                        </div>
+                    @elseif ($scope === 'offering')
+                        <div class="flex flex-col gap-2">
+                            <label for="course-offering" class="text-sm font-medium">Subject *</label>
+                            @if ($courseOfferings === [])
+                                <p class="text-sm text-muted-foreground">No subjects in this {{ strtolower(school_term('period', 'period')) }} yet.</p>
+                            @else
+                                <select id="course-offering" wire:model.live="courseOfferingId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('courseOfferingId') }}>
+                                    @foreach ($courseOfferings as $offering)<option value="{{ $offering['id'] }}">{{ $offering['label'] }}</option>@endforeach
+                                </select>
+                            @endif
+                            <x-field-error name="courseOfferingId" />
+                            <x-field-error name="events" />
                         </div>
                     @endif
                     <div class="flex flex-col gap-2 lg:col-span-2">
@@ -97,7 +111,7 @@
                         <div class="space-y-4">
                             <div class="flex items-start justify-between gap-3"><div><p class="text-sm font-semibold">3. Add the details</p><p class="text-sm text-muted-foreground">{{ $this->eventDraftRuleLabel() }}</p></div><button type="button" wire:click="backEventStep" class="text-sm underline">Back</button></div>
                             @if ($newEvent['type'] === 'subject')
-                                <div class="flex flex-col gap-2"><label for="event-subject" class="text-sm font-medium">Subject</label><select id="event-subject" wire:model="newEvent.subject_id" class="h-10 rounded-md border bg-background px-3 text-sm" {{ field_error_bindings('newEvent.subject_id') }}><option value="">Choose a subject</option>@foreach ($subjects as $subject)<option value="{{ $subject['id'] }}">{{ $subject['name'] }}</option>@endforeach</select><x-field-error name="newEvent.subject_id" /></div>
+                                <div class="flex flex-col gap-2"><label for="event-subject" class="text-sm font-medium">Subject</label><select id="event-subject" wire:model="newEvent.subject_id" class="h-10 rounded-md border bg-background px-3 text-sm" {{ field_error_bindings('newEvent.subject_id') }}><option value="">Choose a subject</option>@foreach ($eventSubjects as $subject)<option value="{{ $subject['id'] }}">{{ $subject['name'] }}</option>@endforeach</select><x-field-error name="newEvent.subject_id" /></div>
                             @else
                                 <div class="flex flex-col gap-2"><label for="event-title" class="text-sm font-medium">Title</label><input id="event-title" wire:model="newEvent.title" placeholder="Assembly, duty, club…" class="h-10 rounded-md border bg-background px-3 text-sm" {{ field_error_bindings('newEvent.title') }}><x-field-error name="newEvent.title" /></div>
                             @endif

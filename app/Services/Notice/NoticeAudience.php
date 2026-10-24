@@ -7,11 +7,13 @@ use App\Enums\Role;
 use App\Enums\StaffStatus;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
+use App\Models\CourseOffering;
 use App\Models\Notice;
 use App\Models\ParentRecord;
 use App\Models\StaffProfile;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Gradebook\CourseOfferingRoster;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -26,6 +28,8 @@ use Illuminate\Support\Facades\DB;
  */
 class NoticeAudience
 {
+    public function __construct(private CourseOfferingRoster $roster) {}
+
     /**
      * Get the people the notice should reach.
      *
@@ -82,10 +86,12 @@ class NoticeAudience
         $hasScopedLearnerTarget = in_array($audience['scope'] ?? null, [
             NoticeAudienceScope::Classes->value,
             NoticeAudienceScope::Section->value,
+            NoticeAudienceScope::Offering->value,
         ], true);
         $hasLearnerTarget = $hasScopedLearnerTarget
             || $this->audienceLevelIds($audience) !== []
             || $this->audienceSectionIds($audience) !== []
+            || $this->audienceOfferingIds($audience) !== []
             || !empty($audience['student_record_ids']);
         $hasNamedTarget = $namedIds !== [];
 
@@ -149,7 +155,10 @@ class NoticeAudience
     {
         $levelIds = $this->audienceLevelIds($audience);
         $sectionIds = $this->audienceSectionIds($audience);
-        $studentRecordIds = array_map('intval', (array) ($audience['student_record_ids'] ?? []));
+        $studentRecordIds = array_values(array_unique([
+            ...array_map('intval', (array) ($audience['student_record_ids'] ?? [])),
+            ...$this->rosterIds($this->audienceOfferingIds($audience), $schoolId),
+        ]));
         $levelScopeIds = $this->academicLevelScopeIds($levelIds, $schoolId);
         $sectionIds = $this->sectionIdsInSchool($sectionIds, $schoolId);
 
@@ -226,6 +235,46 @@ class NoticeAudience
         }
 
         return array_values(array_unique(array_map('intval', (array) ($audience['academic_cycle_section_ids'] ?? []))));
+    }
+
+    /**
+     * Get course offering ids from the audience when the selected scope allows them.
+     *
+     * @param  array<string, mixed>  $audience
+     * @return array<int, int>
+     */
+    private function audienceOfferingIds(array $audience): array
+    {
+        $scope = $audience['scope'] ?? null;
+
+        if ($scope !== null && $scope !== NoticeAudienceScope::Offering->value) {
+            return [];
+        }
+
+        return array_values(array_unique(array_map('intval', (array) ($audience['course_offering_ids'] ?? []))));
+    }
+
+    /**
+     * Get the enrollments on the rosters of the offerings, read when the notice goes out.
+     *
+     * @param  array<int, int>  $offeringIds
+     * @return array<int, int>
+     */
+    private function rosterIds(array $offeringIds, ?int $schoolId): array
+    {
+        if ($offeringIds === []) {
+            return [];
+        }
+
+        return CourseOffering::query()
+            ->inSchool($schoolId)
+            ->whereKey($offeringIds)
+            ->get()
+            ->flatMap(fn (CourseOffering $offering): array => $this->roster->students($offering)->pluck('id')->all())
+            ->map(fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

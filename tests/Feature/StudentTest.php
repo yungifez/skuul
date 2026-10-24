@@ -21,7 +21,6 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Route;
@@ -323,11 +322,7 @@ class StudentTest extends TestCase
         $this->memberOf(School::factory()->create(), $student->refresh());
         $this->authorized_user(['read student', 'delete student']);
 
-        try {
-            Livewire::test(ListStudentsTable::class)->call('deleteStudent', $student->id);
-            $this->fail('A student of another school was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListStudentsTable::class)->call('deleteStudent', $student->id)->assertNotFound();
 
         $this->assertNotSoftDeleted($student);
     }
@@ -590,11 +585,7 @@ class StudentTest extends TestCase
         $promotion = Promotion::factory()->create(['school_id' => School::factory()->create()->id]);
         $this->authorized_user(['read promotion', 'reset promotion']);
 
-        try {
-            Livewire::test(ListPromotionsTable::class)->call('resetPromotion', $promotion->id);
-            $this->fail('Another school\'s promotion was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListPromotionsTable::class)->call('resetPromotion', $promotion->id)->assertNotFound();
 
         $this->assertModelExists($promotion);
     }

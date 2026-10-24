@@ -15,7 +15,6 @@ use App\Models\Organization;
 use App\Models\School;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -90,9 +89,9 @@ class BoardingResidenceTest extends TestCase
             ->assertDontSee($theirResidence->name)
             ->assertDontSee($theirHouse->name);
 
-        $this->assertThrows(fn () => $component->call('linkCampus', $residence->id, (string) $elsewhere->id), ModelNotFoundException::class);
-        $this->assertThrows(fn () => $component->call('attachHouse', $residence->id, (string) $theirHouse->id), ModelNotFoundException::class);
-        $this->assertThrows(fn () => $component->call('unlinkCampus', $theirResidence->id, $elsewhere->id), ModelNotFoundException::class);
+        $component->call('linkCampus', $residence->id, (string) $elsewhere->id)->assertNotFound();
+        $component->call('attachHouse', $residence->id, (string) $theirHouse->id)->assertNotFound();
+        $component->call('unlinkCampus', $theirResidence->id, $elsewhere->id)->assertNotFound();
 
         $this->assertFalse($residence->schools()->whereKey($elsewhere)->exists());
         $this->assertNull($theirHouse->fresh()->boarding_residence_id);

@@ -13,7 +13,6 @@ use App\Models\TimetableRecord;
 use App\Models\TimetableTimeSlot;
 use App\Models\Weekday;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Route;
@@ -190,11 +189,7 @@ class CustomTimetableItemTest extends TestCase
         $theirs = CustomTimetableItem::factory()->create(['school_id' => School::factory()->create()->id]);
         $this->authorized_user(['read custom timetable item', 'delete custom timetable item']);
 
-        try {
-            Livewire::test(ListCustomTimetableItemsTable::class)->call('deleteItem', $theirs->id);
-            $this->fail('Another school\'s item was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListCustomTimetableItemsTable::class)->call('deleteItem', $theirs->id)->assertNotFound();
 
         $this->assertModelExists($theirs);
     }

@@ -10,7 +10,6 @@ use App\Livewire\ManageAccountAccess;
 use App\Models\School;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
@@ -239,11 +238,7 @@ class AdminTest extends TestCase
         $this->memberOf(School::factory()->create(), $admin->refresh());
         $this->authorized_user(['read admin', 'delete admin']);
 
-        try {
-            Livewire::test(ListAdminsTable::class)->call('deleteAdmin', $admin->id);
-            $this->fail('A admin of another school was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListAdminsTable::class)->call('deleteAdmin', $admin->id)->assertNotFound();
 
         $this->assertNotSoftDeleted($admin);
     }

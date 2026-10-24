@@ -23,7 +23,6 @@ use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
@@ -491,10 +490,7 @@ class StaffScreenTest extends TestCase
 
         Livewire::test(StaffProfileRecord::class, ['profile' => $theirs])->assertForbidden();
 
-        $this->assertThrows(
-            fn () => Livewire::test(StaffProfileRecord::class, ['profile' => $mine])->call('removeHours', $theirHours->id),
-            ModelNotFoundException::class,
-        );
+        Livewire::test(StaffProfileRecord::class, ['profile' => $mine])->call('removeHours', $theirHours->id)->assertNotFound();
 
         $this->assertNotNull($theirHours->fresh());
     }

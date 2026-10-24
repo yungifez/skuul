@@ -832,11 +832,11 @@ class PortalTest extends TestCase
 
         $summary = app(PortalSummary::class);
 
-        $this->assertNull($summary->timetable($enrollment));
+        $this->assertSame([], $summary->timetables($enrollment)->modelKeys());
 
         $draft->forceFill(['status' => TimetableStatus::Published, 'published_at' => now()])->save();
 
-        $this->assertSame($draft->id, $summary->timetable($enrollment)?->id);
+        $this->assertSame([$draft->id], $summary->timetables($enrollment)->modelKeys());
     }
 
     public function test_a_family_asks_the_school_for_something(): void

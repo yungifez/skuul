@@ -49,6 +49,8 @@ class CreateCourseOffering extends Component
 
     public ?int $capacity = null;
 
+    public string $name = '';
+
     public bool $setup = false;
 
     public function mount(?int $academicYearId = null, bool $setup = false): void
@@ -56,8 +58,9 @@ class CreateCourseOffering extends Component
         Gate::authorize('create', CourseOffering::class);
 
         $this->setup = $setup;
-        $this->academicYearId = AcademicYear::inSchool()->whereKey($academicYearId ?: current_academic_year_id())->value('id');
-        $this->rosterMode = RosterMode::HomeSection->value;
+        $academicYear = AcademicYear::inSchool()->find($academicYearId ?: current_academic_year_id());
+        $this->academicYearId = $academicYear?->id;
+        $this->rosterMode = ($academicYear === null ? RosterMode::HomeSection : instructional_model($academicYear)->defaultRosterMode())->value;
     }
 
     public function updatedAcademicYearId(): void
@@ -69,10 +72,7 @@ class CreateCourseOffering extends Component
     public function updatedAcademicLevelId(): void
     {
         $this->reset('academicCycleSectionIds', 'studentRecordIds');
-
-        if ($this->selectedLevel()?->is_group) {
-            $this->rosterMode = RosterMode::AcademicLevel->value;
-        }
+        $this->keepRosterModeAllowed();
     }
 
     public function save(
@@ -97,6 +97,7 @@ class CreateCourseOffering extends Component
             'subjectId' => ['required', 'integer', Rule::exists('subjects', 'id')->where('school_id', current_school_id())],
             'plannedPeriodsPerWeek' => ['nullable', 'integer', 'min:1', 'max:80'],
             'capacity' => ['nullable', 'integer', 'min:1', 'max:5000'],
+            'name' => ['nullable', 'string', 'max:100'],
         ], [
             'academicCycleSectionIds.required' => 'Choose at least one '.strtolower(school_term('section', 'section')).'.',
             'studentRecordIds.required' => 'Choose at least one learner.',
@@ -113,9 +114,9 @@ class CreateCourseOffering extends Component
             if ($rosterMode === RosterMode::HomeSection && count($sectionIds) > 1) {
                 $created = $createCourseOfferingsForSections->create($subject, $academicYear, $this->academicPeriodId, $academicLevel, $sectionIds, $this->plannedPeriodsPerWeek, $this->capacity, auth()->user())->count();
             } elseif ($this->academicPeriodId === 'all') {
-                $created = $createCourseOffering->createForAcademicYear($subject, $academicYear, $academicLevel, $sectionIds, $rosterMode, $learnerIds, $this->plannedPeriodsPerWeek, $this->capacity, auth()->user())->count();
+                $created = $createCourseOffering->createForAcademicYear($subject, $academicYear, $academicLevel, $sectionIds, $rosterMode, $learnerIds, $this->plannedPeriodsPerWeek, $this->capacity, auth()->user(), $this->name)->count();
             } else {
-                $createCourseOffering->create($subject, $academicYear, AcademicPeriod::inSchool()->findOrFail((int) $this->academicPeriodId), $academicLevel, $sectionIds, $rosterMode, $learnerIds, $this->plannedPeriodsPerWeek, $this->capacity, auth()->user());
+                $createCourseOffering->create($subject, $academicYear, AcademicPeriod::inSchool()->findOrFail((int) $this->academicPeriodId), $academicLevel, $sectionIds, $rosterMode, $learnerIds, $this->plannedPeriodsPerWeek, $this->capacity, auth()->user(), $this->name);
                 $created = 1;
             }
         } catch (InvalidValueException $exception) {
@@ -142,7 +143,7 @@ class CreateCourseOffering extends Component
             'selectedYear' => $selectedYear,
             'academicLevels' => AcademicLevel::inSchool()->orderBy('position')->orderBy('name')->get(),
             'selectedLevel' => $selectedLevel,
-            'rosterModes' => $this->allowedRosterModes($selectedYear),
+            'rosterModes' => $this->allowedRosterModes($selectedYear, $selectedLevel),
             'sections' => $this->sections($selectedLevel),
             'learners' => $this->rosterMode === RosterMode::IndividualRoster->value ? $this->learners($selectedLevel) : collect(),
             'subjects' => Subject::inSchool()->orderBy('name')->get(),
@@ -155,16 +156,30 @@ class CreateCourseOffering extends Component
     }
 
     /**
+     * Get the rosters the year's teaching setup and the chosen level allow.
+     *
      * @return array<int, RosterMode>
      */
-    private function allowedRosterModes(?AcademicYear $academicYear): array
+    private function allowedRosterModes(?AcademicYear $academicYear, ?AcademicLevel $academicLevel): array
     {
-        return $academicYear instanceof AcademicYear ? instructional_model($academicYear)->rosterModes() : RosterMode::cases();
+        $rosterModes = $academicYear instanceof AcademicYear ? instructional_model($academicYear)->rosterModes() : RosterMode::cases();
+
+        if ($academicLevel === null) {
+            return $rosterModes;
+        }
+
+        return array_values(array_filter($rosterModes, fn (RosterMode $mode): bool => $academicLevel->allowsRosterMode($mode)));
     }
 
+    /**
+     * Keep the chosen roster when it still fits, or fall back to the first that does.
+     */
     private function keepRosterModeAllowed(): void
     {
-        $allowed = array_map(fn (RosterMode $mode): string => $mode->value, $this->allowedRosterModes(AcademicYear::inSchool()->find($this->academicYearId)));
+        $allowed = array_map(
+            fn (RosterMode $mode): string => $mode->value,
+            $this->allowedRosterModes(AcademicYear::inSchool()->find($this->academicYearId), $this->selectedLevel()),
+        );
 
         if (!in_array($this->rosterMode, $allowed, true)) {
             $this->rosterMode = $allowed[0] ?? RosterMode::HomeSection->value;
@@ -200,10 +215,10 @@ class CreateCourseOffering extends Component
 
         return StudentRecord::inSchool()
             ->attending()
-            ->with(['academicCycleSection:id,name,label', 'user:id,name'])
+            ->with(['academicCycleSection:id,name,label,academic_level_id', 'academicCycleSection.academicLevel:id,name', 'user:id,name'])
             ->whereHas('academicCycleSection', fn (Builder $query) => $query
                 ->where('academic_year_id', $this->academicYearId)
-                ->where('academic_level_id', $academicLevel->id))
+                ->whereIn('academic_level_id', $academicLevel->teachingScopeIds()))
             ->orderBy('admission_number')
             ->get();
     }

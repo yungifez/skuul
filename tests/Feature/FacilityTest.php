@@ -23,7 +23,6 @@ use App\Models\TimetableTimeSlot;
 use App\Models\Weekday;
 use App\Services\Timetable\FacilityAvailability;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -161,8 +160,8 @@ class FacilityTest extends TestCase
             ->call('book')
             ->assertHasErrors('facilityId');
 
-        $this->assertThrows(fn () => Livewire::test(FacilityBoard::class)->call('retire', $elsewhere->id), ModelNotFoundException::class);
-        $this->assertThrows(fn () => Livewire::test(FacilityBoard::class)->call('startGivingUp', $booking->id), ModelNotFoundException::class);
+        Livewire::test(FacilityBoard::class)->call('retire', $elsewhere->id)->assertNotFound();
+        Livewire::test(FacilityBoard::class)->call('startGivingUp', $booking->id)->assertNotFound();
 
         $this->assertSame(1, FacilityBooking::count());
         $this->assertTrue($elsewhere->fresh()->is_active);

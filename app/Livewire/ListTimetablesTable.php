@@ -6,6 +6,8 @@ use App\Enums\AcademicStructureStatus;
 use App\Enums\Role;
 use App\Enums\TimetableStatus;
 use App\Models\AcademicCycleSection;
+use App\Models\CourseOffering;
+use App\Models\StudentRecord;
 use App\Models\Timetable;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -18,7 +20,7 @@ class ListTimetablesTable extends Component
     #[Locked]
     public array $cycleSections = [];
 
-    /** @var array<int, array{id: int, name: string, description: string|null, status: string, variant: string, revision: int, published_at: string|null, can_manage: bool}> */
+    /** @var array<int, array{id: int, name: string, description: string|null, serves: string|null, status: string, variant: string, revision: int, published_at: string|null, can_manage: bool}> */
     #[Locked]
     public array $timetables = [];
 
@@ -27,7 +29,9 @@ class ListTimetablesTable extends Component
     public string $scope = 'section';
 
     /**
-     * A student sees only the published timetables of the section they attend, and the schoolwide ones.
+     * A student sees only the published timetables of the section they attend,
+     * of the subjects they take that meet at their own times, and the
+     * schoolwide ones.
      */
     #[Locked]
     public bool $isStudent = false;
@@ -76,7 +80,7 @@ class ListTimetablesTable extends Component
 
     public function updatedScope(): void
     {
-        if ($this->isStudent || !in_array($this->scope, ['section', 'schoolwide'], true)) {
+        if ($this->isStudent || !in_array($this->scope, ['section', 'offering', 'schoolwide'], true)) {
             $this->scope = 'section';
         }
 
@@ -95,15 +99,20 @@ class ListTimetablesTable extends Component
             return;
         }
 
+        $learner = $this->isStudent ? $this->attendedEnrollment() : null;
+
         $this->timetables = Timetable::query()
+            ->with('courseOffering.subject', 'courseOffering.academicLevel')
             ->where('academic_period_id', current_academic_period_id())
             ->when($this->isStudent, fn ($query) => $query
                 ->where('status', TimetableStatus::Published)
                 ->where(fn ($query) => $query
-                    ->whereNull('academic_cycle_section_id')
-                    ->when($this->academicCycleSectionId !== null, fn ($query) => $query->orWhere('academic_cycle_section_id', $this->academicCycleSectionId))))
+                    ->where(fn ($schoolwide) => $schoolwide->whereNull('academic_cycle_section_id')->whereNull('course_offering_id'))
+                    ->when($this->academicCycleSectionId !== null, fn ($query) => $query->orWhere('academic_cycle_section_id', $this->academicCycleSectionId))
+                    ->when($learner !== null, fn ($query) => $query->orWhereIn('course_offering_id', CourseOffering::query()->takenBy($learner)->select('id')))))
             ->when(!$this->isStudent && $this->scope === 'section', fn ($query) => $query->where('academic_cycle_section_id', $this->academicCycleSectionId))
-            ->when(!$this->isStudent && $this->scope === 'schoolwide', fn ($query) => $query->whereNull('academic_cycle_section_id'))
+            ->when(!$this->isStudent && $this->scope === 'offering', fn ($query) => $query->whereNotNull('course_offering_id'))
+            ->when(!$this->isStudent && $this->scope === 'schoolwide', fn ($query) => $query->whereNull('academic_cycle_section_id')->whereNull('course_offering_id'))
             ->orderByDesc('published_at')
             ->orderByDesc('revision')
             ->get()
@@ -111,6 +120,7 @@ class ListTimetablesTable extends Component
                 'id' => $timetable->id,
                 'name' => $timetable->name,
                 'description' => $timetable->description,
+                'serves' => $timetable->courseOffering?->qualifiedName(),
                 'status' => $timetable->status->label(),
                 'variant' => match ($timetable->status) {
                     TimetableStatus::Draft => 'secondary',
@@ -127,7 +137,12 @@ class ListTimetablesTable extends Component
 
     private function attendedSectionId(): ?int
     {
-        return auth()->user()->studentRecord()->attending()->value('academic_cycle_section_id');
+        return $this->attendedEnrollment()?->academic_cycle_section_id;
+    }
+
+    private function attendedEnrollment(): ?StudentRecord
+    {
+        return auth()->user()->studentRecord()->attending()->with('academicCycleSection.academicLevel')->first();
     }
 
     public function render(): View

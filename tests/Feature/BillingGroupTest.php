@@ -32,7 +32,6 @@ use App\Services\Fee\FeeInvoiceService;
 use App\Services\Finance\ChartOfAccounts;
 use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -419,10 +418,7 @@ class BillingGroupTest extends TestCase
         $manager = $this->organizationManager($organization);
         $elsewhere = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
 
-        $this->assertThrows(
-            fn () => Livewire::actingAs($manager)->test(OrganizationBillingGroups::class, ['organization' => $organization])->call('placeCampus', $elsewhere->id, ''),
-            ModelNotFoundException::class,
-        );
+        Livewire::actingAs($manager)->test(OrganizationBillingGroups::class, ['organization' => $organization])->call('placeCampus', $elsewhere->id, '')->assertNotFound();
     }
 
     public function test_a_group_of_another_organization_is_refused(): void
@@ -439,10 +435,7 @@ class BillingGroupTest extends TestCase
 
         $this->assertNull($first->fresh()->billing_group_id);
 
-        $this->assertThrows(
-            fn () => Livewire::actingAs($manager)->test(OrganizationBillingGroups::class, ['organization' => $organization])->call('deleteGroup', $elsewhere->id),
-            ModelNotFoundException::class,
-        );
+        Livewire::actingAs($manager)->test(OrganizationBillingGroups::class, ['organization' => $organization])->call('deleteGroup', $elsewhere->id)->assertNotFound();
         $this->assertNotNull($elsewhere->fresh());
     }
 

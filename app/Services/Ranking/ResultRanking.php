@@ -10,6 +10,7 @@ use App\Models\Cohort;
 use App\Models\CourseOffering;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
+use App\Services\Gradebook\CourseOfferingRoster;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -19,6 +20,8 @@ use Illuminate\Support\Collection;
  */
 class ResultRanking
 {
+    public function __construct(private CourseOfferingRoster $roster) {}
+
     /**
      * Rank everybody in a cohort.
      *
@@ -29,6 +32,21 @@ class ResultRanking
         $enrollmentIds = $cohort->members()->current()->whereNotNull('student_record_id')->pluck('student_record_id');
 
         return $this->rank($enrollmentIds->all(), $academicYearId, $academicPeriodId, $courseOffering, $subjectId, $courseOfferingIds);
+    }
+
+    /**
+     * Rank the learners of one course offering, in that offering alone.
+     *
+     * On a campus where learners move between rooms, a section shares no
+     * subjects, so the useful order is within one subject's roster.
+     *
+     * @return Collection<int, array{student_record_id: int, average: float, subjects: int, position: int}>
+     */
+    public function forCourseOffering(CourseOffering $courseOffering): Collection
+    {
+        $enrollmentIds = $this->roster->students($courseOffering)->pluck('id')->all();
+
+        return $this->rank($enrollmentIds, courseOffering: $courseOffering);
     }
 
     /**

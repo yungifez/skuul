@@ -14,7 +14,6 @@ use App\Models\User;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Services\AcademicYear\AcademicYearService;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -204,11 +203,7 @@ class AcademicYearTest extends TestCase
         ]);
         $this->authorized_user(['read academic year', 'read exam', 'delete exam']);
 
-        try {
-            Livewire::test(ShowAcademicYear::class, ['academicYear' => current_academic_year()])->call('deleteExam', $theirs->id);
-            $this->fail('Another school\'s exam was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ShowAcademicYear::class, ['academicYear' => current_academic_year()])->call('deleteExam', $theirs->id)->assertNotFound();
 
         $this->assertModelExists($theirs);
     }

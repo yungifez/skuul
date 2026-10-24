@@ -39,7 +39,6 @@ use App\Models\StudentRecord;
 use App\Services\Feature\FeatureManager;
 use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -332,8 +331,9 @@ class LibraryTest extends TestCase
             ->call('reserveFor', $this->memberOf($this->workingSchool())->id)
             ->assertHasErrors('titleId');
 
-        $this->assertThrows(fn () => Livewire::test(LibraryReservationQueue::class)
-            ->call('takeOff', $foreignReservation->id), ModelNotFoundException::class);
+        Livewire::test(LibraryReservationQueue::class)
+            ->call('takeOff', $foreignReservation->id)
+            ->assertNotFound();
 
         $this->assertSame(1, LibraryReservation::query()->count());
         $this->assertTrue($foreignReservation->fresh()->isOpen());
@@ -428,8 +428,9 @@ class LibraryTest extends TestCase
             ->call('withdraw', $copy->id)
             ->assertDispatched('status-message', type: 'danger', message: 'Somebody has this copy. Take it back first.');
 
-        $this->assertThrows(fn () => Livewire::test(LibraryCopyCatalogComponent::class)
-            ->call('withdraw', $foreign->id), ModelNotFoundException::class);
+        Livewire::test(LibraryCopyCatalogComponent::class)
+            ->call('withdraw', $foreign->id)
+            ->assertNotFound();
 
         $this->assertSame(LibraryCopyStatus::OnShelf, $copy->fresh()->status);
         $this->assertSame(LibraryCopyStatus::OnShelf, $foreign->fresh()->status);
@@ -854,11 +855,12 @@ class LibraryTest extends TestCase
         app(FeatureManager::class)->enable(Feature::Library);
         $foreign = LibraryTitle::factory()->create(['organization_id' => School::factory()->create()->organization_id, 'title' => 'Private reader']);
 
-        $this->assertThrows(fn () => Livewire::test(LibraryShelvingForm::class)
+        Livewire::test(LibraryShelvingForm::class)
             ->call('start')
             ->set('titleSearch', 'Private reader')
             ->assertDontSee('Private reader')
-            ->call('pickTitle', $foreign->id), ModelNotFoundException::class);
+            ->call('pickTitle', $foreign->id)
+            ->assertNotFound();
 
         Livewire::test(LibraryShelvingForm::class)
             ->call('start')

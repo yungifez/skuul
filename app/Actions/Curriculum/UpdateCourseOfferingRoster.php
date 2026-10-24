@@ -49,8 +49,8 @@ class UpdateCourseOfferingRoster
                 throw new InvalidValueException('An archived course offering cannot be changed.');
             }
 
-            if ($courseOffering->academicLevel->is_group && $rosterMode !== RosterMode::AcademicLevel) {
-                throw new InvalidValueException('A level group can only use a whole-level roster.');
+            if (!$courseOffering->academicLevel->allowsRosterMode($rosterMode)) {
+                throw new InvalidValueException('A level group has no sections of its own. Choose the whole group or named learners.');
             }
 
             if ($courseOffering->academicYear->isClosed() || $courseOffering->academicPeriod->isClosed()) {
@@ -69,7 +69,7 @@ class UpdateCourseOfferingRoster
                 ->whereKey($studentRecordIds)
                 ->whereHas('academicCycleSection', function ($query) use ($courseOffering): void {
                     $query->where('academic_year_id', $courseOffering->academic_year_id)
-                        ->where('academic_level_id', $courseOffering->academic_level_id);
+                        ->whereIn('academic_level_id', $courseOffering->academicLevel->teachingScopeIds());
                 })
                 ->get();
             $academicLevel = $this->resolveAcademicLevel($courseOffering, $rosterMode, $academicLevelId, $cycleSections, $studentRecords);
@@ -90,6 +90,10 @@ class UpdateCourseOfferingRoster
             }
 
             $this->validateRoster($rosterMode, $academicCycleSectionIds, $studentRecordIds, $courseOffering->status);
+
+            if ($courseOffering->capacity !== null && $studentRecords->count() > $courseOffering->capacity) {
+                throw new InvalidValueException("This subject has room for {$courseOffering->capacity} learners. Name fewer learners or raise the capacity.");
+            }
 
             $activeKey = null;
 
@@ -147,7 +151,9 @@ class UpdateCourseOfferingRoster
             throw new InvalidValueException('Select sections from this class level only.');
         }
 
-        if ($rosterMode === RosterMode::IndividualRoster && $studentRecords->contains(fn (StudentRecord $student): bool => $student->academicCycleSection?->academic_level_id !== $academicLevel->id)) {
+        $learnerLevelIds = $academicLevel->teachingScopeIds();
+
+        if ($rosterMode === RosterMode::IndividualRoster && $studentRecords->contains(fn (StudentRecord $student): bool => !in_array($student->academicCycleSection?->academic_level_id, $learnerLevelIds, true))) {
             throw new InvalidValueException('Select learners from this class level only.');
         }
 

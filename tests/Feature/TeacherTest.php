@@ -10,7 +10,6 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Livewire\Livewire;
@@ -299,11 +298,7 @@ class TeacherTest extends TestCase
         $this->authorized_user(['read teacher', 'delete teacher']);
         auth()->user()->assignRole('teacher');
 
-        try {
-            Livewire::test(ListTeachersTable::class)->call('deleteTeacher', $teacher->id);
-            $this->fail('A teacher of another school was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListTeachersTable::class)->call('deleteTeacher', $teacher->id)->assertNotFound();
 
         $this->assertNotSoftDeleted($teacher);
     }

@@ -16,7 +16,6 @@ use App\Models\TimetableTimeSlot;
 use App\Models\User;
 use App\Models\Weekday;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Route;
@@ -183,11 +182,7 @@ class SubjectTest extends TestCase
         $theirs = Subject::factory()->create(['school_id' => School::factory()->create()->id]);
         $this->authorized_user(['read subject', 'delete subject']);
 
-        try {
-            Livewire::test(ListSubjectsTable::class)->call('deleteSubject', $theirs->id);
-            $this->fail('Another school\'s subject was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListSubjectsTable::class)->call('deleteSubject', $theirs->id)->assertNotFound();
 
         $this->assertNotSoftDeleted($theirs);
     }

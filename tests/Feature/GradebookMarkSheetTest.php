@@ -9,6 +9,7 @@ use App\Enums\AcademicPeriodStatus;
 use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
 use App\Enums\ResultApprovalStatus;
+use App\Enums\RosterMode;
 use App\Enums\TeachingRole;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\GradebookMarkSheet;
@@ -28,7 +29,6 @@ use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
@@ -364,9 +364,49 @@ class GradebookMarkSheetTest extends TestCase
 
         $sheet = Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $item->courseOffering]);
 
-        $this->assertThrows(fn () => $sheet->call('approveResult', $foreignResult->id), ModelNotFoundException::class);
+        $sheet->call('approveResult', $foreignResult->id)->assertNotFound();
 
         $this->assertSame(ResultApprovalStatus::Pending, $foreignResult->fresh()->approval_status);
+    }
+
+    public function test_a_teacher_of_one_section_marks_only_that_section_of_a_whole_level_offering(): void
+    {
+        $this->authorized_user(['read gradebook', 'manage gradebook', 'publish result']);
+        $courseOffering = $this->courseOffering();
+        $courseOffering->update(['roster_mode' => RosterMode::AcademicLevel]);
+        $item = $this->item(['max_points' => 20], $courseOffering);
+        $ada = $this->enrollment('Ada in my section');
+        $otherSection = AcademicCycleSection::factory()->create([
+            'school_id' => $courseOffering->school_id,
+            'academic_year_id' => $courseOffering->academic_year_id,
+            'academic_level_id' => $courseOffering->academic_level_id,
+        ]);
+        $ben = StudentRecord::factory()->create([
+            'school_id' => $courseOffering->school_id,
+            'academic_cycle_section_id' => $otherSection->id,
+            'user_id' => User::factory()->create(['name' => 'Ben in another section'])->id,
+        ]);
+        TeachingAssignment::create([
+            'school_id' => $courseOffering->school_id,
+            'subject_id' => $courseOffering->subject_id,
+            'user_id' => auth()->id(),
+            'academic_year_id' => $courseOffering->academic_year_id,
+            'academic_period_id' => $courseOffering->academic_period_id,
+            'course_offering_id' => $courseOffering->id,
+            'academic_cycle_section_id' => $this->cycleSection->id,
+            'role' => TeachingRole::Lead,
+            'starts_on' => today()->subMonth(),
+        ]);
+
+        Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $courseOffering->fresh()])
+            ->assertSee('Ada in my section')
+            ->assertDontSee('Ben in another section')
+            ->set("marks.$ada->id.points", '12')
+            ->set("marks.$ben->id", ['state' => 'graded', 'points' => '18', 'option' => '', 'comment' => ''])
+            ->call('save');
+
+        $this->assertSame(12.0, $this->entry($item, $ada)->points);
+        $this->assertNull($this->entry($item, $ben));
     }
 
     private function entry(GradeItem $item, StudentRecord $enrollment): ?GradeEntry

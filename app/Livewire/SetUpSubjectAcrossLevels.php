@@ -59,7 +59,7 @@ class SetUpSubjectAcrossLevels extends Component
 
         foreach ($levels as $level) {
             $this->configurations[$level->id] ??= [
-                'roster_mode' => $level->is_group ? RosterMode::AcademicLevel->value : RosterMode::HomeSection->value,
+                'roster_mode' => $this->defaultRosterMode($level)->value,
                 'section_ids' => [],
                 'planned_periods_per_week' => null,
                 'capacity' => null,
@@ -107,7 +107,7 @@ class SetUpSubjectAcrossLevels extends Component
 
             $plan[] = [
                 'academic_level_id' => (int) $levelId,
-                'roster_mode' => $level?->is_group ? RosterMode::AcademicLevel->value : ($configuration['roster_mode'] ?? RosterMode::HomeSection->value),
+                'roster_mode' => $this->rosterModeFor($level, $configuration['roster_mode'] ?? null)->value,
                 'academic_cycle_section_ids' => array_map('intval', $configuration['section_ids'] ?? []),
                 'planned_periods_per_week' => $this->wholeNumber($configuration['planned_periods_per_week'] ?? null),
                 'capacity' => $this->wholeNumber($configuration['capacity'] ?? null),
@@ -155,14 +155,40 @@ class SetUpSubjectAcrossLevels extends Component
     }
 
     /**
+     * Get the rosters the year's teaching setup allows.
+     *
+     * A named-learner offering starts with nobody on it. Staff name the
+     * learners from its roster page after it is added.
+     *
      * @return array<int, RosterMode>
      */
     private function rosterModes(): array
     {
-        return array_values(array_filter(
-            instructional_model($this->academicYear)->rosterModes(),
-            fn (RosterMode $mode): bool => $mode !== RosterMode::IndividualRoster,
-        ));
+        return instructional_model($this->academicYear)->rosterModes();
+    }
+
+    /**
+     * Get the roster a new row starts with: the year's default when the level can use it.
+     */
+    private function defaultRosterMode(AcademicLevel $level): RosterMode
+    {
+        $default = instructional_model($this->academicYear)->defaultRosterMode();
+
+        return $level->allowsRosterMode($default) ? $default : RosterMode::AcademicLevel;
+    }
+
+    /**
+     * Keep the chosen roster when the level can use it.
+     */
+    private function rosterModeFor(?AcademicLevel $level, ?string $chosen): RosterMode
+    {
+        $rosterMode = RosterMode::tryFrom((string) $chosen) ?? RosterMode::HomeSection;
+
+        if ($level === null || $level->allowsRosterMode($rosterMode)) {
+            return $rosterMode;
+        }
+
+        return $this->defaultRosterMode($level);
     }
 
     private function wholeNumber(int|string|null $value): ?int
