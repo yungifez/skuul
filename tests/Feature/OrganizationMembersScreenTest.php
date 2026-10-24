@@ -11,7 +11,6 @@ use App\Models\Organization;
 use App\Models\School;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -200,11 +199,8 @@ class OrganizationMembersScreenTest extends TestCase
         $screen = Livewire::actingAs($manager)
             ->test(OrganizationMembers::class, ['organization' => $organization]);
 
-        $this->assertThrows(fn () => $screen->call('revoke', $stranger->id), ModelNotFoundException::class);
-        $this->assertThrows(
-            fn () => $screen->set('editingUserId', $stranger->id)->call('savePermissions'),
-            ModelNotFoundException::class,
-        );
+        $screen->call('revoke', $stranger->id)->assertNotFound();
+        $screen->set('editingUserId', $stranger->id)->call('savePermissions')->assertNotFound();
 
         $this->assertTrue($stranger->fresh()->administersOrganization($otherOrganization));
     }
@@ -220,10 +216,7 @@ class OrganizationMembersScreenTest extends TestCase
             ->call('edit', $member->id)
             ->call('revoke', $member->id);
 
-        $this->assertThrows(
-            fn () => $screen->set('editingUserId', $member->id)->call('savePermissions'),
-            ModelNotFoundException::class,
-        );
+        $screen->set('editingUserId', $member->id)->call('savePermissions')->assertNotFound();
         $this->assertFalse($member->fresh()->administersOrganization($organization));
     }
 

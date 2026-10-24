@@ -13,7 +13,6 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -458,11 +457,7 @@ class NoticeTest extends TestCase
         $theirs = Notice::factory()->create(['school_id' => School::factory()->create()->id]);
         $this->authorized_user(['read notice', 'delete notice']);
 
-        try {
-            Livewire::test(ListNoticesTable::class)->call('deleteNotice', $theirs->id);
-            $this->fail('Another school\'s notice was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListNoticesTable::class)->call('deleteNotice', $theirs->id)->assertNotFound();
 
         $this->assertModelExists($theirs);
     }

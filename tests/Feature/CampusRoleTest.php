@@ -17,7 +17,6 @@ use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Authorization\RoleAuthority;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -173,7 +172,7 @@ class CampusRoleTest extends TestCase
             ->assertSee($ours->email)
             ->assertDontSee($theirs->email);
 
-        $this->assertThrows(fn () => $record->call('take', $theirs->id), ModelNotFoundException::class);
+        $record->call('take', $theirs->id)->assertNotFound();
         $this->assertTrue(app(RoleAuthority::class)->holdersAt($librarian, School::query()->findOrFail($theirs->schoolMemberships()->value('school_id')))->whereKey($theirs->id)->exists());
     }
 

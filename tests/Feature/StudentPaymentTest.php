@@ -27,7 +27,6 @@ use App\Services\Finance\ChartOfAccounts;
 use App\Services\Finance\PaymentChannelRegistry;
 use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
@@ -754,11 +753,7 @@ class StudentPaymentTest extends TestCase
         $screen = Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
             ->assertDontSeeHtml("startReversing({$payment->id})");
 
-        try {
-            $screen->call('startReversing', $payment->id);
-            $this->fail('A campus opened the reversal of another campus\'s payment.');
-        } catch (ModelNotFoundException) {
-        }
+        $screen->call('startReversing', $payment->id)->assertNotFound();
 
         $this->assertFalse($payment->fresh()->isReversed());
     }
@@ -944,8 +939,7 @@ class StudentPaymentTest extends TestCase
         $screen = Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
             ->assertDontSeeHtml("startRelieving({$invoice->id})");
 
-        $this->expectException(ModelNotFoundException::class);
-        $screen->call('startRelieving', $invoice->id);
+        $screen->call('startRelieving', $invoice->id)->assertNotFound();
     }
 
     public function test_a_fee_cannot_be_waived_below_what_the_campus_books_still_hold(): void

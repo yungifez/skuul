@@ -17,7 +17,6 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Services\Graduation\GraduationProgress;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -339,21 +338,13 @@ class GraduationPlanScreenTest extends TestCase
             'reason' => 'Kept.',
         ]);
 
-        $this->assertThrows(
-            fn () => Livewire::test(GraduationPlanRecord::class, ['plan' => $plan])
-                ->set('learnerId', (string) $learner->id)
-                ->set('reasons.'.$requirement->id, 'Should not work.')
-                ->call('excuse', $requirement->id),
-            ModelNotFoundException::class,
-        );
-        $this->assertThrows(
-            fn () => Livewire::test(GraduationPlanRecord::class, ['plan' => $plan])->call('takeBack', $theirExemption->id),
-            ModelNotFoundException::class,
-        );
-        $this->assertThrows(
-            fn () => Livewire::test(GraduationPlanRecord::class, ['plan' => $plan])->call('removeRequirement', $requirement->id),
-            ModelNotFoundException::class,
-        );
+        Livewire::test(GraduationPlanRecord::class, ['plan' => $plan])
+            ->set('learnerId', (string) $learner->id)
+            ->set('reasons.'.$requirement->id, 'Should not work.')
+            ->call('excuse', $requirement->id)
+            ->assertNotFound();
+        Livewire::test(GraduationPlanRecord::class, ['plan' => $plan])->call('takeBack', $theirExemption->id)->assertNotFound();
+        Livewire::test(GraduationPlanRecord::class, ['plan' => $plan])->call('removeRequirement', $requirement->id)->assertNotFound();
 
         $this->assertSame(1, GraduationExemption::count());
         $this->assertNotNull($requirement->fresh());

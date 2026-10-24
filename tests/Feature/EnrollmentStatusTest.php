@@ -15,7 +15,6 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
@@ -360,11 +359,7 @@ class EnrollmentStatusTest extends TestCase
 
         $this->authorized_user(['read student', 'reset graduation']);
 
-        try {
-            Livewire::test(ListGraduationsTable::class)->call('resetGraduation', $student->id);
-            $this->fail('A graduation of another school was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListGraduationsTable::class)->call('resetGraduation', $student->id)->assertNotFound();
 
         $this->assertSame(EnrollmentStatus::Graduated, $enrollment->fresh()->status);
     }

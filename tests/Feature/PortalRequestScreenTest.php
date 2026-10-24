@@ -14,7 +14,6 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -143,10 +142,7 @@ class PortalRequestScreenTest extends TestCase
         $learnersOwn = $this->request($enrollment);
         $this->actingAs($guardian);
 
-        $this->assertThrows(
-            fn () => Livewire::test(PortalRequests::class, ['studentRecord' => $enrollment])->call('withdraw', $learnersOwn->id),
-            ModelNotFoundException::class,
-        );
+        Livewire::test(PortalRequests::class, ['studentRecord' => $enrollment])->call('withdraw', $learnersOwn->id)->assertNotFound();
 
         $this->assertSame(PortalRequestStatus::Submitted, $learnersOwn->fresh()->status);
     }
@@ -439,15 +435,9 @@ class PortalRequestScreenTest extends TestCase
             ->set('statusesByRequest.'.$foreignRequest->id, PortalRequestStatus::Answered->value)
             ->set('responsesByRequest.'.$foreignRequest->id, 'Attempted access');
 
-        try {
-            $inbox->call('changeStatus', $foreignRequest->id);
-        } catch (ModelNotFoundException) {
-            $this->assertSame(PortalRequestStatus::Submitted, $foreignRequest->fresh()->status);
+        $inbox->call('changeStatus', $foreignRequest->id)->assertNotFound();
 
-            return;
-        }
-
-        $this->fail('The inbox action reached a request from another school.');
+        $this->assertSame(PortalRequestStatus::Submitted, $foreignRequest->fresh()->status);
     }
 
     public function test_the_inbox_needs_permission(): void

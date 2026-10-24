@@ -35,7 +35,6 @@ use App\Models\User;
 use App\Policies\CourseOfferingPolicy;
 use App\Services\Gradebook\CourseOfferingRoster;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -517,8 +516,8 @@ class CourseOfferingTest extends TestCase
 
         $directory = Livewire::test(CourseOfferingDirectory::class)->assertDontSee($subject->name);
 
-        $this->assertThrows(fn () => $directory->call('activate', $foreign->id), ModelNotFoundException::class);
-        $this->assertThrows(fn () => $directory->call('startAssigning', $foreign->id), ModelNotFoundException::class);
+        $directory->call('activate', $foreign->id)->assertNotFound();
+        $directory->call('startAssigning', $foreign->id)->assertNotFound();
 
         $this->assertSame(CourseOfferingStatus::Draft, $foreign->fresh()->status);
     }

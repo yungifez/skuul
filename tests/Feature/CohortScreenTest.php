@@ -23,7 +23,6 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -410,11 +409,9 @@ class CohortScreenTest extends TestCase
         $other = $this->program(ProgramType::Intervention, 'Reading support');
         $theirPlace = app(ChangeProgramParticipation::class)->join($other, $this->enrollment());
 
-        $this->assertThrows(
-            fn () => Livewire::test(ProgramRecord::class, ['program' => $program])
-                ->call('movePlace', $theirPlace->id, ParticipationStatus::Withdrawn->value, ParticipationStatus::Requested->value),
-            ModelNotFoundException::class,
-        );
+        Livewire::test(ProgramRecord::class, ['program' => $program])
+            ->call('movePlace', $theirPlace->id, ParticipationStatus::Withdrawn->value, ParticipationStatus::Requested->value)
+            ->assertNotFound();
 
         $this->assertSame(ParticipationStatus::Requested, $theirPlace->fresh()->status);
     }
@@ -451,10 +448,7 @@ class CohortScreenTest extends TestCase
             ->call('addMember')
             ->assertHasErrors('studentRecordId');
 
-        $this->assertThrows(
-            fn () => Livewire::test(CohortRecord::class, ['cohort' => $cohort])->call('removeMember', $theirMember->id),
-            ModelNotFoundException::class,
-        );
+        Livewire::test(CohortRecord::class, ['cohort' => $cohort])->call('removeMember', $theirMember->id)->assertNotFound();
 
         $this->assertSame(0, $cohort->members()->count());
         $this->assertNull($theirMember->fresh()->left_on);

@@ -13,7 +13,6 @@ use App\Models\AuditEvent;
 use App\Models\Exam;
 use App\Models\School;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -365,11 +364,7 @@ class ExamTest extends TestCase
         ]);
         $this->authorized_user(['read exam', 'delete exam']);
 
-        try {
-            Livewire::test(ListExamsTable::class)->call('deleteExam', $theirs->id);
-            $this->fail('Another school\'s exam was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListExamsTable::class)->call('deleteExam', $theirs->id)->assertNotFound();
 
         $this->assertModelExists($theirs);
     }

@@ -18,7 +18,6 @@ use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Portal\PortalAccess;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Livewire\Livewire;
@@ -303,11 +302,7 @@ class ParentTest extends TestCase
         $this->memberOf(School::factory()->create(), $parent->refresh());
         $this->authorized_user(['read parent', 'delete parent']);
 
-        try {
-            Livewire::test(ListParentsTable::class)->call('deleteParent', $parent->id);
-            $this->fail('A parent of another school was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListParentsTable::class)->call('deleteParent', $parent->id)->assertNotFound();
 
         $this->assertNotSoftDeleted($parent);
     }

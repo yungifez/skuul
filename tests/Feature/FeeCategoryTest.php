@@ -9,7 +9,6 @@ use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\School;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Route;
@@ -181,11 +180,7 @@ class FeeCategoryTest extends TestCase
         $theirs = FeeCategory::factory()->create(['school_id' => School::factory()->create()->id]);
         $this->authorized_user(['read fee category', 'delete fee category']);
 
-        try {
-            Livewire::test(ListFeeCategoriesTable::class)->call('deleteCategory', $theirs->id);
-            $this->fail('Another school\'s fee category was reached.');
-        } catch (ModelNotFoundException) {
-        }
+        Livewire::test(ListFeeCategoriesTable::class)->call('deleteCategory', $theirs->id)->assertNotFound();
 
         $this->assertModelExists($theirs);
         $this->assertNotSoftDeleted($theirs);

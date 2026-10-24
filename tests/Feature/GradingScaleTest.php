@@ -18,7 +18,6 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -108,9 +107,9 @@ class GradingScaleTest extends TestCase
 
         Livewire::test(GradingScaleManager::class)->assertDontSee('Their scale');
 
-        $this->assertThrows(fn () => Livewire::test(GradingScaleManager::class)->call('startChanging', $scale->id), ModelNotFoundException::class);
-        $this->assertThrows(fn () => Livewire::test(GradingScaleManager::class)->call('delete', $scale->id), ModelNotFoundException::class);
-        $this->assertThrows(fn () => Livewire::test(GradingScaleManager::class)->call('setOffered', $scale->id, false), ModelNotFoundException::class);
+        Livewire::test(GradingScaleManager::class)->call('startChanging', $scale->id)->assertNotFound();
+        Livewire::test(GradingScaleManager::class)->call('delete', $scale->id)->assertNotFound();
+        Livewire::test(GradingScaleManager::class)->call('setOffered', $scale->id, false)->assertNotFound();
 
         $this->assertTrue($scale->fresh()->is_active);
     }

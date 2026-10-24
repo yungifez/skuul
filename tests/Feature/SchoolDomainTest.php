@@ -21,7 +21,6 @@ use App\Services\School\DnsTextRecords;
 use App\Services\School\DomainContext;
 use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Livewire\Livewire;
@@ -376,12 +375,9 @@ class SchoolDomainTest extends TestCase
             ->assertDontSee($elsewhere->host)
             ->assertDontSee($theirCampus->name);
 
-        $this->assertThrows(fn () => $component->call('giveUp', $elsewhere->id), ModelNotFoundException::class);
-        $this->assertThrows(fn () => $component->call('verify', $elsewhere->id), ModelNotFoundException::class);
-        $this->assertThrows(
-            fn () => $component->set('host', 'mine.example.school')->set('schoolId', (string) $theirCampus->id)->call('claim'),
-            ModelNotFoundException::class,
-        );
+        $component->call('giveUp', $elsewhere->id)->assertNotFound();
+        $component->call('verify', $elsewhere->id)->assertNotFound();
+        $component->set('host', 'mine.example.school')->set('schoolId', (string) $theirCampus->id)->call('claim')->assertNotFound();
 
         $this->assertNotNull($elsewhere->fresh());
         $this->assertNull(SchoolDomain::firstWhere('host', 'mine.example.school'));

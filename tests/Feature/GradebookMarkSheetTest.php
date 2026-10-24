@@ -29,7 +29,6 @@ use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
@@ -365,7 +364,7 @@ class GradebookMarkSheetTest extends TestCase
 
         $sheet = Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $item->courseOffering]);
 
-        $this->assertThrows(fn () => $sheet->call('approveResult', $foreignResult->id), ModelNotFoundException::class);
+        $sheet->call('approveResult', $foreignResult->id)->assertNotFound();
 
         $this->assertSame(ResultApprovalStatus::Pending, $foreignResult->fresh()->approval_status);
     }
