@@ -11,6 +11,7 @@ use App\Livewire\AssignStudentsToParent;
 use App\Livewire\CreateParentForm;
 use App\Livewire\EditParentForm;
 use App\Livewire\ListParentsTable;
+use App\Models\AcademicCycleSection;
 use App\Models\AuditEvent;
 use App\Models\PortalRequest;
 use App\Models\School;
@@ -338,7 +339,7 @@ class ParentTest extends TestCase
 
     public function test_linking_the_same_learner_twice_changes_nothing(): void
     {
-        $student = StudentRecord::factory()->create();
+        $student = $this->onlyLearnerOfASection();
         $parent = $this->guardian();
         $this->authorized_user(['update parent']);
 
@@ -360,7 +361,7 @@ class ParentTest extends TestCase
 
     public function test_an_unlinked_learner_returns_to_the_list(): void
     {
-        $student = StudentRecord::factory()->create();
+        $student = $this->onlyLearnerOfASection();
         $parent = $this->guardian();
         $this->authorized_user(['update parent']);
 
@@ -484,5 +485,21 @@ class ParentTest extends TestCase
         $parent->assignRole('parent');
 
         return $parent;
+    }
+
+    /**
+     * Create a learner who is alone in a new section, so seeded learners stay off the link list.
+     */
+    private function onlyLearnerOfASection(): StudentRecord
+    {
+        $learner = StudentRecord::factory()->create();
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $learner->school_id,
+            'academic_year_id' => $learner->academicCycleSection->academic_year_id,
+            'academic_level_id' => $learner->academicCycleSection->academic_level_id,
+        ]);
+        $learner->update(['academic_cycle_section_id' => $section->id]);
+
+        return $learner;
     }
 }
