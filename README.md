@@ -41,12 +41,12 @@ target runtime to check its PHP version and extensions.
 
 ## Local setup
 
-These commands use the current V3 development branch. Use a release tag when installing a published release.
+These commands use `main`, the V3 development branch. Use a release tag when installing a published release.
 
-1. Clone the development branch and enter its directory:
+1. Clone `main` and enter its directory:
 
    ```sh
-   git clone --branch modernization/domain-slices https://github.com/yungifez/skuul.git skuul
+   git clone --branch main https://github.com/yungifez/skuul.git skuul
    cd skuul
    ```
 

@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version number, for example 3.1.1
+        required: true
+        type: string
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  validate:
+    name: Validate release version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate version and tag
+        id: version
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
+        run: |
+          version="${VERSION_INPUT#v}"
+
+          if [[ ! "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Version must use semantic versioning, for example 3.1.1."
+            exit 1
+          fi
+
+          if git ls-remote --exit-code --tags origin "refs/tags/v${version}" >/dev/null 2>&1; then
+            echo "Tag v${version} already exists."
+            exit 1
+          fi
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Require passing tests on main
+        id: commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha="$(git rev-parse HEAD)"
+          conclusion="$(gh run list --workflow laravel-tests.yml --commit "$sha" --event push --json conclusion --jq '.[0].conclusion')"
+
+          if [[ "$conclusion" != "success" ]]; then
+            echo "The Laravel tests workflow has not passed on ${sha}. Result: ${conclusion:-none}."
+            exit 1
+          fi
+
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+
+  release:
+    name: Create GitHub release
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Create tag and GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.validate.outputs.version }}
+          SHA: ${{ needs.validate.outputs.sha }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v${VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${VERSION} already exists."
+            exit 1
+          fi
+
+          # Use the changelog entry of this version as the release notes, when there is one.
+          awk -v version="$VERSION" '
+            /^## / { if (found) exit; if (index($0, "[" version "]") || index($0, "v" version " ")) { found = 1; next } }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${VERSION}" "$SHA" -m "Release v${VERSION}"
+          git push origin "v${VERSION}"
+
+          if [[ -s release-notes.md ]]; then
+            gh release create "v${VERSION}" --verify-tag --title "v${VERSION}" --notes-file release-notes.md
+          else
+            gh release create "v${VERSION}" --verify-tag --title "v${VERSION}" --generate-notes
+          fi

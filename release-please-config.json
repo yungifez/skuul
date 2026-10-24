@@ -1,0 +1,12 @@
+{
+  "include-component-in-tag": false,
+  "bootstrap-sha": "a66bdf6000ae4bb391fba9e0a648ab846d29b6d2",
+  "packages": {
+    ".": {
+      "release-type": "php",
+      "package-name": "yungifez/skuul",
+      "include-v-in-tag": true,
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}
