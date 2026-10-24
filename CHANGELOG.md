@@ -2,6 +2,13 @@
 
 All notable changes to `skuul` will be documented in this file.
 
+## [3.1.1](https://github.com/yungifez/skuul/compare/v3.1.0...v3.1.1) (2026-10-24)
+
+
+### Miscellaneous Chores
+
+* set up Release Please and a security policy ([#439](https://github.com/yungifez/skuul/issues/439)) ([358e0e8](https://github.com/yungifez/skuul/commit/358e0e8266e3d06fccdbb8b52a67b9c064959f95))
+
 ## [3.1.0](https://github.com/yungifez/skuul/compare/v3.0.2...v3.1.0) (2026-10-24)
 
 Skuul now supports both ways of teaching: learners who stay in one class all day, and learners who move between subjects.
