@@ -10,6 +10,12 @@
         <x-show-set-school />
     </div>
     <div class="flex h-full shrink-0 items-center gap-1" x-data="{'fullScreen' : $persist(false) }">
+        <a href="https://skuul.org/current/using/workspace" target="_blank" rel="noopener noreferrer"
+            class="inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-md text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto sm:px-3"
+            aria-label="Documentation (opens in a new tab)">
+            <x-lucide-book-open class="size-4" />
+            <span class="hidden sm:inline">Documentation</span>
+        </a>
         <button type="button" x-on:click="$dispatch('open-command-palette')"
             class="hidden h-9 items-center gap-2 rounded-md border bg-muted/40 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted sm:flex"
             aria-label="{{ __('Search pages and features') }}">

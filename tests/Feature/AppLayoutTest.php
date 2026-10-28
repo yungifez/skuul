@@ -86,6 +86,28 @@ class AppLayoutTest extends TestCase
         );
     }
 
+    public function test_documentation_is_available_in_the_header_and_both_sidebar_layouts(): void
+    {
+        $document = new \DOMDocument;
+        @$document->loadHTML($this->dashboardHtml());
+        $xpath = new \DOMXPath($document);
+        $links = $xpath->query('//a[@href="https://skuul.org/current/using/workspace"]');
+
+        $this->assertNotFalse($links);
+        $this->assertSame(3, $links->length);
+        $headerLinks = $xpath->query('//header//a[@href="https://skuul.org/current/using/workspace"]');
+        $this->assertNotFalse($headerLinks);
+        $this->assertSame(1, $headerLinks->length);
+
+        foreach ($links as $link) {
+            $this->assertInstanceOf(\DOMElement::class, $link);
+            $this->assertSame('_blank', $link->getAttribute('target'));
+            $this->assertSame('noopener noreferrer', $link->getAttribute('rel'));
+            $this->assertSame('Documentation (opens in a new tab)', $link->getAttribute('aria-label'));
+            $this->assertFalse($link->hasAttribute('wire:navigate'));
+        }
+    }
+
     /**
      * Render the dashboard as somebody who may open it.
      */

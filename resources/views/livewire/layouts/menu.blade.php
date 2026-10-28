@@ -133,6 +133,12 @@ $menuGroups[] = $currentGroup;
         </slot:content>
 
         <slot:footer>
+            <a href="https://skuul.org/current/using/workspace" target="_blank" rel="noopener noreferrer"
+                aria-label="Documentation (opens in a new tab)"
+                class="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-data-[collapsible=icon]:justify-center">
+                <x-lucide-book-open class="size-4 shrink-0" />
+                <span class="group-data-[collapsible=icon]:hidden">Documentation</span>
+            </a>
             <a href="{{route('profile.show')}}"
                 class="flex h-10 items-center gap-2 rounded-md px-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center"
                 wire:navigate>
